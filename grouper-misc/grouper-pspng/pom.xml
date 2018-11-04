@@ -34,6 +34,7 @@
  <properties>
        <maven.compiler.target>1.7</maven.compiler.target>
       <maven.compiler.source>1.7</maven.compiler.source>
+<subject.version>2.3.0</subject.version>
  </properties>
  <repositories>
 	 <repository>
@@ -55,7 +56,7 @@
     </dependency>
     <dependency>
         <groupId>${project.groupId}</groupId>
-        <version>${project.version}</version>
+        <version>${subject.version}</version>
         <artifactId>subject</artifactId>
     </dependency>
       <dependency>
