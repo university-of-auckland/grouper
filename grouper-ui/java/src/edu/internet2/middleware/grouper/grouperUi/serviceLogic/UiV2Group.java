@@ -912,7 +912,7 @@ public class UiV2Group {
             HibernateSession hibernateSession = hibernateHandlerBean
                 .getHibernateSession();
             Session session = hibernateSession.getSession();
-            Query query = session.getNamedQuery("callDdbmsSessionSetIdentifier")
+            Query query = session.getNamedQuery("callOccursCheckBoolean")
                 .setParameter("parentId", parentId).setParameter("childId", childId);
 
             return 0 != query.list().size();
