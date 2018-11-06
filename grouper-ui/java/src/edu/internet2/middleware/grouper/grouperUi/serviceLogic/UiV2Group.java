@@ -23,15 +23,17 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.persistence.EntityManager;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 
 import edu.internet2.middleware.grouper.Composite;
@@ -132,7 +134,8 @@ import edu.internet2.middleware.subject.provider.SourceManager;
 public class UiV2Group {
 
   @NamedNativeQueries({
-      @NamedNativeQuery(name = "callOccursCheckBoolean", query = "CALL occurs_check_boolean(:parent_group_id, :child_group_id)", resultClass = Boolean.class)
+      @NamedNativeQuery(name = "groupCycleOccursCheck", query = "{? = CALL group_cycle_occurs_check(:parent_group_id, :child_group_id) }", resultClass = Boolean.class, hints = {
+          @javax.persistence.QueryHint(name = "org.hibernate.callable", value = "true") })
   })
 
   /**
@@ -893,6 +896,9 @@ public class UiV2Group {
     }
   }
 
+  @PersistenceContext
+  private EntityManager em;
+
   /**
   *
   * @param parentId
@@ -902,22 +908,40 @@ public class UiV2Group {
   public boolean callOccursCheckBoolean(final String parentId, final String childId)
       throws GrouperDAOException {
     boolean result = false;
-    result = (Boolean) HibernateSession.callbackHibernateSession(
-        GrouperTransactionType.READONLY_OR_USE_EXISTING, AuditControl.WILL_NOT_AUDIT,
-        new HibernateHandler() {
+    try {
+      result = (Boolean) HibernateSession.callbackHibernateSession(
+          GrouperTransactionType.READONLY_OR_USE_EXISTING, AuditControl.WILL_NOT_AUDIT,
+          new HibernateHandler() {
 
-          @Override
-          public Object callback(HibernateHandlerBean hibernateHandlerBean)
-              throws GrouperDAOException {
-            HibernateSession hibernateSession = hibernateHandlerBean
-                .getHibernateSession();
-            Session session = hibernateSession.getSession();
-            Query query = session.getNamedQuery("callOccursCheckBoolean")
-                .setParameter("parentId", parentId).setParameter("childId", childId);
+            @Override
+            public Object callback(HibernateHandlerBean hibernateHandlerBean)
+                throws GrouperDAOException {
+              boolean r = true;
 
-            return 0 != query.list().size();
-          }
-        });
+              try {
+                HibernateSession hibernateSession = hibernateHandlerBean
+                    .getHibernateSession();
+
+                Session session = hibernateSession.getSession();
+                //                StoredProcedureQuery q = em.createStoredFunctionQuery("");
+                // Query query = em.createNativeQuery(
+                //   "SELECT group_cycle_occurs_check(:parent_group_id, :child_group_id) FROM DUAL"); // session.getNamedQuery("groupCycleOccursCheck")                    .setParameter("parentId", parentId).setParameter("childId", childId);
+
+                SQLQuery statement = session.createSQLQuery(
+                    "SELECT group_cycle_occurs_check(:parent_group_id, :child_group_id) FROM DUAL");
+                statement.setParameter("parent_group_id", parentId);
+                statement.setString("child_group_id", childId);
+                Object res = statement.uniqueResult();
+                r = "true".equals(res.toString());
+              } catch (Throwable e) {
+                e.printStackTrace();
+              }
+              return r;
+            }
+          });
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
 
     return result;
   }
@@ -1017,10 +1041,11 @@ public class UiV2Group {
       }
 
       // @UOA@
-      if (callOccursCheckBoolean(group.getUuid(), subject.getId())) {
+      if (null != subject.getId() && 32 == subject.getId().length()
+          && callOccursCheckBoolean(group.getUuid(), subject.getId())) {
         guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error,
             TextContainer.retrieveFromRequest().getText()
-                .get("groupAddMemberCantFindSubject")));
+                .get("groupAddMemberWouldCreateCycle")));
         return;
       }
 
@@ -1080,6 +1105,8 @@ public class UiV2Group {
         return;
       }
       throw re;
+    } catch (Throwable e) {
+      e.printStackTrace();
     } finally {
       GrouperSession.stopQuietly(grouperSession);
     }
