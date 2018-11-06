@@ -40,6 +40,9 @@
         <div class="row-fluid">
           
           <div class="span3 left-column">
+<div id="fish">
+<img class="brand" src="../../grouper/images/grouper.png" alt="Logo" />
+</div>
             <div class="btn-group btn-group-create"><a href="#" 
               onclick="return guiV2link('operation=UiV2Group.newGroup', {optionalFormElementNamesToSend: 'objectStemId'});"
               class="btn btn-bigger btn-create" role="button"><i class="fa fa-plus"></i> ${textContainer.text['groupNewCreateNewGroupMenuButton'] }</a>
@@ -118,3 +121,17 @@
   </body>
   <!-- end index.jsp -->
 </html>
+
+<script type="text/javascript" language="JavaScript">
+
+window.onload = function() {
+randomNumber = Math.floor(Math.random() * 100);
+  if (0 == randomNumber) {
+    document.getElementById("fish").style.display = "inline";
+  } else {
+    document.getElementById("fish").style.display = "none";
+  }
+}
+// --> 
+</script>
+
