@@ -900,6 +900,18 @@ public class UiV2Group {
   private EntityManager em;
 
   /**
+   * @param parentId
+   * @param childId
+   * @return
+   */
+  public boolean checkIfCycleWouldBeCreated(String parentId, String childId) {
+    if (parentId.equals(childId)) {
+      return true;
+    }
+    return callOccursCheckBoolean(parentId, childId);
+  }
+
+  /**
   *
   * @param parentId
   * @param childId
@@ -1042,7 +1054,7 @@ public class UiV2Group {
 
       // @UOA@
       if (null != subject.getId() && 32 == subject.getId().length()
-          && callOccursCheckBoolean(group.getUuid(), subject.getId())) {
+          && checkIfCycleWouldBeCreated(group.getUuid(), subject.getId())) {
         guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error,
             TextContainer.retrieveFromRequest().getText()
                 .get("groupAddMemberWouldCreateCycle")));
