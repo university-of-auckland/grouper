@@ -1,53 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-
-    Copyright 2014 Internet2
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<!-- Copyright 2014 Internet2 Licensed under the Apache License, Version 
+    2.0 (the "License"); you may not use this file except in compliance with 
+    the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+    Unless required by applicable law or agreed to in writing, software distributed 
+    under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+    OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+    the specific language governing permissions and limitations under the License. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- <parent> <groupId>edu.internet2.middleware.grouper</groupId> <artifactId>grouper-ws-parent</artifactId> 
+        <version>2.4.0-SNAPSHOT</version> <relativePath>../../grouper-ws</relativePath> 
+        </parent> -->
     <parent>
-        <groupId>edu.internet2.middleware.grouper</groupId>
-        <artifactId>grouper-ws-parent</artifactId>
-        <version>2.4.0-SNAPSHOT</version>
-        <relativePath>../../grouper-ws</relativePath>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.0.RELEASE</version>
+        <relativePath /> <!-- lookup parent from repository -->
     </parent>
 
     <name>Grouper WS</name>
     <description>Internet2 Groups Management WS Core</description>
     <artifactId>grouper-ws</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <version>2.4.0-SNAPSHOT</version>
+
+    <properties>
+        <SWAGGERHUB_APIKEY>3545d044-8979-40dc-9772-b776d7e14252</SWAGGERHUB_APIKEY>
+        <swagger.version>2.0.0</swagger.version>
+        <jackson.version>2.9.4</jackson.version>
+        <jersey2.version>2.26</jersey2.version>
+    </properties>
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+        <!--Dependency for swagger ui -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>1.5.21</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>edu.internet2.middleware.grouper</groupId>
             <artifactId>grouper</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.4</version>
-            <scope>provided</scope>
-        </dependency>
--->
+        <!-- <dependency> <groupId>javax.servlet</groupId> <artifactId>servlet-api</artifactId> 
+            <version>2.4</version> <scope>provided</scope> </dependency> -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -56,7 +83,37 @@
         <dependency>
             <groupId>org.jdom</groupId>
             <artifactId>jdom</artifactId>
+            <version>1.1.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>2.1.0.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>2.1.0.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.ws.security</groupId>
             <artifactId>wss4j</artifactId>
@@ -131,7 +188,8 @@
         <dependency>
             <groupId>org.apache.rampart</groupId>
             <artifactId>rampart-core</artifactId>
-            <version>1.6.3</version><!-- version 1.6.1 has issues with trying to get opensaml dep from non-existent shibboleth repo -->
+            <version>1.6.3</version><!-- version 1.6.1 has issues with trying 
+                to get opensaml dep from non-existent shibboleth repo -->
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -198,7 +256,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>edu.internet2.middleware.grouper</groupId>
             <artifactId>grouper</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
@@ -210,26 +268,22 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- still undetermined dependencies (provided in lib dir but jdeps doesn't show any use)
-        axis2-xmlbeans-1.6.1.jar
-        axis2-adb-codegen-1.6.1.jar
-        axis2-codegen-1.6.1.jar
-        axis2-java2wsdl-1.6.1.jar
-        axis2-xmlbeans-1.6.1.jar
-        cron-parser-core-3.4.jar
-        ddlutils-1.0.jar
-        ehcache-core-2.4.8.jar
-        stax-1.2.0.jar (stax-api is pulled in by ddlutils, suitable replacement?)
-        xmlbeans-2.3.0.jar
-        xmltooling-1.2.0.jar
-        xom-1.1.jar
-        -->
+        <!-- still undetermined dependencies (provided in lib dir but jdeps 
+            doesn't show any use) axis2-xmlbeans-1.6.1.jar axis2-adb-codegen-1.6.1.jar 
+            axis2-codegen-1.6.1.jar axis2-java2wsdl-1.6.1.jar axis2-xmlbeans-1.6.1.jar 
+            cron-parser-core-3.4.jar ddlutils-1.0.jar ehcache-core-2.4.8.jar stax-1.2.0.jar 
+            (stax-api is pulled in by ddlutils, suitable replacement?) xmlbeans-2.3.0.jar 
+            xmltooling-1.2.0.jar xom-1.1.jar -->
     </dependencies>
+
     <build>
         <sourceDirectory>src/grouper-ws</sourceDirectory>
         <testSourceDirectory>src/test</testSourceDirectory>
-        
+
         <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
             <resource>
                 <directory>conf</directory>
                 <includes>
@@ -253,12 +307,143 @@
 
         <plugins>
             <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <id>swagger-ui</id>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <skipCache>true</skipCache>
+                            <url>https://github.com/swagger-api/swagger-ui/archive/master.tar.gz</url>
+                            <unpack>true</unpack>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>9.4.14.v20181114</version>
+                <!-- <version>${jetty-version}</version> -->
+                <configuration>
+                    <webApp>
+                        <contextPath>/</contextPath>
+                    </webApp>
+                    <webAppSourceDirectory>target/${project.artifactId}-${project.version}</webAppSourceDirectory>
+                    <stopPort>8079</stopPort>
+                    <stopKey>stopit</stopKey>
+                    <httpConnector>
+                        <port>8002</port>
+                        <idleTimeout>60000</idleTimeout>
+                    </httpConnector>
+                    <systemProperties>
+                        <systemProperty>
+                            <name>org.eclipse.jetty.util.log.Log</name>
+                            <value>org.eclipse.jetty.util.log.Slf4jLog</value>
+                        </systemProperty>
+                        <systemProperty>
+                            <name>logback.configurationFile</name>
+                            <value>src/main/resources/logback.xml</value>
+                        </systemProperty>
+                    </systemProperties>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>start-jetty</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <scanIntervalSeconds>0</scanIntervalSeconds>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop-jetty</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/${project.artifactId}-${project.version}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/swagger-ui-master/dist</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>index.html</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-maven-plugin</artifactId>
+                <version>2.0.5</version>
+                <configuration>
+                    <outputFileName>GrouperRestAPI</outputFileName>
+                    <outputPath>${project.build.directory}</outputPath>
+                    <outputFormat>JSON</outputFormat>
+                    <resourcePackages>
+                        <package>edu.internet2.middleware.grouper</package>
+                        <package>nz.ac.auckland.swagger.grouper</package>
+                    </resourcePackages>
+                    <prettyPrint>TRUE</prettyPrint>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>resolve</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- <plugin> <groupId>io.swagger</groupId> <artifactId>swaggerhub-maven-plugin</artifactId> 
+                <version>1.0.2</version> <executions> <execution> <phase>generate-resources</phase> 
+                <goals> <goal>download</goal> </goals> <configuration> <api>GrouperRestAPI</api> 
+                <owner>nick_ms</owner> <version>1.0.0</version> <outputFile>target/GrouperRestAPI.json</outputFile> 
+                <token>${SWAGGERHUB_APIKEY}</token> </configuration> </execution> </executions> 
+                </plugin> -->
+
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
-                        <goals><goal>add-source</goal></goals>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
                         <configuration>
                             <sources>
                                 <source>src/grouper-ws_v1_6</source>

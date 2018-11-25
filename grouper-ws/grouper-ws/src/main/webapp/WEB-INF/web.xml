@@ -44,6 +44,11 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    <servlet-mapping>
+        <servlet-name>rest-test</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+
 
 
 
@@ -69,16 +74,6 @@
         <servlet-class>edu.internet2.middleware.grouper.j2ee.status.GrouperStatusServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
-
-
-    <servlet-mapping>
-        <servlet-name>rest-test</servlet-name>
-        <url-pattern>/*</url-pattern>
-    </servlet-mapping>
-
-
-
-
     <servlet-mapping>
         <servlet-name>StatusServlet</servlet-name>
         <url-pattern>/status</url-pattern>
@@ -109,20 +104,19 @@
             <url-pattern>/servicesRest/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
-            <!-- NOTE: This role is not present in the default users file -->
             <role-name>grouper_user</role-name>
         </auth-constraint>
     </security-constraint>
  -->
 
     <!-- Define the Login Configuration for this Application -->
-    <!-- 
+<!-- 
     <login-config>
         <auth-method>BASIC</auth-method>
         <realm-name>Grouper Application</realm-name>
     </login-config>
  -->
-    
+
     <!-- Security roles referenced by this web application -->
     <security-role>
         <description>
