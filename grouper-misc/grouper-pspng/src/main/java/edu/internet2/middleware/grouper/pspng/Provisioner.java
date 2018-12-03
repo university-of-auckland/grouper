@@ -1,23 +1,46 @@
 package edu.internet2.middleware.grouper.pspng;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.MDC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*******************************************************************************
  * Copyright 2015 Internet2
  * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the License at
  * 
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  ******************************************************************************/
-
-import edu.internet2.middleware.grouper.*;
+import edu.internet2.middleware.grouper.Group;
+import edu.internet2.middleware.grouper.GroupFinder;
+import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.Member;
+import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.Stem.Scope;
+import edu.internet2.middleware.grouper.StemFinder;
+import edu.internet2.middleware.grouper.StemSave;
+import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.attr.AttributeDef;
 import edu.internet2.middleware.grouper.attr.AttributeDefType;
 import edu.internet2.middleware.grouper.attr.AttributeDefValueType;
@@ -34,17 +57,6 @@ import edu.internet2.middleware.grouper.pit.finder.PITGroupFinder;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.provider.SubjectTypeEnum;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.MDC;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 
 /**
  * Top-Level provisioner class of PSPNG and is the superclass of Target-System-Specific 
@@ -90,16 +102,14 @@ import java.util.regex.Pattern;
  * @author Bert Bee-Lindgren
  *
  */
-public abstract class Provisioner
-  <ConfigurationClass extends ProvisionerConfiguration, 
-   TSUserClass extends TargetSystemUser, 
-   TSGroupClass extends TargetSystemGroup> {
+public abstract class Provisioner<ConfigurationClass extends ProvisionerConfiguration, TSUserClass extends TargetSystemUser, TSGroupClass extends TargetSystemGroup> {
+
   private static final String DO_NOT_PROVISION_TO_ATTRIBUTE = "do_not_provision_to";
 
   private static final String PROVISION_TO_ATTRIBUTE = "provision_to";
 
   static final Logger STATIC_LOG = LoggerFactory.getLogger(Provisioner.class);
-  
+
   protected final Logger LOG;
 
   // What should logs show for this provisioner's name. This differentiates between the
@@ -110,10 +120,10 @@ public abstract class Provisioner
   // and in Grouper Attributes. This will be the same for both the Incremental and the
   // full-sync provisioners
   final public String provisionerConfigName;
-  
+
   // Cache groups by groupInfo key
   final GrouperCache<String, GrouperGroupInfo> grouperGroupInfoCache;
-  
+
   // Cache subjects by sourceId__subjectId key
   final GrouperCache<String, Subject> grouperSubjectCache;
 
@@ -121,7 +131,7 @@ public abstract class Provisioner
   // used across provisioning batches. These are only fetched and cached
   // if our config has needsTargetSystemUsers=true.
   final GrouperCache<Subject, TSUserClass> targetSystemUserCache;
-  
+
   // This stores TargetSystemUserss during the provisioning batch. This Map might seem
   // redundant to the targetSystemUserCache, but it is needed for
   // two reasons: 1) To make sure items are not flushed during the provisioning batch
@@ -132,13 +142,12 @@ public abstract class Provisioner
   // If our config has needsTargetSystemUsers=true, this map is populated by 
   // startProvisioningBatch and emptied by finishProvisioningBatch
   private Map<Subject, TSUserClass> tsUserCache_shortTerm = new HashMap<Subject, TSUserClass>();
-  
-  
+
   // Cache TargetSystemGroups by Group. This is a long-lived cache, typically used across
   // several provisioning batches. These are only fetched and cached if our config
   // has needsTargetSystemGroups=true.
   final GrouperCache<GrouperGroupInfo, TSGroupClass> targetSystemGroupCache;
-  
+
   // This stores TargetSystemGroups during the provisioning batch. This Map might seem
   // redundant to the targetSystemGroupCache, but it is needed for
   // two reasons: 1) To make sure items are not flushed during the provisioning batch
@@ -160,114 +169,127 @@ public abstract class Provisioner
    * which can be expensive in an incremental-sync, but is worth the trouble in a full-sync.
    */
   protected final boolean fullSyncMode;
-  
+
   final protected ConfigurationClass config;
 
   // This is managed during incremental and full provisioning activities
   public static final ThreadLocal<Provisioner> activeProvisioner = new ThreadLocal<>();
-  
-  
-  Provisioner(String provisionerConfigName, ConfigurationClass config, boolean fullSyncMode) {
+
+  Provisioner(String provisionerConfigName, ConfigurationClass config,
+      boolean fullSyncMode) {
     this.provisionerConfigName = provisionerConfigName;
 
-    if ( fullSyncMode ) {
-          this.provisionerDisplayName = provisionerConfigName + "-full";
+    if (fullSyncMode) {
+      this.provisionerDisplayName = provisionerConfigName + "-full";
     } else {
-          this.provisionerDisplayName = provisionerConfigName;
+      this.provisionerDisplayName = provisionerConfigName;
     }
     this.fullSyncMode = fullSyncMode;
-    LOG = LoggerFactory.getLogger(String.format("%s.%s",getClass().getName(), provisionerDisplayName));
-    
+    LOG = LoggerFactory
+        .getLogger(String.format("%s.%s", getClass().getName(), provisionerDisplayName));
+
     this.config = config;
 
     checkAttributeDefinitions();
 
     // These caches are set up with DisplayName to keep the caches of the FullSync and Incremental
     // instances separate
-    grouperGroupInfoCache 
-      = new GrouperCache<String, GrouperGroupInfo>(String.format("PSP-%s-GrouperGroupInfoCache", getDisplayName()),
-          config.getGrouperGroupCacheSize(),
-          false,
-          config.getGrouperDataCacheTime_secs(),
-          config.getGrouperDataCacheTime_secs(),
-          false);
-    
-    grouperSubjectCache 
-      = new GrouperCache<String, Subject>(String.format("PSP-%s-GrouperSubjectCache", getDisplayName()),
-          config.getGrouperSubjectCacheSize(),
-          false,
-          config.getGrouperDataCacheTime_secs(),
-          config.getGrouperDataCacheTime_secs(),
-          false);
+    grouperGroupInfoCache = new GrouperCache<String, GrouperGroupInfo>(
+        String.format("PSP-%s-GrouperGroupInfoCache", getDisplayName()),
+        config.getGrouperGroupCacheSize(),
+        false,
+        config.getGrouperDataCacheTime_secs(),
+        config.getGrouperDataCacheTime_secs(),
+        false);
 
-    targetSystemUserCache 
-      = new GrouperCache<Subject, TSUserClass>(String.format("PSP-%s-TargetSystemUserCache", getDisplayName()),
-          config.getGrouperSubjectCacheSize(),
-          false,
-          config.getGrouperDataCacheTime_secs(),
-          config.getGrouperDataCacheTime_secs(),
-          false);
-    
-    targetSystemGroupCache 
-      = new GrouperCache<GrouperGroupInfo, TSGroupClass>(String.format("PSP-%s-TargetSystemGroupCache", getDisplayName()),
-          config.getGrouperGroupCacheSize(),
-          false,
-          config.getGrouperDataCacheTime_secs(),
-          config.getGrouperDataCacheTime_secs(),
-          false);
+    grouperSubjectCache = new GrouperCache<String, Subject>(
+        String.format("PSP-%s-GrouperSubjectCache", getDisplayName()),
+        config.getGrouperSubjectCacheSize(),
+        false,
+        config.getGrouperDataCacheTime_secs(),
+        config.getGrouperDataCacheTime_secs(),
+        false);
+
+    targetSystemUserCache = new GrouperCache<Subject, TSUserClass>(
+        String.format("PSP-%s-TargetSystemUserCache", getDisplayName()),
+        config.getGrouperSubjectCacheSize(),
+        false,
+        config.getGrouperDataCacheTime_secs(),
+        config.getGrouperDataCacheTime_secs(),
+        false);
+
+    targetSystemGroupCache = new GrouperCache<GrouperGroupInfo, TSGroupClass>(
+        String.format("PSP-%s-TargetSystemGroupCache", getDisplayName()),
+        config.getGrouperGroupCacheSize(),
+        false,
+        config.getGrouperDataCacheTime_secs(),
+        config.getGrouperDataCacheTime_secs(),
+        false);
   }
-  
 
   /**
    * This creates any attributes missing within the etc:pspng: folder.
    */
   private void checkAttributeDefinitions() {
     GrouperSession grouperSession = GrouperSession.staticGrouperSession();
-    if ( grouperSession == null )
+    if (grouperSession == null)
       grouperSession = GrouperSession.startRootSession();
-    
+
     //GRP-1356: pspng should use the default configuration folder
     //String pspngManagementStemName = "etc:pspng";
     String pspngManagementStemName = GrouperConfig.retrieveConfig().propertyValueString(
         "grouper.rootStemForBuiltinObjects", "etc") + ":pspng";
-    
-    Stem pspngManagementStem = StemFinder.findByName(grouperSession, pspngManagementStemName, false);
+
+    Stem pspngManagementStem = StemFinder.findByName(grouperSession,
+        pspngManagementStemName, false);
     if (pspngManagementStem == null) {
-      pspngManagementStem = new StemSave(grouperSession).assignCreateParentStemsIfNotExist(true)
-        .assignDescription("Location for pspng-management objects.")
-        .assignName(pspngManagementStemName).save();
+      pspngManagementStem = new StemSave(grouperSession)
+          .assignCreateParentStemsIfNotExist(true)
+          .assignDescription("Location for pspng-management objects.")
+          .assignName(pspngManagementStemName).save();
     }
 
     //see if provision_to_def attributeDef is there
-    String provisionToDefName = pspngManagementStemName + ":" + PROVISION_TO_ATTRIBUTE + "_def";
-    AttributeDef provisionToDef = GrouperDAOFactory.getFactory().getAttributeDef().findByNameSecure(
-        provisionToDefName, false, new QueryOptions().secondLevelCache(false));
+    String provisionToDefName = pspngManagementStemName + ":" + PROVISION_TO_ATTRIBUTE
+        + "_def";
+    AttributeDef provisionToDef = GrouperDAOFactory.getFactory().getAttributeDef()
+        .findByNameSecure(
+            provisionToDefName, false, new QueryOptions().secondLevelCache(false));
     if (provisionToDef == null) {
-      provisionToDef = pspngManagementStem.addChildAttributeDef(PROVISION_TO_ATTRIBUTE + "_def", AttributeDefType.type);
+      provisionToDef = pspngManagementStem
+          .addChildAttributeDef(PROVISION_TO_ATTRIBUTE + "_def", AttributeDefType.type);
       provisionToDef.setAssignToGroup(true);
       provisionToDef.setAssignToStem(true);
       provisionToDef.setMultiAssignable(true);
       provisionToDef.setValueType(AttributeDefValueType.string);
       provisionToDef.store();
     }
-    
+
     //see if do_not_provision_to_def attributeDef is there
-    String doNotProvisionToDefName = pspngManagementStemName + ":" + DO_NOT_PROVISION_TO_ATTRIBUTE + "_def";
-    AttributeDef doNotProvisionToDef = GrouperDAOFactory.getFactory().getAttributeDef().findByNameSecure(
-        doNotProvisionToDefName, false, new QueryOptions().secondLevelCache(false));
+    String doNotProvisionToDefName = pspngManagementStemName + ":"
+        + DO_NOT_PROVISION_TO_ATTRIBUTE + "_def";
+    AttributeDef doNotProvisionToDef = GrouperDAOFactory.getFactory().getAttributeDef()
+        .findByNameSecure(
+            doNotProvisionToDefName, false, new QueryOptions().secondLevelCache(false));
     if (doNotProvisionToDef == null) {
-      doNotProvisionToDef = pspngManagementStem.addChildAttributeDef(DO_NOT_PROVISION_TO_ATTRIBUTE+"_def", AttributeDefType.type);
+      doNotProvisionToDef = pspngManagementStem.addChildAttributeDef(
+          DO_NOT_PROVISION_TO_ATTRIBUTE + "_def", AttributeDefType.type);
       doNotProvisionToDef.setAssignToGroup(true);
       doNotProvisionToDef.setAssignToStem(true);
       doNotProvisionToDef.setMultiAssignable(true);
       doNotProvisionToDef.setValueType(AttributeDefValueType.string);
       doNotProvisionToDef.store();
     }
-    
-    GrouperCheckConfig.checkAttribute(pspngManagementStem, provisionToDef, PROVISION_TO_ATTRIBUTE, PROVISION_TO_ATTRIBUTE, "Defines what provisioners should process a group or groups within a folder", true);
-    GrouperCheckConfig.checkAttribute(pspngManagementStem, doNotProvisionToDef, DO_NOT_PROVISION_TO_ATTRIBUTE, DO_NOT_PROVISION_TO_ATTRIBUTE, "Defines what provisioners should not process a group or groups within a folder. Since the default is already for provisioners to not provision any groups, this attribute is to override a provision_to attribute set on an ancestor folder. ", true);
-  }
 
+    GrouperCheckConfig.checkAttribute(pspngManagementStem, provisionToDef,
+        PROVISION_TO_ATTRIBUTE, PROVISION_TO_ATTRIBUTE,
+        "Defines what provisioners should process a group or groups within a folder",
+        true);
+    GrouperCheckConfig.checkAttribute(pspngManagementStem, doNotProvisionToDef,
+        DO_NOT_PROVISION_TO_ATTRIBUTE, DO_NOT_PROVISION_TO_ATTRIBUTE,
+        "Defines what provisioners should not process a group or groups within a folder. Since the default is already for provisioners to not provision any groups, this attribute is to override a provision_to attribute set on an ancestor folder. ",
+        true);
+  }
 
   /**
    * Action method that handles membership additions where a person-subject is added to a 
@@ -283,10 +305,10 @@ public abstract class Provisioner
    * be null for systems that do not need target system users.
    */
 
-  protected abstract void addMembership(GrouperGroupInfo grouperGroupInfo, TSGroupClass tsGroup,
+  protected abstract void addMembership(GrouperGroupInfo grouperGroupInfo,
+      TSGroupClass tsGroup,
       Subject subject, TSUserClass tsUser) throws PspException;
-  
-  
+
   /**
    * Abstract action method that handles membership removals. 
    * 
@@ -300,10 +322,10 @@ public abstract class Provisioner
    * target-system user info
    */
 
-  protected abstract void deleteMembership(GrouperGroupInfo grouperGroupInfo, TSGroupClass tsGroup,
+  protected abstract void deleteMembership(GrouperGroupInfo grouperGroupInfo,
+      TSGroupClass tsGroup,
       Subject subject, TSUserClass tsUser) throws PspException;
 
-  
   /**
    * Provisioning a new Group in the target system. This must be overridden in provisioner
    * subclasses that support creating groups. This will normally be called (with an empty
@@ -318,7 +340,8 @@ public abstract class Provisioner
    * @return
    * @throws PspException
    */
-  protected abstract TSGroupClass createGroup(GrouperGroupInfo grouperGroup, Collection<Subject> initialMembers) throws PspException;
+  protected abstract TSGroupClass createGroup(GrouperGroupInfo grouperGroup,
+      Collection<Subject> initialMembers) throws PspException;
 
   /**
    * Action method that handles group removal. The top-level Provisioner class implementation
@@ -329,9 +352,9 @@ public abstract class Provisioner
    * @param grouperGroupInfo
    * @param tsGroup 
    */
-  protected abstract void 
-  deleteGroup(GrouperGroupInfo grouperGroupInfo, TSGroupClass tsGroup) throws PspException;
-  
+  protected abstract void deleteGroup(GrouperGroupInfo grouperGroupInfo,
+      TSGroupClass tsGroup) throws PspException;
+
   /**
    * This method's responsibility is to make sure that group's only provisioned memberships are those
    * of correctSubjects. Extra subjects should be removed. 
@@ -355,10 +378,11 @@ public abstract class Provisioner
    * @param stats A holder of the number of changes the fullSync performs
    */
   protected abstract void doFullSync(
-      GrouperGroupInfo grouperGroupInfo, TSGroupClass tsGroup, 
-      Set<Subject> correctSubjects, Map<Subject, TSUserClass> tsUserMap, Set<TSUserClass> correctTSUsers,
+      GrouperGroupInfo grouperGroupInfo, TSGroupClass tsGroup,
+      Set<Subject> correctSubjects, Map<Subject, TSUserClass> tsUserMap,
+      Set<TSUserClass> correctTSUsers,
       JobStatistics stats)
-          throws PspException;
+      throws PspException;
 
   /**
    * This method's responsibility is find extra groups within Grouper's responsibility that
@@ -374,8 +398,8 @@ public abstract class Provisioner
    *   4) Compare (1) & (3) and delete anything extra in (1)
    * 
    */
-  protected abstract void doFullSync_cleanupExtraGroups(JobStatistics stats) throws PspException;
-  
+  protected abstract void doFullSync_cleanupExtraGroups(JobStatistics stats)
+      throws PspException;
 
   /**
    * This fetches group information from the target system. Subclasses that have TSGroupClass 
@@ -389,9 +413,8 @@ public abstract class Provisioner
    * @return
    * @throws PspException
    */
-  protected abstract Map<GrouperGroupInfo, TSGroupClass> 
-  fetchTargetSystemGroups(Collection<GrouperGroupInfo> grouperGroups) throws PspException;
-
+  protected abstract Map<GrouperGroupInfo, TSGroupClass> fetchTargetSystemGroups(
+      Collection<GrouperGroupInfo> grouperGroups) throws PspException;
 
   /**
    * This fetches user information from the target system. Subclasses that have TSUserClass 
@@ -406,9 +429,8 @@ public abstract class Provisioner
    * @return
    * @throws PspException
    */
-  protected abstract Map<Subject, TSUserClass> 
-  fetchTargetSystemUsers(Collection<Subject> personSubjects) throws PspException;
-
+  protected abstract Map<Subject, TSUserClass> fetchTargetSystemUsers(
+      Collection<Subject> personSubjects) throws PspException;
 
   /**
    * This method returns the work items that are supposed to be provisioned
@@ -425,29 +447,33 @@ public abstract class Provisioner
    * @return The list of workItems that are to be provisioned
    * @throws PspException
    */
-  public List<ProvisioningWorkItem> 
-  filterWorkItems(List<ProvisioningWorkItem> workItems) throws PspException {
+  public List<ProvisioningWorkItem> filterWorkItems(List<ProvisioningWorkItem> workItems)
+      throws PspException {
     List<ProvisioningWorkItem> result = new ArrayList<ProvisioningWorkItem>();
-    
+
     LOG.debug("Filtering provisioning batch of {} items", workItems.size());
 
-    for ( ProvisioningWorkItem workItem : workItems ) {
+    for (ProvisioningWorkItem workItem : workItems) {
       GrouperGroupInfo group = workItem.getGroupInfo(this);
 
       // Groups that haven't been deleted: Skip them if they're not supposed to be provisioned
-      if ( group != null && !group.hasGroupBeenDeleted() && !shouldGroupBeProvisioned(group)) {
-          workItem.markAsSkipped("Ignoring work item because group should not be provisioned");
-          continue;
+      if (group != null && !group.hasGroupBeenDeleted()
+          && !shouldGroupBeProvisioned(group)) {
+        workItem
+            .markAsSkipped("Ignoring work item because group should not be provisioned");
+        continue;
       }
 
-      if ( shouldWorkItemBeProcessed(workItem) ) {
+      if (shouldWorkItemBeProcessed(workItem)) {
         result.add(workItem);
       } else {
         // Not going to process this item, so mark it as a success and don't add it to result
-        workItem.markAsSkipped("Ignoring work item because its ChangeLog type is not provisioning relevant: %s", workItem.getChangelogEntry());
+        workItem.markAsSkipped(
+            "Ignoring work item because its ChangeLog type is not provisioning relevant: %s",
+            workItem.getChangelogEntry());
       }
     }
-    
+
     return result;
   }
 
@@ -463,15 +489,15 @@ public abstract class Provisioner
   protected boolean shouldWorkItemBeProcessed(ProvisioningWorkItem workItem) {
     // Check if we're configured to ignore changes to internal (g:gsa) subjects
     // (default is that we do ignore such changes)
-    if ( getConfig().areChangesToInternalGrouperSubjectsIgnored() ) {
+    if (getConfig().areChangesToInternalGrouperSubjectsIgnored()) {
       Subject subject = workItem.getSubject(this);
-      if ( subject != null && subject.getSourceId().equalsIgnoreCase("g:gsa") )
+      if (subject != null && subject.getSourceId().equalsIgnoreCase("g:gsa"))
         return false;
     }
 
-    return workItem.matchesChangelogType(ChangelogHandlingConfig.allRelevantChangelogTypes );
+    return workItem
+        .matchesChangelogType(ChangelogHandlingConfig.allRelevantChangelogTypes);
   }
-
 
   /**
    * Lock the groups that we are about to process. This will prevent simultaneous
@@ -488,9 +514,11 @@ public abstract class Provisioner
         continue;
 
       if (isFullSyncMode()) {
-        getProvisionerCoordinator().lockForFullSyncIfNoIncrementalIsUnderway(grouperGroupInfo);
+        getProvisionerCoordinator()
+            .lockForFullSyncIfNoIncrementalIsUnderway(grouperGroupInfo);
       } else {
-        getProvisionerCoordinator().lockForIncrementalProvisioningIfNoFullSyncIsUnderway(grouperGroupInfo);
+        getProvisionerCoordinator()
+            .lockForIncrementalProvisioningIfNoFullSyncIsUnderway(grouperGroupInfo);
       }
     }
   }
@@ -501,21 +529,20 @@ public abstract class Provisioner
    * @param workItems
    * @param wasSuccessful
    */
-  public void finishCoordination(List<ProvisioningWorkItem> workItems, boolean wasSuccessful) {
+  public void finishCoordination(List<ProvisioningWorkItem> workItems,
+      boolean wasSuccessful) {
 
-    for ( ProvisioningWorkItem workItem : workItems ) {
+    for (ProvisioningWorkItem workItem : workItems) {
       GrouperGroupInfo groupInfo = workItem.getGroupInfo(this);
-      if ( groupInfo != null ) {
-        if ( isFullSyncMode() ) {
+      if (groupInfo != null) {
+        if (isFullSyncMode()) {
           getProvisionerCoordinator().unlockAfterFullSync(groupInfo, wasSuccessful);
-        }
-        else {
+        } else {
           getProvisionerCoordinator().unlockAfterIncrementalProvisioning(groupInfo);
         }
       }
     }
   }
-
 
   /**
    * Get ready for a provisioning batch. If this is overridden, make sure you call super()
@@ -524,10 +551,11 @@ public abstract class Provisioner
    * @param workItems
    * @throws PspException
    */
-  public void startProvisioningBatch(List<ProvisioningWorkItem> workItems) throws PspException {
+  public void startProvisioningBatch(List<ProvisioningWorkItem> workItems)
+      throws PspException {
     Provisioner.activeProvisioner.set(this);
     LOG.info("Starting provisioning batch of {} items", workItems.size());
-    for ( ProvisioningWorkItem workItem : workItems) {
+    for (ProvisioningWorkItem workItem : workItems) {
       LOG.debug("-->Work item: {}", workItem);
     }
 
@@ -536,9 +564,9 @@ public abstract class Provisioner
     // Use this Set to remove duplicate group names that are referenced in multiple workItemsß
     Set<GrouperGroupInfo> grouperGroupInfos = new HashSet<GrouperGroupInfo>();
 
-    for ( ProvisioningWorkItem workItem : workItems) {
+    for (ProvisioningWorkItem workItem : workItems) {
       GrouperGroupInfo grouperGroupInfo = workItem.getGroupInfo(this);
-      if ( grouperGroupInfo == null ) {
+      if (grouperGroupInfo == null) {
         // Nothing to do before batch is processed
         continue;
       }
@@ -546,10 +574,10 @@ public abstract class Provisioner
       grouperGroupInfos.add(grouperGroupInfo);
 
       Subject s = workItem.getSubject(this);
-      if ( s != null )
+      if (s != null)
         subjects.add(s);
     }
-    
+
     prepareGroupCache(grouperGroupInfos);
     prepareUserCache(subjects);
   }
@@ -560,7 +588,8 @@ public abstract class Provisioner
 
   // Finish and/or clean up after a provisioning batch. If this is overridden, make sure you 
   // call super() at the END of your overridden version
-  public void finishProvisioningBatch(List<ProvisioningWorkItem> workItems) throws PspException {
+  public void finishProvisioningBatch(List<ProvisioningWorkItem> workItems)
+      throws PspException {
     tsUserCache_shortTerm.clear();
     tsGroupCache_shortTerm.clear();
 
@@ -584,66 +613,73 @@ public abstract class Provisioner
       Subject subject, TSUserClass tsUser,
       GrouperGroupInfo grouperGroupInfo, TSGroupClass tsGroup,
       Object... keysAndValues) throws PspException {
-    
+
     LOG.trace("Evaluating {} Jexl expression: {}", expressionName, expression);
-    
+
     Map<String, Object> variableMap = new HashMap<>();
 
     variableMap.put("utils", new PspJexlUtils());
 
     // Copy any provided keys and values into the map
-    GrouperUtil.assertion(keysAndValues.length % 2 == 0, "KeysAndValues must be paired evenly");
-    for (int i=0; i<keysAndValues.length; i+=2)
-      variableMap.put(keysAndValues[i].toString(), keysAndValues[i+1]);
+    GrouperUtil.assertion(keysAndValues.length % 2 == 0,
+        "KeysAndValues must be paired evenly");
+    for (int i = 0; i < keysAndValues.length; i += 2)
+      variableMap.put(keysAndValues[i].toString(), keysAndValues[i + 1]);
 
     // Give provisioner subclasses to add information
-    populateJexlMap(variableMap, 
-        subject, 
+    populateJexlMap(variableMap,
+        subject,
         tsUser,
-        grouperGroupInfo, 
+        grouperGroupInfo,
         tsGroup);
-    
+
     // Give our config a chance to add information
     config.populateElMap(variableMap);
-    
+
     try {
       // In order to support nested expressions, we're going to repeatedly look for atomic (non-nested) expressions
       // and replace each atomic ${...} with it's evaluation result until there are no more ${ in the string
       // This kind of regular expression problem is discussed here:
       // https://stackoverflow.com/questions/717644/regular-expression-that-doesnt-contain-certain-string
 
-      Pattern atomicExpressionPattern = Pattern.compile("\\$\\{([^$]|\\$[^{])*?\\}" );
-      String result=expression;
+      Pattern atomicExpressionPattern = Pattern.compile("\\$\\{([^$]|\\$[^{])*?\\}");
+      String result = expression;
       Matcher atomicExpressionMatcher = atomicExpressionPattern.matcher(result);
 
-      while ( atomicExpressionMatcher.find()) {
+      while (atomicExpressionMatcher.find()) {
         String atomicExpression = atomicExpressionMatcher.group();
         String atomicExpressionResult;
 
         // Check to see if expression has a backup expression
         //   xyz:-pdq ==> evaluate pdq if xyz cannot be evaluated
-        if ( ! atomicExpression.contains(":-") ) {
-          atomicExpressionResult = GrouperUtil.substituteExpressionLanguage(atomicExpression, variableMap, true, false, false);
-        }
-        else {
+        if (!atomicExpression.contains(":-")) {
+          atomicExpressionResult = GrouperUtil.substituteExpressionLanguage(
+              atomicExpression, variableMap, true, false, false);
+        } else {
           // Split atomicExpression on :- and add } & { to the first and second pieces
 
-          String expressionOne = StringUtils.substringBefore(atomicExpression, ":-") + "}";
-          String expressionTwo = "${" + StringUtils.substringAfter(atomicExpression, ":-");
+          String expressionOne = StringUtils.substringBefore(atomicExpression, ":-")
+              + "}";
+          String expressionTwo = "${"
+              + StringUtils.substringAfter(atomicExpression, ":-");
 
           try {
-            atomicExpressionResult = GrouperUtil.substituteExpressionLanguage(expressionOne, variableMap, true, false, false);
+            atomicExpressionResult = GrouperUtil.substituteExpressionLanguage(
+                expressionOne, variableMap, true, false, false);
           } catch (RuntimeException e) {
             LOG.warn("{}: Problem evaluating '{}'. Will try :- expression '{}': {}",
-                    new Object[]{expressionName, expressionOne, expressionTwo, e.getMessage()});
+                new Object[] { expressionName, expressionOne, expressionTwo,
+                    e.getMessage() });
 
-
-            atomicExpressionResult = GrouperUtil.substituteExpressionLanguage(expressionTwo, variableMap, true, false, false);
+            atomicExpressionResult = GrouperUtil.substituteExpressionLanguage(
+                expressionTwo, variableMap, true, false, false);
           }
         }
-        LOG.debug("Evaluated {} Jexl expression: '{}'", expressionName, atomicExpressionResult);
+        LOG.debug("Evaluated {} Jexl expression: '{}'", expressionName,
+            atomicExpressionResult);
         LOG.trace("Evaluated {} Jexl expression: '{}' FROM {} WITH variables {}",
-                new Object[]{expressionName, atomicExpressionResult, atomicExpression, variableMap});
+            new Object[] { expressionName, atomicExpressionResult, atomicExpression,
+                variableMap });
 
         // replaceFirst unescapes the string it is given (because it isn't a string literal, but can also
         // refer to regex groupings: $1 refers to the first matching group in the Pattern. In order to get a $ in the
@@ -654,24 +690,24 @@ public abstract class Provisioner
         //   the first \\\\ is a regex expression for a single \
         //     (java strings need \\ to make a \ and the regex needs \\ to make a single \)
         //   and the second \\\\\\\\ (8 whacks) is a substitution string resulting in  two \\
-        result = atomicExpressionMatcher.replaceFirst(atomicExpressionResult.replaceAll("\\\\", "\\\\\\\\"));
+        result = atomicExpressionMatcher
+            .replaceFirst(atomicExpressionResult.replaceAll("\\\\", "\\\\\\\\"));
         atomicExpressionMatcher = atomicExpressionPattern.matcher(result);
       }
 
       LOG.debug("Evaluated entire {} Jexl expression: '{}'", expressionName, result);
       return result;
-    }
-    catch (RuntimeException e) {
-      LOG.error("Jexl Expression {} '{}' could not be evaluated for subject '{}/{}' and group '{}/{}' which used variableMap '{}'",
-          new Object[] {expressionName, expression,
+    } catch (RuntimeException e) {
+      LOG.error(
+          "Jexl Expression {} '{}' could not be evaluated for subject '{}/{}' and group '{}/{}' which used variableMap '{}'",
+          new Object[] { expressionName, expression,
               subject, tsUser,
               grouperGroupInfo, tsGroup,
-              variableMap, e});
+              variableMap, e });
       throw new PspException("Jexl evaluation failed: %s", e.getMessage());
     }
   }
 
-  
   /**
    * Overridable method to put group and subject information into the Jexl map
    * for use during evaluation.
@@ -684,28 +720,26 @@ public abstract class Provisioner
    * @param grouperGroupInfo
    * @param tsGroup
    */
-  protected void populateJexlMap(Map<String, Object> variableMap, Subject subject, 
+  protected void populateJexlMap(Map<String, Object> variableMap, Subject subject,
       TSUserClass tsUser, GrouperGroupInfo grouperGroupInfo, TSGroupClass tsGroup) {
     variableMap.put("provisionerType", getClass().getSimpleName());
     variableMap.put("provisionerName", getDisplayName());
 
-    if ( subject != null ) 
+    if (subject != null)
       variableMap.put("subject", subject);
-      
-    if ( tsUser != null )
-        variableMap.put("tsUser",  tsUser.getJexlMap());
-    
-    if ( grouperGroupInfo != null ) {
+
+    if (tsUser != null)
+      variableMap.put("tsUser", tsUser.getJexlMap());
+
+    if (grouperGroupInfo != null) {
       Map<String, Object> groupMap = getGroupJexlMap(grouperGroupInfo);
       variableMap.putAll(groupMap);
     }
-      
-    if ( tsGroup != null ) 
+
+    if (tsGroup != null)
       variableMap.put("tsGroup", tsGroup.getJexlMap());
   }
 
-  
-  
   /**
    * This makes sure all the Subjects are in tsUserCache_shortTerm. Of
    * course if our config says needsTargetSystemUsers is False, then the 
@@ -717,75 +751,76 @@ public abstract class Provisioner
   private void prepareUserCache(Set<Subject> subjects) throws PspException {
     LOG.debug("Starting to cache user information for {} items", subjects.size());
     tsUserCache_shortTerm.clear();
-    
+
     // Nothing to do if TargetSystemUsers are not used by this provisioner
-    if ( ! config.needsTargetSystemUsers() )
+    if (!config.needsTargetSystemUsers())
       return;
     Collection<Subject> subjectsToFetch = new ArrayList<Subject>();
-    
+
     for (Subject s : subjects) {
       // Skip group subjects (source=g:gsa)
-      if ( s.getSourceId().equals("g:gsa") )
+      if (s.getSourceId().equals("g:gsa"))
         continue;
-      
+
       // See if the subject is already cached.
       TSUserClass cachedTSU = targetSystemUserCache.get(s);
-      if ( cachedTSU != null )
+      if (cachedTSU != null)
         // Cache user in shortTerm cache as well as refresh it in longterm cache
         cacheUser(s, cachedTSU);
       else
         subjectsToFetch.add(s);
     }
-    
-    if ( subjectsToFetch.size() == 0 )
+
+    if (subjectsToFetch.size() == 0)
       return;
-    
-    List<List<Subject>> batchesOfSubjectsToFetch = PspUtils.chopped(subjectsToFetch, config.getUserSearch_batchSize());
-    
-    for (List<Subject> batchOfSubjectsToFetch : batchesOfSubjectsToFetch ) {
+
+    List<List<Subject>> batchesOfSubjectsToFetch = PspUtils.chopped(subjectsToFetch,
+        config.getUserSearch_batchSize());
+
+    for (List<Subject> batchOfSubjectsToFetch : batchesOfSubjectsToFetch) {
       Map<Subject, TSUserClass> fetchedData;
-      
+
       try {
         fetchedData = fetchTargetSystemUsers(batchOfSubjectsToFetch);
         // Save the fetched data in our cache
-        for ( Entry<Subject, TSUserClass> subjectInfo : fetchedData.entrySet() )
+        for (Entry<Subject, TSUserClass> subjectInfo : fetchedData.entrySet())
           cacheUser(subjectInfo.getKey(), subjectInfo.getValue());
-      }
-      catch (PspException e1) {
-        LOG.warn("Batch-fetching subject information failed. Trying fetching information for each subject individually", e1);
+      } catch (PspException e1) {
+        LOG.warn(
+            "Batch-fetching subject information failed. Trying fetching information for each subject individually",
+            e1);
         // Batch-fetching failed. Let's see if we can narrow it down to a single
         // Subject
-          for ( Subject subject : batchOfSubjectsToFetch ) {
-            try {
-              TSUserClass tsUser = fetchTargetSystemUser(subject);
-              cacheUser(subject, tsUser);
-            }
-            catch (PspException e2) {
-              LOG.error("Problem fetching information about subject '{}'", subject, e2);
-              throw new RuntimeException("Problem fetching information on subject " + subject + ": " + e2.getMessage());
-            }
+        for (Subject subject : batchOfSubjectsToFetch) {
+          try {
+            TSUserClass tsUser = fetchTargetSystemUser(subject);
+            cacheUser(subject, tsUser);
+          } catch (PspException e2) {
+            LOG.error("Problem fetching information about subject '{}'", subject, e2);
+            throw new RuntimeException("Problem fetching information on subject "
+                + subject + ": " + e2.getMessage());
           }
+        }
       }
     }
-    
+
     // CREATE MISSING TARGET SYSTEM USERS (IF ENABLED)
     // Go through the subjects and see if any of them were not found above. 
     // If user-creation is enabled, just create the
     // user in the target system and add it to our caches
-    for ( Subject subj : subjects ) {
-      if ( !tsUserCache_shortTerm.containsKey(subj) ) {
-        if ( config.isCreatingMissingUsersEnabled() ) {
+    for (Subject subj : subjects) {
+      if (!tsUserCache_shortTerm.containsKey(subj)) {
+        if (config.isCreatingMissingUsersEnabled()) {
           TSUserClass newTSUser = createUser(subj);
-          if ( newTSUser != null )
+          if (newTSUser != null)
             cacheUser(subj, newTSUser);
-        }
-        else
-          LOG.warn("{}: User not found in target system: {}", getDisplayName(), subj.getId());
+        } else
+          LOG.warn("{}: User not found in target system: {}", getDisplayName(),
+              subj.getId());
       }
     }
   }
 
- 
   /**
    * This makes sure all the Groups referenced by groupInfoSet are in groupMap_shortTerm. 
    * If our config says needsTargetSystemGroups is False, then the groupMap will
@@ -796,18 +831,19 @@ public abstract class Provisioner
    * @param grouperGroupInfos
    * @throws PspException
    */
-  private void prepareGroupCache(Collection<GrouperGroupInfo> grouperGroupInfos) throws PspException {
-	// Remove any duplicate group info objects
-	Set<GrouperGroupInfo> groupInfoSet = new HashSet<>(grouperGroupInfos);
-	
+  private void prepareGroupCache(Collection<GrouperGroupInfo> grouperGroupInfos)
+      throws PspException {
+    // Remove any duplicate group info objects
+    Set<GrouperGroupInfo> groupInfoSet = new HashSet<>(grouperGroupInfos);
+
     LOG.debug("Starting to cache group information for {} items", groupInfoSet.size());
     tsGroupCache_shortTerm.clear();
-    
+
     // If the target system doesn't need groups, then we obviously don't need to 
     // fetch and cache them
-    if ( ! config.needsTargetSystemGroups() )
+    if (!config.needsTargetSystemGroups())
       return;
-    
+
     Collection<GrouperGroupInfo> groupsToFetch = new ArrayList<GrouperGroupInfo>();
 
     for (GrouperGroupInfo grouperGroupInfo : groupInfoSet) {
@@ -816,15 +852,15 @@ public abstract class Provisioner
       if (cachedTSG != null) {
         // Cache group in shortTerm cache as well as refresh it in longterm cache
         cacheGroup(grouperGroupInfo, cachedTSG);
-      }
-      else {
+      } else {
         groupsToFetch.add(grouperGroupInfo);
       }
     }
 
-    Map<GrouperGroupInfo, TSGroupClass> fetchedData = fetchTargetSystemGroupsInBatches(groupsToFetch);
+    Map<GrouperGroupInfo, TSGroupClass> fetchedData = fetchTargetSystemGroupsInBatches(
+        groupsToFetch);
     // Save the data that was fetched in our cache
-    for ( Entry<GrouperGroupInfo, TSGroupClass> grouperGroupInfo : fetchedData.entrySet() )
+    for (Entry<GrouperGroupInfo, TSGroupClass> grouperGroupInfo : fetchedData.entrySet())
       cacheGroup(grouperGroupInfo.getKey(), grouperGroupInfo.getValue());
 
     // If empty groups are supported, then look for groups that were not found in target
@@ -832,11 +868,10 @@ public abstract class Provisioner
     //
     // Note: If empty groups are not supported, they will be created later... when their
     // first membership is provisioned
-    if ( config.areEmptyGroupsSupported() ) {
+    if (config.areEmptyGroupsSupported()) {
       for (GrouperGroupInfo grouperGroupInfo : groupsToFetch) {
         if (!tsGroupCache_shortTerm.containsKey(grouperGroupInfo) &&
-            shouldGroupBeProvisioned(grouperGroupInfo))
-        {
+            shouldGroupBeProvisioned(grouperGroupInfo)) {
           // Group does not already exist so create it
           TSGroupClass tsGroup = createGroup(grouperGroupInfo, new ArrayList<Subject>());
           cacheGroup(grouperGroupInfo, tsGroup);
@@ -854,59 +889,62 @@ public abstract class Provisioner
    * @param groupsToFetch
    * @throws PspException
    */
-  public Map<GrouperGroupInfo, TSGroupClass> fetchTargetSystemGroupsInBatches(Collection<GrouperGroupInfo> groupsToFetch) throws PspException {
+  public Map<GrouperGroupInfo, TSGroupClass> fetchTargetSystemGroupsInBatches(
+      Collection<GrouperGroupInfo> groupsToFetch) throws PspException {
     Map<GrouperGroupInfo, TSGroupClass> result = new HashMap<>(groupsToFetch.size());
 
-    List<List<GrouperGroupInfo>> batchesOfGroupsToFetch = PspUtils.chopped(groupsToFetch, config.getGroupSearch_batchSize());
+    List<List<GrouperGroupInfo>> batchesOfGroupsToFetch = PspUtils.chopped(groupsToFetch,
+        config.getGroupSearch_batchSize());
 
-    for ( List<GrouperGroupInfo> batchOfGroupsToFetch : batchesOfGroupsToFetch ) {
+    for (List<GrouperGroupInfo> batchOfGroupsToFetch : batchesOfGroupsToFetch) {
       Map<GrouperGroupInfo, TSGroupClass> fetchedData;
 
       try {
         fetchedData = fetchTargetSystemGroups(batchOfGroupsToFetch);
         result.putAll(fetchedData);
-      }
-      catch (PspException e1) {
-        LOG.warn("Batch-fetching group information failed. Trying to fetch information for each group individually", e1);
+      } catch (PspException e1) {
+        LOG.warn(
+            "Batch-fetching group information failed. Trying to fetch information for each group individually",
+            e1);
         // Batch-fetching failed. Let's see if we can narrow it down to a single
         // Group
-          for ( GrouperGroupInfo grouperGroupInfo : batchOfGroupsToFetch ) {
-            try {
-              TSGroupClass tsGroup = fetchTargetSystemGroup(grouperGroupInfo);
-              cacheGroup(grouperGroupInfo, tsGroup);
-            }
-            catch (PspException e2) {
-              LOG.error("Problem fetching information on group '{}'", grouperGroupInfo, e2);
-              throw new RuntimeException("Problem fetching information on group " + grouperGroupInfo);
-            }
+        for (GrouperGroupInfo grouperGroupInfo : batchOfGroupsToFetch) {
+          try {
+            TSGroupClass tsGroup = fetchTargetSystemGroup(grouperGroupInfo);
+            cacheGroup(grouperGroupInfo, tsGroup);
+          } catch (PspException e2) {
+            LOG.error("Problem fetching information on group '{}'", grouperGroupInfo, e2);
+            throw new RuntimeException(
+                "Problem fetching information on group " + grouperGroupInfo);
           }
+        }
       }
     }
 
     return result;
   }
-
 
   public TSUserClass getTargetSystemUser(Subject subject) throws PspException {
     GrouperUtil.assertion(config.needsTargetSystemUsers(),
-            String.format("%s: system doesn't need target-system users, but one was requested", getDisplayName()));
-    
+        String.format(
+            "%s: system doesn't need target-system users, but one was requested",
+            getDisplayName()));
+
     TSUserClass result = tsUserCache_shortTerm.get(subject);
-    
-    if ( result == null ) {
-      if ( config.isCreatingMissingUsersEnabled() ) {
-        result=createUser(subject);
+
+    if (result == null) {
+      if (config.isCreatingMissingUsersEnabled()) {
+        result = createUser(subject);
         cacheUser(subject, result);
-      }
-      else {
-        LOG.warn("{}: user is missing and user-creation is not enabled ({})", getDisplayName(), subject.getId());
+      } else {
+        LOG.warn("{}: user is missing and user-creation is not enabled ({})",
+            getDisplayName(), subject.getId());
       }
     }
-    
+
     return result;
   }
-  
-  
+
   /**
    * Store Subject-->TSUserClass mapping in long-term and short-term caches
    * @param subject
@@ -921,20 +959,22 @@ public abstract class Provisioner
   protected void uncacheUser(Subject subject, TSUserClass oldTSUser) {
     // If the caller only knew the TSUser but didn't know what Grouper Subject to flush,
     // let's see if we can find it
-    if ( subject == null && oldTSUser != null ) {
+    if (subject == null && oldTSUser != null) {
       for (Subject s : targetSystemUserCache.keySet())
         if (targetSystemUserCache.get(s) == oldTSUser) {
           subject = s;
           break;
         }
     }
-    
+
     // If we didn't find a match
-    if ( subject == null ) {
-      LOG.warn("Cache-flush failed: Could not find Subject that matches Target System User {}", oldTSUser );
+    if (subject == null) {
+      LOG.warn(
+          "Cache-flush failed: Could not find Subject that matches Target System User {}",
+          oldTSUser);
       return;
     }
-    
+
     LOG.debug("Flushing user from target-system-user cache: {}", subject.getName());
     targetSystemUserCache.remove(subject);
     LOG.debug("Flushing user from pspng's subject-info cache: {}", subject.getName());
@@ -950,13 +990,13 @@ public abstract class Provisioner
    * @param newTSGroup
    */
   protected void cacheGroup(GrouperGroupInfo grouperGroupInfo, TSGroupClass newTSGroup) {
-    if ( newTSGroup != null ) {
+    if (newTSGroup != null) {
       LOG.debug("Adding target-system group to cache: {}", grouperGroupInfo);
       targetSystemGroupCache.put(grouperGroupInfo, newTSGroup);
       tsGroupCache_shortTerm.put(grouperGroupInfo, newTSGroup);
     } else {
-      if ( targetSystemGroupCache.containsKey(grouperGroupInfo) ||
-           tsGroupCache_shortTerm.containsKey(grouperGroupInfo) ) {
+      if (targetSystemGroupCache.containsKey(grouperGroupInfo) ||
+          tsGroupCache_shortTerm.containsKey(grouperGroupInfo)) {
         LOG.debug("Removing target-system group from cache: {}", grouperGroupInfo);
         targetSystemGroupCache.remove(grouperGroupInfo);
         tsGroupCache_shortTerm.remove(grouperGroupInfo);
@@ -965,8 +1005,7 @@ public abstract class Provisioner
       }
     }
   }
-  
-  
+
   /**
    * The specified Grouper or TargetSystem group has changed, remove
    * them from various caches, including hibernate L2 cache.
@@ -975,31 +1014,31 @@ public abstract class Provisioner
    * @param grouperGroupInfo
    * @param tsGroup
    */
-  protected void  uncacheGroup(GrouperGroupInfo grouperGroupInfo, TSGroupClass tsGroup) {
+  protected void uncacheGroup(GrouperGroupInfo grouperGroupInfo, TSGroupClass tsGroup) {
     // If the caller only knew the TargetSystem Group and didn't know what Grouper Group to flush,
     // let's see if we can find it
-    if ( grouperGroupInfo == null && tsGroup != null ) {
+    if (grouperGroupInfo == null && tsGroup != null) {
       for (GrouperGroupInfo gi : targetSystemGroupCache.keySet())
         if (targetSystemGroupCache.get(gi) == tsGroup) {
           grouperGroupInfo = gi;
           break;
         }
     }
-    
-    if ( grouperGroupInfo == null ) {
-    	LOG.warn("Can't find Grouper Group to uncache from tsGroup {}", tsGroup);
-    	return;
+
+    if (grouperGroupInfo == null) {
+      LOG.warn("Can't find Grouper Group to uncache from tsGroup {}", tsGroup);
+      return;
     }
-    
+
     LOG.debug("Flushing group from target-system cache: {}", grouperGroupInfo);
     targetSystemGroupCache.remove(grouperGroupInfo);
 
-    LOG.debug("Flushing group from pspng group-info cache: {}", grouperGroupInfo.getName());
+    LOG.debug("Flushing group from pspng group-info cache: {}",
+        grouperGroupInfo.getName());
     grouperGroupInfoCache.remove(grouperGroupInfo.getName());
 
     grouperGroupInfo.hibernateRefresh();
   }
-
 
   /**
    * This removes all Group information from our caches
@@ -1010,7 +1049,6 @@ public abstract class Provisioner
       uncacheGroup(g, null);
     }
   }
-
 
   /**
    * Lookup a single TSUserClass for a single Subject. If you have several such mappings to look up,
@@ -1023,12 +1061,14 @@ public abstract class Provisioner
    * @return
    * @throws PspException
    */
-  protected final TSUserClass fetchTargetSystemUser(Subject personSubject) throws PspException {
+  protected final TSUserClass fetchTargetSystemUser(Subject personSubject)
+      throws PspException {
     // Forward this singluar subject to the multi-subject version.
-    Map<Subject, TSUserClass> result = fetchTargetSystemUsers(Arrays.asList(personSubject));
+    Map<Subject, TSUserClass> result = fetchTargetSystemUsers(
+        Arrays.asList(personSubject));
     return result.get(personSubject);
   }
-  
+
   /**
    * Lookup a single TSGroupClass for a single (grouper) Group. If you have several such mappings to look up,
    * you should use the (plural version) fetchTargetSystemGroups( ) instead, as that will have an opportunity to do 
@@ -1040,12 +1080,14 @@ public abstract class Provisioner
    * @return
    * @throws PspException
    */
-  protected final TSGroupClass fetchTargetSystemGroup(GrouperGroupInfo grouperGroup) throws PspException {
+  protected final TSGroupClass fetchTargetSystemGroup(GrouperGroupInfo grouperGroup)
+      throws PspException {
     // Forward this singluar Group to the multi-subject version.
-    Map<GrouperGroupInfo, TSGroupClass> result = fetchTargetSystemGroups(Arrays.asList(grouperGroup));
+    Map<GrouperGroupInfo, TSGroupClass> result = fetchTargetSystemGroups(
+        Arrays.asList(grouperGroup));
     return result.get(grouperGroup);
   }
-  
+
   /**
    * Provisioning a new User account in the target system. This must be overridden in provisioner
    * subclasses that support creating user accounts. This is more used for provisioning testing, but
@@ -1059,7 +1101,7 @@ public abstract class Provisioner
   protected TSUserClass createUser(Subject personSubject) throws PspException {
     return null;
   }
-  
+
   /**
    * Dispatches an event to the right method, with generally
    * useful parameters. 
@@ -1072,15 +1114,15 @@ public abstract class Provisioner
    */
   protected void provisionItem(ProvisioningWorkItem workItem) throws PspException {
     LOG.debug("Starting provisioning of item: {}", workItem);
-    
+
     currentWorkItem.set(workItem);
     ChangeLogEntry entry = workItem.getChangelogEntry();
-    
+
     try {
-      if ( workItem.matchesChangelogType(ChangelogHandlingConfig.changelogTypesThatAreHandledIncrementally) ) {
+      if (workItem.matchesChangelogType(
+          ChangelogHandlingConfig.changelogTypesThatAreHandledIncrementally)) {
         processIncrementalSyncEvent(workItem);
-      }
-      else if ( workItem.getGroupInfo(this) != null ) {
+      } else if (workItem.getGroupInfo(this) != null) {
         // This is a changelog entry that modifies the group. Do a FullSync to see if any
         // provisioned information changed. Unfortunately, this will do a membership sync which
         // might slow down the processing of this changelog entry. However, non-membership
@@ -1088,17 +1130,16 @@ public abstract class Provisioner
         // that doesn't sync memberships.
 
         scheduleAndAwaitFullSyncOfGroup(workItem);
-      }
-      else if (  workItemShouldBeHandledByFullSyncOfEverything(workItem) ) {
-        LOG.info("{}: Performing sync of all groups to process work item: {}", getDisplayName(), workItem);
-        getFullSyncer().queueAllGroupsForFullSync(String.format("Work item invokes full sync: %s", workItem));
-        if ( getConfig().isGrouperAuthoritative() ) {
+      } else if (workItemShouldBeHandledByFullSyncOfEverything(workItem)) {
+        LOG.info("{}: Performing sync of all groups to process work item: {}",
+            getDisplayName(), workItem);
+        getFullSyncer().queueAllGroupsForFullSync(
+            String.format("Work item invokes full sync: %s", workItem));
+        if (getConfig().isGrouperAuthoritative()) {
           getFullSyncer().scheduleGroupCleanup();
         }
         workItem.markAsSuccess("Scheduled a full-sync of all groups");
-      }
-      else
-      {
+      } else {
         workItem.markAsSkipped("Nothing to do (not a supported change)");
       }
     } catch (PspException e) {
@@ -1109,124 +1150,125 @@ public abstract class Provisioner
     }
   }
 
-
-  private void processIncrementalSyncEvent(ProvisioningWorkItem workItem) throws PspException {
+  private void processIncrementalSyncEvent(ProvisioningWorkItem workItem)
+      throws PspException {
     ChangeLogEntry entry = workItem.getChangelogEntry();
 
-    if ( entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD ))
-    {
+    if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
       GrouperGroupInfo grouperGroupInfo = workItem.getGroupInfo(this);
 
-      if ( grouperGroupInfo == null || grouperGroupInfo.hasGroupBeenDeleted() ) {
+      if (grouperGroupInfo == null || grouperGroupInfo.hasGroupBeenDeleted()) {
         workItem.markAsSkippedAndWarn("Ignored group-add: group does not exist any more");
         return;
       }
 
-      if ( !shouldGroupBeProvisioned(grouperGroupInfo) ) {
-        workItem.markAsSkipped("Group %s is not selected to be provisioned", grouperGroupInfo);
+      if (!shouldGroupBeProvisioned(grouperGroupInfo)) {
+        workItem.markAsSkipped("Group %s is not selected to be provisioned",
+            grouperGroupInfo);
         return;
       }
 
-      if ( tsGroupCache_shortTerm.containsKey(grouperGroupInfo) ) {
+      if (tsGroupCache_shortTerm.containsKey(grouperGroupInfo)) {
         workItem.markAsSuccess("Group %s already exists", grouperGroupInfo);
         return;
-      }
-      else
+      } else
         createGroup(grouperGroupInfo, Collections.EMPTY_LIST);
-    }
-    else if ( entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE ))
-    {
+    } else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
       // Can't tell right reliably if group was supposed to be provisioned when it existed, so
       // we just delete it if it currently exists in target
       GrouperGroupInfo grouperGroupInfo = workItem.getGroupInfo(this);
 
-      if ( grouperGroupInfo == null ) {
-        workItem.markAsSkippedAndWarn("Ignoring group-deletion event because group information was not found in grouper");
+      if (grouperGroupInfo == null) {
+        workItem.markAsSkippedAndWarn(
+            "Ignoring group-deletion event because group information was not found in grouper");
         return;
       }
 
       TSGroupClass tsGroup = tsGroupCache_shortTerm.get(grouperGroupInfo);
 
       // If system uses targetSystemGroup and one doesn't exist ==> Nothing to do
-      if ( config.needsTargetSystemGroups() ) {
-          if ( tsGroup == null ) {
-              workItem.markAsSuccess("Nothing to do: Group does not exist in target system");
-              return;
-          } else {
-              LOG.info("Deleting provisioned group: {}", grouperGroupInfo);
-              deleteGroup(grouperGroupInfo, tsGroup);
-          }
-      }
-      else {
+      if (config.needsTargetSystemGroups()) {
+        if (tsGroup == null) {
+          workItem.markAsSuccess("Nothing to do: Group does not exist in target system");
+          return;
+        } else {
+          LOG.info("Deleting provisioned group: {}", grouperGroupInfo);
+          deleteGroup(grouperGroupInfo, tsGroup);
+        }
+      } else {
         // System doesn't use targetSystemGroup, so we can't tell if this group
         // was provisioned or not. Therefore call deleteGroup just in case
 
-        LOG.info("{}: Group has been deleted from grouper. Checking to see if it was provisioned to target system", getDisplayName());
+        LOG.info(
+            "{}: Group has been deleted from grouper. Checking to see if it was provisioned to target system",
+            getDisplayName());
         deleteGroup(grouperGroupInfo, tsGroup);
       }
-    }
-    else if ( entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD))
-    {
+    } else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
       GrouperGroupInfo grouperGroupInfo = workItem.getGroupInfo(this);
 
-      if ( grouperGroupInfo == null || grouperGroupInfo.hasGroupBeenDeleted() ) {
-        workItem.markAsSkipped("Ignoring membership-add event for group that was deleted");
+      if (grouperGroupInfo == null || grouperGroupInfo.hasGroupBeenDeleted()) {
+        workItem
+            .markAsSkipped("Ignoring membership-add event for group that was deleted");
         return;
       }
 
-      if ( !shouldGroupBeProvisioned(grouperGroupInfo) ) {
-        workItem.markAsSkipped("Group %s is not selected to be provisioned", grouperGroupInfo);
+      if (!shouldGroupBeProvisioned(grouperGroupInfo)) {
+        workItem.markAsSkipped("Group %s is not selected to be provisioned",
+            grouperGroupInfo);
         return;
       }
 
       TSGroupClass tsGroup = tsGroupCache_shortTerm.get(grouperGroupInfo);
       Subject subject = workItem.getSubject(this);
 
-      if ( subject == null ) {
-        workItem.markAsSkippedAndWarn("Ignoring membership-add event because subject is no longer in grouper");
+      if (subject == null) {
+        workItem.markAsSkippedAndWarn(
+            "Ignoring membership-add event because subject is no longer in grouper");
         return;
       }
 
-      if ( subject.getTypeName().equalsIgnoreCase("group") ) {
+      if (subject.getTypeName().equalsIgnoreCase("group")) {
         workItem.markAsSkipped("Nested-group membership skipped");
         return;
       }
 
       TSUserClass tsUser = tsUserCache_shortTerm.get(subject);
 
-      if ( config.needsTargetSystemUsers() && tsUser==null ) {
+      if (config.needsTargetSystemUsers() && tsUser == null) {
         workItem.markAsSkippedAndWarn("Skipped: subject doesn't exist in target system");
         return;
       }
 
       addMembership(grouperGroupInfo, tsGroup, subject, tsUser);
-    }
-    else if ( entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE))
-    {
+    } else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
       GrouperGroupInfo grouperGroupInfo = workItem.getGroupInfo(this);
 
-      if ( grouperGroupInfo==null || grouperGroupInfo.hasGroupBeenDeleted() ) {
-        workItem.markAsSkipped("Ignoring membership-delete event for group that was deleted");
+      if (grouperGroupInfo == null || grouperGroupInfo.hasGroupBeenDeleted()) {
+        workItem
+            .markAsSkipped("Ignoring membership-delete event for group that was deleted");
         return;
       }
 
-      if ( !shouldGroupBeProvisioned(grouperGroupInfo) ) {
-        workItem.markAsSkipped("Group %s is not selected to be provisioned", grouperGroupInfo);
+      if (!shouldGroupBeProvisioned(grouperGroupInfo)) {
+        workItem.markAsSkipped("Group %s is not selected to be provisioned",
+            grouperGroupInfo);
         return;
       }
 
       TSGroupClass tsGroup = tsGroupCache_shortTerm.get(grouperGroupInfo);
       Subject subject = workItem.getSubject(this);
 
-      if ( subject == null ) {
-        workItem.markAsSkippedAndWarn("Ignoring membership-delete event because subject is no longer in grouper");
+      if (subject == null) {
+        workItem.markAsSkippedAndWarn(
+            "Ignoring membership-delete event because subject is no longer in grouper");
         LOG.warn("Work item ignored: {}", workItem);
         return;
       }
 
       TSUserClass tsUser = tsUserCache_shortTerm.get(subject);
 
-      if ( config.needsTargetSystemUsers() && tsUser==null ) {
+      if (config.needsTargetSystemUsers() && tsUser == null) {
         workItem.markAsSkippedAndWarn("Skipped: subject doesn't exist in target system");
         return;
       }
@@ -1234,44 +1276,42 @@ public abstract class Provisioner
     }
   }
 
-
-  private void scheduleAndAwaitFullSyncOfGroup(ProvisioningWorkItem workItem) throws PspException {
+  private void scheduleAndAwaitFullSyncOfGroup(ProvisioningWorkItem workItem)
+      throws PspException {
     GrouperGroupInfo grouperGroupInfo = workItem.getGroupInfo(this);
 
     // We need to remove our lock so full-sync can occur
     getProvisionerCoordinator().unlockAfterIncrementalProvisioning(grouperGroupInfo);
 
     FullSyncProvisioner.FullSyncQueueItem fullSyncStatus = getFullSyncer()
-            .scheduleGroupForSync(workItem.getGroupInfo(this),
-                    String.format("Changelog: %s", workItem), true);
+        .scheduleGroupForSync(workItem.getGroupInfo(this),
+            String.format("Changelog: %s", workItem), true);
 
     // Wait up to 5 minutes for full sync to occur
     int fullSyncTimeout_secs = 300;
-    while ( !fullSyncStatus.hasBeenProcessed() && fullSyncStatus.getAge_ms() < 1000L*fullSyncTimeout_secs ) {
-      if ( fullSyncStatus.stats.processingStartTime != null ) {
+    while (!fullSyncStatus.hasBeenProcessed()
+        && fullSyncStatus.getAge_ms() < 1000L * fullSyncTimeout_secs) {
+      if (fullSyncStatus.stats.processingStartTime != null) {
         LOG.info("{}: Triggered change: Awaiting completion of active full sync: {}",
-                new Object[]{getDisplayName(), fullSyncStatus});
-      }
-      else {
-        LOG.info("{}: Triggered change: Awaiting start full sync of {}", getDisplayName(), grouperGroupInfo);
+            new Object[] { getDisplayName(), fullSyncStatus });
+      } else {
+        LOG.info("{}: Triggered change: Awaiting start full sync of {}", getDisplayName(),
+            grouperGroupInfo);
       }
 
       GrouperUtil.sleep(1000);
     }
 
-    if ( fullSyncStatus.hasBeenProcessed() ) {
-      if ( fullSyncStatus.wasSuccessful ) {
+    if (fullSyncStatus.hasBeenProcessed()) {
+      if (fullSyncStatus.wasSuccessful) {
         workItem.markAsSuccess("Handled with FullSync");
-      }
-      else {
+      } else {
         workItem.markAsFailure("FullSync attempted, but failed");
       }
-    }
-    else {
+    } else {
       workItem.markAsFailure("FullSync timed out after %d seconds", fullSyncTimeout_secs);
     }
   }
-
 
   /**
    * Method that drives the cleanup operation. This sets things up and then
@@ -1281,33 +1321,33 @@ public abstract class Provisioner
    * @throws PspException
    */
   final void prepareAndRunGroupCleanup(JobStatistics stats) throws PspException {
-      activeProvisioner.set(this);
-      // Make sure this is only used within Provisioners set up for full-sync mode
-      GrouperUtil.assertion(isFullSyncMode(), "FullSync operations should only be used with provisioners initialized for full-sync");
+    activeProvisioner.set(this);
+    // Make sure this is only used within Provisioners set up for full-sync mode
+    GrouperUtil.assertion(isFullSyncMode(),
+        "FullSync operations should only be used with provisioners initialized for full-sync");
 
-	  if ( !config.isGrouperAuthoritative() ) {
-		  LOG.warn("{}: Not doing group cleanup because grouper is not marked as authoritative in provisioner configuration", getDisplayName());
-		  return;
-	  }
-	  
-	  tsUserCache_shortTerm.clear();
-	  tsGroupCache_shortTerm.clear();
-	  try {
-	    MDC.put("step", "clean/");
-	    doFullSync_cleanupExtraGroups(stats);
-	  }
-	  catch (PspException e) {
-		  LOG.error("Problem while looking for and removing extra groups: {}", e);
-		  throw e;
-	  }
-	  finally {
-		  MDC.remove("step");
-		  activeProvisioner.remove();
-	  }
+    if (!config.isGrouperAuthoritative()) {
+      LOG.warn(
+          "{}: Not doing group cleanup because grouper is not marked as authoritative in provisioner configuration",
+          getDisplayName());
+      return;
+    }
+
+    tsUserCache_shortTerm.clear();
+    tsGroupCache_shortTerm.clear();
+    try {
+      MDC.put("step", "clean/");
+      doFullSync_cleanupExtraGroups(stats);
+    } catch (PspException e) {
+      LOG.error("Problem while looking for and removing extra groups: {}", e);
+      throw e;
+    } finally {
+      MDC.remove("step");
+      activeProvisioner.remove();
+    }
   }
-  
 
-/**
+  /**
    * This is called by the FullSync thread, and is responsible for getting the
    * list of correct subjects together and cached. 
    * 
@@ -1317,32 +1357,33 @@ public abstract class Provisioner
    * overridden and to prevent subclasses from overriding this one by mistake.
    * 
    * @param grouperGroupInfo
- * @param stats
- @throws PspException
+   * @param stats
+   @throws PspException
    */
   final void doFullSync(GrouperGroupInfo grouperGroupInfo, JobStatistics stats)
-        throws PspException {
+      throws PspException {
     activeProvisioner.set(this);
     // Make sure this is only used within Provisioners set up for full-sync mode
     GrouperUtil.assertion(isFullSyncMode(),
-            "FullSync operations should only be used with provisioners initialized for full-sync");
-
+        "FullSync operations should only be used with provisioners initialized for full-sync");
 
     TSGroupClass tsGroup = tsGroupCache_shortTerm.get(grouperGroupInfo);
 
     // If there is a target-system group, then check to see if it should be deleted
-    if ( tsGroup != null ) {
+    if (tsGroup != null) {
       if (grouperGroupInfo.hasGroupBeenDeleted() && tsGroup != null) {
-        LOG.info("{} full sync: Deleting group because it was deleted from grouper: {}/{}",
-                new Object[]{getDisplayName(), grouperGroupInfo, tsGroup});
+        LOG.info(
+            "{} full sync: Deleting group because it was deleted from grouper: {}/{}",
+            new Object[] { getDisplayName(), grouperGroupInfo, tsGroup });
 
         deleteGroup(grouperGroupInfo, tsGroup);
         return;
       }
 
       if (!shouldGroupBeProvisioned(grouperGroupInfo)) {
-        LOG.info("{} full sync: Deleting group because it is not selected for this provisioner: {}/{}",
-                new Object[]{getDisplayName(), grouperGroupInfo, tsGroup});
+        LOG.info(
+            "{} full sync: Deleting group because it is not selected for this provisioner: {}/{}",
+            new Object[] { getDisplayName(), grouperGroupInfo, tsGroup });
 
         deleteGroup(grouperGroupInfo, tsGroup);
         return;
@@ -1351,49 +1392,50 @@ public abstract class Provisioner
 
     Set<Member> groupMembers = grouperGroupInfo.getMembers();
     Set<Subject> correctSubjects = new HashSet<Subject>();
-    
+
     for (Member member : groupMembers) {
       Subject subject = member.getSubject();
-      if ( subject.getTypeName().equalsIgnoreCase(SubjectTypeEnum.PERSON.getName()) ) {
+      if (subject.getTypeName().equalsIgnoreCase(SubjectTypeEnum.PERSON.getName())) {
         correctSubjects.add(subject);
       }
     }
 
-    if ( correctSubjects.size() > 0 )
+    if (correctSubjects.size() > 0)
       prepareUserCache(correctSubjects);
-    
+
     Set<TSUserClass> correctTSUsers = new HashSet<TSUserClass>();
-    
-    if ( getConfig().needsTargetSystemUsers() ) {
+
+    if (getConfig().needsTargetSystemUsers()) {
       // Loop through a copy of the correct subjects so that we can remove 
       // subjects that don't have matching TargetSystem users.
-      for ( Subject correctSubject: new ArrayList<Subject>(correctSubjects) ) {
+      for (Subject correctSubject : new ArrayList<Subject>(correctSubjects)) {
         TSUserClass tsUser = tsUserCache_shortTerm.get(correctSubject);
-        if ( tsUser == null ) {
+        if (tsUser == null) {
           // User is necessary in target system, but is not present
-          LOG.warn("{}: Member in grouper group {} is being ignored because subject is not present in target system",
+          LOG.warn(
+              "{}: Member in grouper group {} is being ignored because subject is not present in target system",
               getDisplayName(), grouperGroupInfo);
-          
+
           correctSubjects.remove(correctSubject);
-        }
-        else {
+        } else {
           correctTSUsers.add(tsUser);
         }
       }
     }
 
     LOG.debug("{}/{}: All correct member subjects: {}",
-              new Object[] {getDisplayName(), grouperGroupInfo, correctSubjects});
+        new Object[] { getDisplayName(), grouperGroupInfo, correctSubjects });
 
     LOG.info("{}/{}: {} correct member subjects. Sample: {}...",
-      new Object[] {getDisplayName(), grouperGroupInfo, correctSubjects.size(),
-              new ArrayList<Subject>(correctSubjects).subList(0, Math.min(10, correctSubjects.size()))});
+        new Object[] { getDisplayName(), grouperGroupInfo, correctSubjects.size(),
+            new ArrayList<Subject>(correctSubjects).subList(0,
+                Math.min(10, correctSubjects.size())) });
 
     try {
       MDC.put("step", "prov/");
-      doFullSync(grouperGroupInfo, tsGroup, correctSubjects, tsUserCache_shortTerm, correctTSUsers, stats);
-    }
-    finally {
+      doFullSync(grouperGroupInfo, tsGroup, correctSubjects, tsUserCache_shortTerm,
+          correctTSUsers, stats);
+    } finally {
       MDC.remove("step");
       activeProvisioner.remove();
     }
@@ -1406,96 +1448,94 @@ public abstract class Provisioner
   public ProvisioningWorkItem getCurrentWorkItem() {
     return currentWorkItem.get();
   }
-  
+
   public void setCurrentWorkItem(ProvisioningWorkItem item) {
     currentWorkItem.set(item);
   }
-  
+
   protected static String getSubjectCacheKey(String subjectId, String sourceId) {
     String cacheKey = String.format("%s__%s", sourceId, subjectId);
     return cacheKey;
   }
-	  
+
   protected static String getSubjectCacheKey(Subject subject) {
     String cacheKey = getSubjectCacheKey(subject.getSourceId(), subject.getSourceId());
     return cacheKey;
   }
-  
+
   protected Subject getSubject(String subjectId, String sourceId) {
     String cacheKey = getSubjectCacheKey(subjectId, sourceId);
-    
-    Subject subject = grouperSubjectCache.get(cacheKey);
-    
-    if ( subject != null ) 
-      return subject;
-    
-      subject = SubjectFinder.findByIdAndSource(subjectId, sourceId, false);
 
-      if ( subject != null )
-        grouperSubjectCache.put(cacheKey, subject);
-      
+    Subject subject = grouperSubjectCache.get(cacheKey);
+
+    if (subject != null)
       return subject;
+
+    subject = SubjectFinder.findByIdAndSource(subjectId, sourceId, false);
+
+    if (subject != null)
+      grouperSubjectCache.put(cacheKey, subject);
+
+    return subject;
   }
 
   protected GrouperGroupInfo getGroupInfo(Group group) {
     String groupName = group.getName();
     GrouperGroupInfo result = grouperGroupInfoCache.get(groupName);
-    if ( result == null ) {
+    if (result == null) {
       result = new GrouperGroupInfo(group);
       grouperGroupInfoCache.put(groupName, result);
     }
     return result;
   }
-  
-  
+
   protected GrouperGroupInfo getGroupInfo(String groupName) {
     GrouperGroupInfo grouperGroupInfo = grouperGroupInfoCache.get(groupName);
-    
+
     // Return group if it was cached
-    if ( grouperGroupInfo != null )
+    if (grouperGroupInfo != null)
       return grouperGroupInfo;
-    
+
     try {
       // Look for an existing grouper group
-	    Group group = GroupFinder.findByName(GrouperSession.staticGrouperSession(false), groupName, false);
-	    
-	    if ( group != null ) {
-	      return getGroupInfo(group);
-	    }
-    }
-    catch (GroupNotFoundException e) {
+      Group group = GroupFinder.findByName(GrouperSession.staticGrouperSession(false),
+          groupName, false);
+
+      if (group != null) {
+        return getGroupInfo(group);
+      }
+    } catch (GroupNotFoundException e) {
       LOG.error("Unable to find existing group '{}'", groupName);
     }
-    
+
     try {
       // If an existing grouper group wasn't found, look for a PITGroup
-        PITGroup pitGroup = PITGroupFinder.findMostRecentByName(groupName, false);
-  	    
-  	    if ( pitGroup != null ) {
-  	    	grouperGroupInfo = new GrouperGroupInfo(pitGroup);
-  	    	grouperGroupInfoCache.put(groupName, grouperGroupInfo);
-  	    	return grouperGroupInfo;
-  	    }
-    }
-    catch (GroupNotFoundException e) {
+      PITGroup pitGroup = PITGroupFinder.findMostRecentByName(groupName, false);
+
+      if (pitGroup != null) {
+        grouperGroupInfo = new GrouperGroupInfo(pitGroup);
+        grouperGroupInfoCache.put(groupName, grouperGroupInfo);
+        return grouperGroupInfo;
+      }
+    } catch (GroupNotFoundException e) {
       LOG.error("Unable to find PIT group '{}'", groupName);
     }
-    
+
     return null;
   }
-  
+
   /**
    * Schedule a full sync of the given group as soon as possible
    * @param group
    */
-  public void scheduleFullSync(GrouperGroupInfo group, String reason) throws PspException {
+  public void scheduleFullSync(GrouperGroupInfo group, String reason)
+      throws PspException {
     getFullSyncer().scheduleGroupForSync(group, reason, true);
   }
 
   private FullSyncProvisioner getFullSyncer() throws PspException {
     return FullSyncProvisionerFactory.getFullSyncer(this);
   }
-
 
   /**
    * This method looks for groups that are marked for provisioning as determined by 
@@ -1512,51 +1552,62 @@ public abstract class Provisioner
     Set<GrouperGroupInfo> result = new HashSet<>();
 
     Set<Group> interestingGroups = new HashSet<Group>();
-    for ( String attribute : getConfig().getAttributesUsedInGroupSelectionExpression() ) {
+    for (String attribute : getConfig().getAttributesUsedInGroupSelectionExpression()) {
       Set<Stem> foldersReferencingAttribute;
       Set<Group> groupsReferencingAttribute;
 
-      if ( getConfig().areAttributesUsedInGroupSelectionExpressionComparedToProvisionerName() ) {
-        LOG.debug("Looking for folders that match attribute {}={}", attribute, getConfigName());
-        foldersReferencingAttribute = new StemFinder().assignNameOfAttributeDefName(attribute).assignAttributeValue(getConfigName()).findStems();
-        LOG.debug("Looking for groups that match attribute {}={}", attribute, getConfigName());
-        groupsReferencingAttribute = new GroupFinder().assignNameOfAttributeDefName(attribute).assignAttributeValue(getConfigName()).findGroups();
-      }
-      else {
+      if (getConfig()
+          .areAttributesUsedInGroupSelectionExpressionComparedToProvisionerName()) {
+        LOG.debug("Looking for folders that match attribute {}={}", attribute,
+            getConfigName());
+        foldersReferencingAttribute = new StemFinder()
+            .assignNameOfAttributeDefName(attribute).assignAttributeValue(getConfigName())
+            .findStems();
+        LOG.debug("Looking for groups that match attribute {}={}", attribute,
+            getConfigName());
+        groupsReferencingAttribute = new GroupFinder()
+            .assignNameOfAttributeDefName(attribute).assignAttributeValue(getConfigName())
+            .findGroups();
+      } else {
         LOG.debug("Looking for folders that have attribute {}", attribute);
-        foldersReferencingAttribute = new StemFinder().assignNameOfAttributeDefName(attribute).findStems();
+        foldersReferencingAttribute = new StemFinder()
+            .assignNameOfAttributeDefName(attribute).findStems();
         LOG.debug("Looking for groups that have attribute {}", attribute);
-        groupsReferencingAttribute = new GroupFinder().assignNameOfAttributeDefName(attribute).findGroups();
+        groupsReferencingAttribute = new GroupFinder()
+            .assignNameOfAttributeDefName(attribute).findGroups();
       }
 
-      LOG.debug("{}: There are {} folders that match {} attribute", new Object[]{getDisplayName(), foldersReferencingAttribute.size(), attribute});
-      LOG.debug("{}: There are {} groups that match {} attribute", new Object[]{getDisplayName(), groupsReferencingAttribute.size(), attribute});
+      LOG.debug("{}: There are {} folders that match {} attribute", new Object[] {
+          getDisplayName(), foldersReferencingAttribute.size(), attribute });
+      LOG.debug("{}: There are {} groups that match {} attribute", new Object[] {
+          getDisplayName(), groupsReferencingAttribute.size(), attribute });
 
       interestingGroups.addAll(groupsReferencingAttribute);
-      for ( Stem folder : foldersReferencingAttribute ) {
+      for (Stem folder : foldersReferencingAttribute) {
         Set<Group> groupsUnderFolder;
 
-        groupsUnderFolder = new GroupFinder().assignParentStemId(folder.getId()).assignStemScope(Scope.SUB).findGroups();
+        groupsUnderFolder = new GroupFinder().assignParentStemId(folder.getId())
+            .assignStemScope(Scope.SUB).findGroups();
 
-        LOG.debug("{}: There are {} groups underneath folder {}", new Object[]{getDisplayName(), groupsUnderFolder.size(), folder.getName()});
+        LOG.debug("{}: There are {} groups underneath folder {}", new Object[] {
+            getDisplayName(), groupsUnderFolder.size(), folder.getName() });
         interestingGroups.addAll(groupsUnderFolder);
       }
     }
 
-    for ( Group group : interestingGroups ) {
+    for (Group group : interestingGroups) {
       GrouperGroupInfo grouperGroupInfo = new GrouperGroupInfo(group);
-      if ( shouldGroupBeProvisioned(grouperGroupInfo) )
+      if (shouldGroupBeProvisioned(grouperGroupInfo))
         result.add(grouperGroupInfo);
     }
 
     return result;
   }
-  
-  
+
   public ConfigurationClass getConfig() {
     return config;
   }
-  
+
   /**
    * This returns the configuration class needed by provisioners of this class.
    * Unfortunately, java generics do not allow the generics to be used in static
@@ -1574,11 +1625,10 @@ public abstract class Provisioner
     return ProvisionerConfiguration.class;
   }
 
-  
   protected Map<String, Object> getGroupJexlMap(GrouperGroupInfo grouperGroupInfo) {
-	return grouperGroupInfo.getJexlMap();
+    return grouperGroupInfo.getJexlMap();
   }
-  
+
   /**
    * Evaluate the GroupSelectionExpression to see if group should be processed by this
    * provisioner.
@@ -1586,20 +1636,24 @@ public abstract class Provisioner
    * @param grouperGroupInfo
    * @return
    */
-  protected boolean shouldGroupBeProvisioned(GrouperGroupInfo grouperGroupInfo) throws PspException {
-    if ( grouperGroupInfo.hasGroupBeenDeleted() ) {
+  protected boolean shouldGroupBeProvisioned(GrouperGroupInfo grouperGroupInfo)
+      throws PspException {
+    if (grouperGroupInfo.hasGroupBeenDeleted()) {
       return false;
     }
-    
-    String resultString = evaluateJexlExpression("GroupSelection", config.getGroupSelectionExpression(), null, null, grouperGroupInfo, null);
-    
+
+    String resultString = evaluateJexlExpression("GroupSelection",
+        config.getGroupSelectionExpression(), null, null, grouperGroupInfo, null);
+
     boolean result = BooleanUtils.toBoolean(resultString);
-    
-    if ( result )
-      LOG.debug("{}: Group {} matches group-selection filter.", getDisplayName(), grouperGroupInfo);
+
+    if (result)
+      LOG.debug("{}: Group {} matches group-selection filter.", getDisplayName(),
+          grouperGroupInfo);
     else
-      LOG.trace("{}: Group {} does not match group-selection filter.", getDisplayName(), grouperGroupInfo);
-    
+      LOG.trace("{}: Group {} does not match group-selection filter.", getDisplayName(),
+          grouperGroupInfo);
+
     return result;
   }
 
@@ -1607,11 +1661,13 @@ public abstract class Provisioner
     return provisionerDisplayName;
   }
 
-  public String getConfigName() { return provisionerConfigName; }
+  public String getConfigName() {
+    return provisionerConfigName;
+  }
 
   public void provisionBatchOfItems(List<ProvisioningWorkItem> allWorkItems) {
     activeProvisioner.set(this);
-    List<ProvisioningWorkItem> filteredWorkItems=null;
+    List<ProvisioningWorkItem> filteredWorkItems = null;
 
     // Mark the items as successful if we are not enabled.
     // Note: They are being marked as successful so that there is an easy mechanism
@@ -1634,7 +1690,8 @@ public abstract class Provisioner
     } catch (PspException e) {
       LOG.error("Unable to evaluate our caches", e);
       MDC.remove("step");
-      throw new RuntimeException("No entries provisioned. Cache evaluation failed: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "No entries provisioned. Cache evaluation failed: " + e.getMessage(), e);
     }
 
     // Let the provisioner filter out any unnecessary work items.
@@ -1642,11 +1699,13 @@ public abstract class Provisioner
     MDC.put("step", "filter/");
     try {
       filteredWorkItems = filterWorkItems(allWorkItems);
-      LOG.info("{}: {} work items need to be processed further", getDisplayName(), filteredWorkItems.size());
+      LOG.info("{}: {} work items need to be processed further", getDisplayName(),
+          filteredWorkItems.size());
     } catch (PspException e) {
       LOG.error("Unable to filter the provisioning batch", e);
       MDC.remove("step");
-      throw new RuntimeException("No entries provisioned. Batch-filtering failed: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "No entries provisioned. Batch-filtering failed: " + e.getMessage(), e);
     }
 
     // Tell the provisioner about this batch of workItems
@@ -1658,7 +1717,8 @@ public abstract class Provisioner
       } catch (PspException e) {
         LOG.error("Unable to begin the provisioning batch", e);
         MDC.remove("step");
-        throw new RuntimeException("No entries provisioned. Batch-Start failed: " + e.getMessage(), e);
+        throw new RuntimeException(
+            "No entries provisioned. Batch-Start failed: " + e.getMessage(), e);
       }
 
       // Go through the workItems that were not marked as processed by the startProvisioningBatch
@@ -1694,13 +1754,11 @@ public abstract class Provisioner
         }
       }
       MDC.remove("step");
-    }
-    finally{
+    } finally {
       finishCoordination(filteredWorkItems, false);
       activeProvisioner.remove();
     }
   }
-
 
   /**
    * Look at the batch of workItems and flush caches necessary to process the entries
@@ -1710,16 +1768,19 @@ public abstract class Provisioner
    * @param allWorkItems
    * @throws PspException
    */
-  protected void flushCachesIfNecessary(List<ProvisioningWorkItem> allWorkItems)  throws PspException{
-    for (ProvisioningWorkItem workItem : allWorkItems ) {
+  protected void flushCachesIfNecessary(List<ProvisioningWorkItem> allWorkItems)
+      throws PspException {
+    for (ProvisioningWorkItem workItem : allWorkItems) {
 
       // Skip irrelevant changelog entries
-      if (!workItem.matchesChangelogType(ChangelogHandlingConfig.allRelevantChangelogTypes)) {
+      if (!workItem
+          .matchesChangelogType(ChangelogHandlingConfig.allRelevantChangelogTypes)) {
         continue;
       }
 
       // Skip changelog entries that don't need cache flushing
-      if (!workItem.matchesChangelogType(ChangelogHandlingConfig.relevantChangesThatNeedGroupCacheFlushing)) {
+      if (!workItem.matchesChangelogType(
+          ChangelogHandlingConfig.relevantChangesThatNeedGroupCacheFlushing)) {
         continue;
       }
 
@@ -1736,26 +1797,27 @@ public abstract class Provisioner
     }
   }
 
-
   public boolean isFullSyncMode() {
     return fullSyncMode;
   }
-
 
   @Override
   public String toString() {
     return String.format("%s[%s]", getClass().getSimpleName(), getDisplayName());
   }
 
-
   /**
    * Some changes (eg, labeling a folder for syncing) can have a large effect and are best handled with
    * a complete sync of all groups.
    * @return true if this work item should initiate a full sync of all groups
    */
-  public boolean workItemShouldBeHandledByFullSyncOfEverything(ProvisioningWorkItem workItem) {
+  public boolean workItemShouldBeHandledByFullSyncOfEverything(
+      ProvisioningWorkItem workItem) {
     // Skip if this ChangelogHandlingConfig says this doesn't affect group selection
-    if ( !workItem.matchesChangelogType(ChangelogHandlingConfig.changelogTypesThatAreHandledViaFullSync) ) {
+    // @TODO @UOA@ temporarily disable full sync during incremental sync process
+    // true || x will always be true and always return false
+    if (true || !workItem.matchesChangelogType(
+        ChangelogHandlingConfig.changelogTypesThatAreHandledViaFullSync)) {
       return false;
     }
 
@@ -1768,9 +1830,9 @@ public abstract class Provisioner
       return true;
     }
 
-    if ( getConfig().attributesUsedInGroupSelectionExpression.contains(attributeName) ) {
+    if (getConfig().attributesUsedInGroupSelectionExpression.contains(attributeName)) {
       LOG.info("{}: Change changes {} which might change group selection: {}",
-              new Object[]{getDisplayName(), attributeName, workItem});
+          new Object[] { getDisplayName(), attributeName, workItem });
       return true;
     }
 
