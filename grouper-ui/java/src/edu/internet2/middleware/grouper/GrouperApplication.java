@@ -1,16 +1,14 @@
-package edu.internet2.grouper;
-  
+package edu.internet2.middleware.grouper;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.config.server.EnableConfigServer;
 
 @SpringBootApplication
-@EnableConfigServer
+// @EnableConfigServer
 //@EnableDiscoveryClient
 public class GrouperApplication {
 
-        public static void main(String[] args) {
-                SpringApplication.run(GrouperApplication.class, args);
-        }
+  public static void main(String[] args) {
+    SpringApplication.run(GrouperApplication.class, args);
+  }
 }

@@ -1,14 +1,13 @@
-package edu.internet2.grouper.controller;
+package edu.internet2.middleware.grouper.controller;
   
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+ 
 @RestController
-@RefreshScope
+// @RefreshScope
 public class DefaultController {
 
   //@Value("${encrypted.property}")
@@ -30,4 +29,3 @@ public class DefaultController {
     return builder.toString();
   }
 }
-
