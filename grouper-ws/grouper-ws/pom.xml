@@ -33,6 +33,7 @@
         <swagger.version>2.0.0</swagger.version>
         <jackson.version>2.9.4</jackson.version>
         <jersey2.version>2.26</jersey2.version>
+        <swagger-maven-plugin.version>3.1.7</swagger-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -78,21 +79,31 @@
             <artifactId>spring-boot-starter-web-services</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>2.7.0</version>
-        </dependency>
         <!--Dependency for swagger ui -->
         <dependency>
             <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
-            <version>2.7.0</version>
+            <version>2.9.2</version>
         </dependency>
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
             <version>1.5.21</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-core</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>${swagger.version}</version>
         </dependency>
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
@@ -146,11 +157,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>2.9.2</version>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -316,6 +322,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-ehcache</artifactId>
+            <version>5.2.2.Final</version>
+        </dependency>
+
         <!-- still undetermined dependencies (provided in lib dir but jdeps 
             doesn't show any use) axis2-xmlbeans-1.6.1.jar axis2-adb-codegen-1.6.1.jar 
             axis2-codegen-1.6.1.jar axis2-java2wsdl-1.6.1.jar axis2-xmlbeans-1.6.1.jar 
@@ -357,6 +369,117 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-maven-plugin</artifactId>
+                <version>2.0.5</version>
+                <configuration>
+                    <outputFileName>GrouperRestAPI</outputFileName>
+                    <outputPath>${project.build.directory}</outputPath>
+                    <outputFormat>JSON</outputFormat>
+                    <resourcePackages>
+                        <package>edu.internet2.middleware.grouper</package>
+                        <package>edu.internet2.middleware.grouper.grouperws.controller</package>
+                        <package>nz.ac.auckland.swagger.grouper</package>
+                    </resourcePackages>
+                    <prettyPrint>TRUE</prettyPrint>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>resolve</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>com.github.kongchen</groupId>
+                <artifactId>swagger-maven-plugin</artifactId>
+                <version>${swagger-maven-plugin.version}</version>
+                <configuration>
+                    <apiSources>
+                        <!-- Version 1 -->
+                        <apiSource>
+                            <springmvc>false</springmvc>
+                            <locations>
+                                <location>edu.internet2.middleware.grouper.grouperws.controller</location>
+                                <location>edu.internet2.middleware.grouper.ws.rest</location>
+                                <location>edu.internet2.middleware.grouper.controller</location>
+                            </locations>
+                            <schemes>http,https</schemes>
+                            <basePath>/api</basePath>
+                            <info>
+                                <title>Grouper</title>
+                                <version>v1</version>
+                                <description>Grouper v1</description>
+                                <termsOfService>https://www.internet2.edu/products-services/trust-identity/grouper/</termsOfService>
+                                <contact>
+                                    <email>n.ivanov@auckland.ac.nz</email>
+                                    <name>Nick Ivanov</name>
+                                    <url>http://auckland.ac.nz</url>
+                                </contact>
+                                <license>
+                                    <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+                                    <name>Apache 2.0</name>
+                                </license>
+                            </info>
+                            <outputFormats>json</outputFormats>
+                            <swaggerDirectory>${basedir}/v1</swaggerDirectory>
+                            <swaggerApiReader>com.github.kongchen.swagger.docgen.reader.JaxrsReader</swaggerApiReader>
+                        </apiSource>
+                        <!-- Version 2 -->
+                        <apiSource>
+                            <springmvc>true</springmvc>
+                            <locations>
+                                <location>edu.internet2.middleware.grouper.grouperws.controller</location>
+                                <location>edu.internet2.middleware.grouper.ws</location>
+                                <location>edu.internet2.middleware.grouper.controller</location>
+                            </locations>
+                            <schemes>http,https</schemes>
+                            <basePath>/api</basePath>
+                            <info>
+                                <title>Grouper</title>
+                                <version>v2</version>
+                                <description>Grouper v2</description>
+                                <termsOfService>https://www.internet2.edu/products-services/trust-identity/grouper/</termsOfService>
+                                <contact>
+                                    <email>n.ivanov@auckland.ac.nz</email>
+                                    <name>Nick Ivanov</name>
+                                    <url>http://auckland.ac.nz</url>
+                                </contact>
+                                <license>
+                                    <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+                                    <name>Apache 2.0</name>
+                                </license>
+                            </info>
+                            <outputFormats>json</outputFormats>
+                            <swaggerDirectory>${basedir}/v2</swaggerDirectory>
+                            <swaggerApiReader>com.github.kongchen.swagger.docgen.reader.JaxrsReader</swaggerApiReader>
+                        </apiSource>
+                    </apiSources>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <!-- Adding dependency to swagger-hibernate-validations 
+                        to enable the BeanValidator as a custom model converter -->
+                    <dependency>
+                        <groupId>io.swagger</groupId>
+                        <artifactId>swagger-hibernate-validations</artifactId>
+                        <version>1.5.21</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 
             <plugin>
@@ -452,36 +575,37 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- <plugin> <groupId>io.swagger</groupId> <artifactId>swagger-codegen-maven-plugin</artifactId> 
+                <version>${swagger.codegen.version}</version> <executions> <execution> <goals> 
+                <goal>generate</goal> </goals> <configuration> <inputSpec>native</inputSpec> 
+                <scanPackages> <package>edu.internet2.middleware.grouper</package> <package>nz.ac.auckland.swagger.grouper</package> 
+                <scanPackages> <language>java</language> <configOptions> <sourceFolder>src/gen/java/main</sourceFolder> 
+                </configOptions> </configuration> </execution> </executions> </plugin> -->
+
             <plugin>
-                <groupId>io.swagger.core.v3</groupId>
-                <artifactId>swagger-maven-plugin</artifactId>
-                <version>2.0.5</version>
-                <configuration>
-                    <outputFileName>GrouperRestAPI</outputFileName>
-                    <outputPath>${project.build.directory}</outputPath>
-                    <outputFormat>JSON</outputFormat>
-                    <resourcePackages>
-                        <package>edu.internet2.middleware.grouper</package>
-                        <package>nz.ac.auckland.swagger.grouper</package>
-                    </resourcePackages>
-                    <prettyPrint>TRUE</prettyPrint>
-                </configuration>
+                <groupId>io.swagger</groupId>
+                <artifactId>swaggerhub-maven-plugin</artifactId>
+                <version>1.0.2</version>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
+                        <phase>deploy</phase>
+                        <!-- 
+                        <phase>generate-resources</phase>
+                         -->
                         <goals>
-                            <goal>resolve</goal>
+                            <goal>upload</goal>
                         </goals>
+                        <configuration>
+                            <api>GrouperRestAPI</api>
+                            <owner>nick_ms</owner>
+                            <version>0.0.1.b1</version>
+                            <inputFile>target/GrouperRestAPI.json</inputFile>
+                            <token>${SWAGGERHUB_APIKEY}</token>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- <plugin> <groupId>io.swagger</groupId> <artifactId>swaggerhub-maven-plugin</artifactId> 
-                <version>1.0.2</version> <executions> <execution> <phase>generate-resources</phase> 
-                <goals> <goal>download</goal> </goals> <configuration> <api>GrouperRestAPI</api> 
-                <owner>nick_ms</owner> <version>1.0.0</version> <outputFile>target/GrouperRestAPI.json</outputFile> 
-                <token>${SWAGGERHUB_APIKEY}</token> </configuration> </execution> </executions> 
-                </plugin> -->
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -500,6 +624,7 @@
                                 <source>src/grouper-ws_v2_2</source>
                                 <source>src/grouper-ws_v2_3</source>
                                 <source>src/grouper-ws_v2_4</source>
+                                <source>src/main/java</source>
                             </sources>
                         </configuration>
                     </execution>

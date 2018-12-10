@@ -32,6 +32,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -182,6 +187,7 @@ import edu.internet2.middleware.subject.Source;
 import edu.internet2.middleware.subject.Subject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -190,9 +196,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
  * Meant to be delegate from GrouperService which has the same params (and names)
  * with enums translated (for Simple objects like Field) for each Javadoc viewing.
  */
-@Api(value = "transaction", tags = { "transaction" })
-@Configuration
-@EnableSwagger2
 public class GrouperServiceLogic {
 
   /**
@@ -233,8 +236,9 @@ public class GrouperServiceLogic {
    * @return the results.  return the subject lookup only if there are problems retrieving the subject.
    * @see GrouperVersion
    */
-  @ApiOperation(value = "Places a new transaction on the system.", notes = "Creates a new transaction in the system. See the schema of the Transaction parameter for more information ", tags = {
-      "transaction", })
+  @GET
+  @ApiOperation(value = "Add member to a group (if already a direct member, ignore)", notes = "", tags = {
+      "rest" })
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Another transaction with the same messageId already exists in the system. No transaction was created."),
       @ApiResponse(code = 201, message = "The transaction has been correctly created in the system"),
@@ -244,7 +248,6 @@ public class GrouperServiceLogic {
 
   @RequestMapping(value = "/transaction", produces = { "text/plain" }, consumes = {
       "application/json" }, method = RequestMethod.POST)
-
   @SuppressWarnings("unchecked")
   public static WsAddMemberResults addMember(final GrouperVersion clientVersion,
       final WsGroupLookup wsGroupLookup, final WsSubjectLookup[] subjectLookups,

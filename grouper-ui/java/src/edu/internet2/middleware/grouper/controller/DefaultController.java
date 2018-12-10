@@ -1,13 +1,13 @@
 package edu.internet2.middleware.grouper.controller;
-  
+
 import javax.annotation.PostConstruct;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
- 
+
 @RestController
 // @RefreshScope
+@RequestMapping("/")
 public class DefaultController {
 
   //@Value("${encrypted.property}")
@@ -21,7 +21,7 @@ public class DefaultController {
     System.out.println("hello");
   }
 
-  @RequestMapping("/")
+  @RequestMapping("/test")
   public String test() {
     StringBuilder builder = new StringBuilder();
     builder.append("global property - ").append(testProperty).append(" || ")
