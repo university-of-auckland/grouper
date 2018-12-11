@@ -19,10 +19,10 @@ package edu.internet2.middleware.grouper.ws.rest;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
@@ -270,7 +270,8 @@ public class GrouperServiceRest {
   @ApiOperation(value = "Based on a group name, get the members", notes = "", tags = {
       "rest" })
   public static WsGetMembersLiteResult getMembersLite(GrouperVersion clientVersion,
-      String groupName, WsRestGetMembersLiteRequest wsRestGetMembersLiteRequest) {
+      @PathParam(value = "groupName") String groupName,
+      WsRestGetMembersLiteRequest wsRestGetMembersLiteRequest) {
 
     //make sure not null
     wsRestGetMembersLiteRequest = wsRestGetMembersLiteRequest == null
@@ -333,7 +334,9 @@ public class GrouperServiceRest {
   @ApiOperation(value = "Add member to a group (if already a direct member, ignore)", notes = "", tags = {
       "rest" })
   public static WsAddMemberLiteResult addMemberLite(GrouperVersion clientVersion,
-      @RequestParam() String groupName, @RequestParam() String subjectId, String sourceId,
+      @PathParam(value = "groupName") String groupName,
+      @PathParam(value = "subjectId") String subjectId,
+      @PathParam(value = "sourceId") String sourceId,
       WsRestAddMemberLiteRequest wsRestAddMemberLiteRequest) {
 
     //make sure not null
@@ -497,7 +500,9 @@ public class GrouperServiceRest {
   @ApiOperation(value = "Based on a group name, delete the member", notes = "", tags = {
       "rest" })
   public static WsDeleteMemberLiteResult deleteMemberLite(GrouperVersion clientVersion,
-      String groupName, String subjectId, String sourceId,
+      @PathParam(value = "groupName") String groupName,
+      @PathParam(value = "subjectId") String subjectId,
+      @PathParam(value = "sourceId") String sourceId,
       WsRestDeleteMemberLiteRequest wsRestDeleteMemberLiteRequest) {
 
     //make sure not null
@@ -966,9 +971,10 @@ public class GrouperServiceRest {
    * @return the result
    */
   @GET
-  @Path("")
+  @Path("/subjects/{subjectId}/groups")
   public static WsGetGroupsResults getGroups(GrouperVersion clientVersion,
-      String subjectId, String sourceId, WsRestGetGroupsRequest wsRestGetGroupsRequest) {
+      @PathParam(value = "subjectId") String subjectId, String sourceId,
+      WsRestGetGroupsRequest wsRestGetGroupsRequest) {
 
     //cant be null
     GrouperUtil.assertion(wsRestGetGroupsRequest != null,

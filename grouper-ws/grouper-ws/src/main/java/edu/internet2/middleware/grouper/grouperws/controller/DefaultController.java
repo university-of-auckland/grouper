@@ -30,11 +30,11 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @OpenAPIDefinition(info = @Info(title = "Grouper ", version = "0.0.1.b1", description = "Grouper API", license = @License(name = "Apache 2.0", url = "http://www.internet2.edu"), contact = @Contact(url = "http://www.internet2.edu", name = "Nick", email = "n.ivanov@auckland.ac.nz")))
 
-@Api(value = "rest2", tags = { "rest2" })
+@Api(value = "rest", tags = { "rest" })
 
 @RestController
 // @RefreshScope
-@Path("/grouper/v2")
+@Path("/grouper/v1")
 @Tags(@Tag(name = "test", description = ""))
 @Produces({ "application/json", "application/xml" })
 @Configuration

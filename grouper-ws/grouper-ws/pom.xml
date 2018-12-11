@@ -34,6 +34,8 @@
         <jackson.version>2.9.4</jackson.version>
         <jersey2.version>2.26</jersey2.version>
         <swagger-maven-plugin.version>3.1.7</swagger-maven-plugin.version>
+        <buildNumber>9</buildNumber>
+        <api.version>0.0.1.b${buildNumber}</api.version>
     </properties>
 
     <dependencies>
@@ -343,6 +345,7 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <filtering>true</filtering>
             </resource>
             <resource>
                 <directory>conf</directory>
@@ -430,6 +433,7 @@
                             </info>
                             <outputFormats>json</outputFormats>
                             <swaggerDirectory>${basedir}/v1</swaggerDirectory>
+                            <swaggerFileName>GrouperRestAPI</swaggerFileName>
                             <swaggerApiReader>com.github.kongchen.swagger.docgen.reader.JaxrsReader</swaggerApiReader>
                         </apiSource>
                         <!-- Version 2 -->
@@ -459,6 +463,7 @@
                             </info>
                             <outputFormats>json</outputFormats>
                             <swaggerDirectory>${basedir}/v2</swaggerDirectory>
+                            <swaggerFileName>GrouperRestAPI</swaggerFileName>
                             <swaggerApiReader>com.github.kongchen.swagger.docgen.reader.JaxrsReader</swaggerApiReader>
                         </apiSource>
                     </apiSources>
@@ -564,6 +569,10 @@
                             <outputDirectory>target/${project.artifactId}-${project.version}</outputDirectory>
                             <resources>
                                 <resource>
+                                    <directory>src/main/resources</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
                                     <directory>${project.build.directory}/swagger-ui-master/dist</directory>
                                     <filtering>true</filtering>
                                     <excludes>
@@ -590,9 +599,7 @@
                 <executions>
                     <execution>
                         <phase>deploy</phase>
-                        <!-- 
-                        <phase>generate-resources</phase>
-                         -->
+                        <!-- <phase>generate-resources</phase> -->
                         <goals>
                             <goal>upload</goal>
                         </goals>
@@ -650,6 +657,33 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <id>build-number</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <format>{0,number}</format>
+                    <items>
+                        <item>buildNumber</item>
+                    </items>
+<!--
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                    <revisionOnScmFailure>unknownbuild</revisionOnScmFailure>
+-->
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -666,7 +700,88 @@
                     </archive>
                 </configuration>
             </plugin>
+
+<plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>${basedir}/buildNumber.properties</file>
+              </files>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>download</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.swagger</groupId>
+                        <artifactId>swaggerhub-maven-plugin</artifactId>
+                        <version>1.0.2</version>
+                        <executions>
+                            <execution>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>download</goal>
+                                </goals>
+                                <configuration>
+                                    <api>GrouperRestAPI</api>
+                                    <owner>nick_ms</owner>
+                                    <version>0.0.1.b${api.version}</version>
+                                    <outputFile>target/GrouperRestAPI.json</outputFile>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>upload</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.swagger</groupId>
+                        <artifactId>swaggerhub-maven-plugin</artifactId>
+                        <version>1.0.2</version>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>upload</goal>
+                                </goals>
+                                <configuration>
+                                    <api>GrouperRestAPI</api>
+                                    <owner>nick_ms</owner>
+                                    <version>${api.version}</version>
+                                    <inputFile>v1/GrouperRestAPI.json</inputFile>
+                                    <token>${SWAGGERHUB_APIKEY}</token>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <scm>
+        <connection>scm:svn:http://127.0.0.1/grouper-ws</connection>
+        <developerConnection>scm:svn:https://127.0.0.1/grouper-ws</developerConnection>
+        <tag>HEAD</tag>
+        <url>http://127.0.0.1/grouper-ws</url>
+    </scm>
 </project>
