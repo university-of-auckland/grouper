@@ -1,0 +1,14 @@
+sourceId,entityIdOrIdentifier
+someSourceId,jsmith123
+someSourceId,12345678
+g:gsa,some:path:to:group:idPath
+g:gsa,123abc456def789abc
+sourceId,entityId
+someSourceId,12345678
+someSourceId,23456789
+g:gsa,12ab456bcb45db5b4b3db231
+ 
+sourceId,entityIdentifier
+someSourceId,jsmith123
+someSourceId,tjones123
+g:gsa,some:path:to:group:idPath
