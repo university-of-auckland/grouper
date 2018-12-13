@@ -121,6 +121,11 @@
                             >${textContainer.text['objectTypeMoreActionsMenuLabel'] }</a></li>
                           
                         </c:if>
+                        
+                          <li class="divider"></li>
+                          <li><a href="http://grouper-explorer.dev.auckland.ac.nz/graph?root=test%3AtestGroup3&submit=Submit"
+                              >Grouper Explorer <% //${textContainer.text['groupViewAdminUiButton'] }%></a></li>
+                        
                       </ul>
                     </div>
 
