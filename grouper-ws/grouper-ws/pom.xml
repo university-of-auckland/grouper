@@ -29,16 +29,27 @@
     <version>2.4.0-SNAPSHOT</version>
 
     <properties>
-        <SWAGGERHUB_APIKEY>3545d044-8979-40dc-9772-b776d7e14252</SWAGGERHUB_APIKEY>
+        <SWAGGERHUB_APIKEY>{0Gz4GyyKIRcHJdOveFKwfJNzFwXxQySPQkYlfISVi82jcGD0pP/4rgzdST5T2sNT40bxV7jPxq9iqjsTKqPSbA==}</SWAGGERHUB_APIKEY>
         <swagger.version>2.0.0</swagger.version>
         <jackson.version>2.9.4</jackson.version>
         <jersey2.version>2.26</jersey2.version>
         <swagger-maven-plugin.version>3.1.7</swagger-maven-plugin.version>
-        <buildNumber>9</buildNumber>
+        <buildNumber>10</buildNumber>
         <api.version>0.0.1.b${buildNumber}</api.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>nz.ac.auckland.spring</groupId>
+            <artifactId>spring-boot-admin-client-starter</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>de.codecentric</groupId>
+            <artifactId>spring-boot-admin-starter-client</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -501,7 +512,7 @@
                             <skipCache>true</skipCache>
                             <url>https://github.com/swagger-api/swagger-ui/archive/master.tar.gz</url>
                             <unpack>true</unpack>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <outputDirectory>${project.build.directory}/</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -520,7 +531,7 @@
                     <stopPort>8079</stopPort>
                     <stopKey>stopit</stopKey>
                     <httpConnector>
-                        <port>8002</port>
+                        <port>8080</port>
                         <idleTimeout>60000</idleTimeout>
                     </httpConnector>
                     <systemProperties>

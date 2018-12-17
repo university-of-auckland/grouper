@@ -6,6 +6,6 @@ build:
 run:
 	mvn spring-boot:run
 
-deploy:
+deploy:	build
 	mvn validate -P upload
 

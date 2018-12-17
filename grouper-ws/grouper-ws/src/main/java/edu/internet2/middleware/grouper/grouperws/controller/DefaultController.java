@@ -9,7 +9,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Controller;
 // import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,7 +27,6 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 // import edu.internet2.middleware.grouper.grouperws.configuration.PropertyConfiguration;
 
@@ -34,11 +36,15 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @RestController
 // @RefreshScope
-@Path("/grouper/v1")
+@Path("/api")
 @Tags(@Tag(name = "test", description = ""))
 @Produces({ "application/json", "application/xml" })
 @Configuration
-@EnableSwagger2
+// @EnableSwagger2
+@Controller
+@ComponentScan(basePackages = {
+    "edu.internet2" }, useDefaultFilters = false, includeFilters = @Filter({
+        Controller.class, RestController.class }))
 public class DefaultController {
 
   // @Value("${encrypted.property}")
@@ -56,7 +62,7 @@ public class DefaultController {
   }
 
   @GET
-  @Path("/home}")
+  @Path("/}")
   @RequestMapping("/home")
   @ApiOperation(value = "Home", response = String.class)
   @ApiResponses(value = {
