@@ -62,7 +62,7 @@ public class DefaultController {
   }
 
   @GET
-  @Path("/}")
+  @Path("/")
   @RequestMapping("/home")
   @ApiOperation(value = "Home", response = String.class)
   @ApiResponses(value = {

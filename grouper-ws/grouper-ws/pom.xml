@@ -34,7 +34,7 @@
         <jackson.version>2.9.4</jackson.version>
         <jersey2.version>2.26</jersey2.version>
         <swagger-maven-plugin.version>3.1.7</swagger-maven-plugin.version>
-        <buildNumber>10</buildNumber>
+        <buildNumber>14</buildNumber>
         <api.version>0.0.1.b${buildNumber}</api.version>
     </properties>
 
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>nz.ac.auckland.spring</groupId>
             <artifactId>spring-boot-admin-client-starter</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>de.codecentric</groupId>
@@ -619,7 +619,10 @@
                             <owner>nick_ms</owner>
                             <version>0.0.1.b1</version>
                             <inputFile>target/GrouperRestAPI.json</inputFile>
+<!--
                             <token>${SWAGGERHUB_APIKEY}</token>
+-->
+<token>010bde03-d771-45ed-8cac-f10cef7abc1a</token>
                         </configuration>
                     </execution>
                 </executions>
@@ -779,7 +782,10 @@
                                     <owner>nick_ms</owner>
                                     <version>${api.version}</version>
                                     <inputFile>v1/GrouperRestAPI.json</inputFile>
+<token>010bde03-d771-45ed-8cac-f10cef7abc1a</token>
+<!--
                                     <token>${SWAGGERHUB_APIKEY}</token>
+-->
                                 </configuration>
                             </execution>
                         </executions>
