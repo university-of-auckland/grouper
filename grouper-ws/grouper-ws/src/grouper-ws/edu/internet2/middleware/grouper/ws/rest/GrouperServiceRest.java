@@ -27,7 +27,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import edu.internet2.middleware.grouper.attr.AttributeDefNameSave;
 import edu.internet2.middleware.grouper.attr.AttributeDefSave;
@@ -370,7 +369,7 @@ public class GrouperServiceRest {
     @POST
     @Path("groups/{groupName}/members/add")
     @ApiOperation(value = ".", notes = "", tags = { "rest", "groups" })
-    public static WsAddMemberResults addMember(GrouperVersion clientVersion, String groupName,
+    public static WsAddMemberResults addMember(GrouperVersion clientVersion, @PathParam("groupName") String groupName,
             WsRestAddMemberRequest wsRestAddMembersRequest) {
 
         // cant be null
@@ -416,7 +415,7 @@ public class GrouperServiceRest {
      * @return the result
      */
     @POST
-    @Path("group/{groupName}/assignPrivileges")
+    @Path("group/groupName/assignPrivileges")
     @ApiOperation(value = ".", notes = "", tags = { "rest", "groups" })
     public static WsAssignGrouperPrivilegesResults assignGrouperPrivileges(GrouperVersion clientVersion,
             WsRestAssignGrouperPrivilegesRequest wsRestAssignGrouperPrivilegeRequest) {
@@ -524,8 +523,8 @@ public class GrouperServiceRest {
     @POST
     @Path("group/{groupName}/members/delete")
     @ApiOperation(value = ".", notes = "", tags = { "rest", "groups" })
-    public static WsDeleteMemberResults deleteMember(GrouperVersion clientVersion, String groupName,
-            WsRestDeleteMemberRequest wsRestDeleteMembersRequest) {
+    public static WsDeleteMemberResults deleteMember(GrouperVersion clientVersion,
+            @PathParam("groupName") String groupName, WsRestDeleteMemberRequest wsRestDeleteMembersRequest) {
 
         // cant be null
         GrouperUtil.assertion(wsRestDeleteMembersRequest != null, "Body of request must contain an instance of "
@@ -571,7 +570,7 @@ public class GrouperServiceRest {
     @POST
     @Path("group/{groupName}/members/testMembership")
     @ApiOperation(value = ".", notes = "", tags = { "rest", "groups" })
-    public static WsHasMemberResults hasMember(GrouperVersion clientVersion, String groupName,
+    public static WsHasMemberResults hasMember(GrouperVersion clientVersion, @PathParam("groupName") String groupName,
             WsRestHasMemberRequest wsRestHasMembersRequest) {
 
         // cant be null
@@ -615,7 +614,7 @@ public class GrouperServiceRest {
      * @return the result
      */
     @GET
-    @Path("group/{groupName}/members")
+    @Path("group/groupName/members")
     @ApiOperation(value = ".", notes = "", tags = { "rest", "groups" })
     public static WsGetMembersResults getMembers(GrouperVersion clientVersion,
             WsRestGetMembersRequest wsRestGetMembersRequest) {
@@ -661,8 +660,9 @@ public class GrouperServiceRest {
     @POST
     @Path("group/{groupName}/members/testMembershipLite")
     @ApiOperation(value = ".", notes = "", tags = { "rest", "groups" })
-    public static WsHasMemberLiteResult hasMemberLite(GrouperVersion clientVersion, String groupName, String subjectId,
-            String sourceId, WsRestHasMemberLiteRequest wsRestHasMemberLiteRequest) {
+    public static WsHasMemberLiteResult hasMemberLite(GrouperVersion clientVersion,
+            @PathParam("groupName") String groupName, String subjectId, String sourceId,
+            WsRestHasMemberLiteRequest wsRestHasMemberLiteRequest) {
 
         // make sure not null
         wsRestHasMemberLiteRequest = wsRestHasMemberLiteRequest == null ? new WsRestHasMemberLiteRequest()
