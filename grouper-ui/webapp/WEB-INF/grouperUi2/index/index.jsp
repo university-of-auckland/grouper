@@ -83,19 +83,19 @@
                   </ul>
                 </div>
               </div>
-              <div class="btn btn-block btn-grouper last" style="cursor: default;">${textContainer.text['indexBrowseFolders'] }
-              <i class="fa fa-refresh" style="cursor: pointer;" aria-label="${textContainer.text['ariaLabelGuiRefreshFolderBrowse'] }"
-                onclick="dojoInitMenu()"
-              ></i></div>
+              <%--<div class="btn btn-block btn-grouper last" style="cursor: default;">${textContainer.text['indexBrowseFolders'] }--%>
+              <%--<i class="fa fa-refresh" style="cursor: pointer;" aria-label="${textContainer.text['ariaLabelGuiRefreshFolderBrowse'] }"--%>
+                <%--onclick="dojoInitMenu()"--%>
+              <%--></i></div>--%>
               <div class="accordion-inner">
                 <script>
                   $(document).ready(function(){
                     dojoInitMenu();
                   });
                 </script>
-                <div id="folderTreeContainerId">
-                  <div id="folderTree"></div>
-                </div>
+                <%--<div id="folderTreeContainerId">--%>
+                  <%--<div id="folderTree"></div>--%>
+                <%--</div>--%>
               </div>
             </div>
           </div>

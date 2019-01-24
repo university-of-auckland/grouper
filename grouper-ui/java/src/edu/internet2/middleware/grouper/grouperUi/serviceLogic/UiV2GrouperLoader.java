@@ -711,11 +711,14 @@ public class UiV2GrouperLoader {
   }
   
   public static void setupLoaderManagedGroup(final Group group, GrouperLoaderContainer grouperLoaderContainer) {
+    AttributeAssign groupAttributeAssign = null;
     
     AttributeDefName loaderMetadataAttributeDefName = AttributeDefNameFinder.findByName(loaderMetadataStemName()+":"+GrouperLoader.LOADER_METADATA_VALUE_DEF, false);
 
-    AttributeAssign groupAttributeAssign = group.getAttributeDelegate().retrieveAssignment(null, loaderMetadataAttributeDefName, false, false);
-    
+    if (loaderMetadataAttributeDefName != null) {
+      groupAttributeAssign = group.getAttributeDelegate().retrieveAssignment(null, loaderMetadataAttributeDefName, false, false);
+    }
+
     if (groupAttributeAssign != null) {
       
       String metadataLoaded = groupAttributeAssign.getAttributeValueDelegate().retrieveValueString(loaderMetadataStemName()+":"+GrouperLoader.ATTRIBUTE_GROUPER_LOADER_METADATA_LOADED);

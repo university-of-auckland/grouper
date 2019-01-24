@@ -62,8 +62,8 @@
                     </tbody>
                   </table>
                   --%>
-                  <div class="row-fluid">     
-  
+                  <div class="row-fluid">
+
                     <div class="span4 well well-widget">
                       <c:set var="col" value="0" scope="request" />
                       <%@ include file="../index/indexColumnMenu.jsp"%>
@@ -72,7 +72,7 @@
                         <jsp:include page="../index/index${grouperRequestContainer.indexContainer.panelCol0}.jsp" />
                       </div>
                     </div>
-  
+
                     <div class="span4 well well-widget">
                       <c:set var="col" value="1" scope="request" />
                       <%@ include file="../index/indexColumnMenu.jsp"%>
@@ -81,7 +81,7 @@
                         <jsp:include page="../index/index${grouperRequestContainer.indexContainer.panelCol1}.jsp" />
                       </div>
                     </div>
-  
+
                     <div class="span4 well well-widget">
                       <c:set var="col" value="2" scope="request" />
                       <%@ include file="../index/indexColumnMenu.jsp"%>

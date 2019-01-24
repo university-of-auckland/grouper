@@ -255,16 +255,16 @@
                             ${grouperRequestContainer.attributeDefContainer.configDefaultAttributeDefsCreateGrantAllView ? 'checked="checked"' : '' }                          
                           />${textContainer.text['priv.attrViewUpper'] }
                         </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_attrOptins" value="true"
-                            ${grouperRequestContainer.attributeDefContainer.configDefaultAttributeDefsCreateGrantAllOptin ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.attrOptinUpper'] }
-                        </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_attrOptouts" value="true"
-                            ${grouperRequestContainer.attributeDefContainer.configDefaultAttributeDefsCreateGrantAllOptout ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.attrOptoutUpper'] }
-                        </label>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_attrOptins" value="true"--%>
+                            <%--${grouperRequestContainer.attributeDefContainer.configDefaultAttributeDefsCreateGrantAllOptin ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.attrOptinUpper'] }--%>
+                        <%--</label>--%>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_attrOptouts" value="true"--%>
+                            <%--${grouperRequestContainer.attributeDefContainer.configDefaultAttributeDefsCreateGrantAllOptout ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.attrOptoutUpper'] }--%>
+                        <%--</label>--%>
                         <label class="checkbox inline">
                           <input type="checkbox" name="privileges_attrDefAttrReaders" value="true"
                             ${grouperRequestContainer.attributeDefContainer.configDefaultAttributeDefsCreateGrantAllAttrRead ? 'checked="checked"' : '' }                          

@@ -45,8 +45,8 @@
                         <option value="attrViewers">${textContainer.text['attributeDefPrivilegesFilterViewers']}</option>
                         <option value="attributeDefAttrReaders">${textContainer.text['attributeDefPrivilegesFilterAttrReaders']}</option>
                         <option value="attributeDefAttrUpdaters">${textContainer.text['attributeDefPrivilegesFilterAttrUpdaters']}</option>
-                        <option value="attrOptins">${textContainer.text['attributeDefPrivilegesFilterOptins']}</option>
-                        <option value="attrOptouts">${textContainer.text['attributeDefPrivilegesFilterOptouts']}</option>
+                        <%--<option value="attrOptins">${textContainer.text['attributeDefPrivilegesFilterOptins']}</option>--%>
+                        <%--<option value="attrOptouts">${textContainer.text['attributeDefPrivilegesFilterOptouts']}</option>--%>
 
                       </select>
                     </div>

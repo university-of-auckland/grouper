@@ -54,11 +54,13 @@
                       <label class="checkbox">
                         <c:choose>
                           <c:when test="${grouperRequestContainer.membershipGuiContainer.directMembership}">
-                            <input type="checkbox" name="hasMembership" checked="checked" value="true" /> 
+                            <input type="checkbox" name="hasMembership" checked="checked" value="true"
+                              ${grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'}/>
                               ${textContainer.text['membershipEditHasDirectMembership']}
                           </c:when>
                           <c:otherwise>
-                            <input type="checkbox" name="hasMembership" value="true" />
+                            <input type="checkbox" name="hasMembership" value="true"
+                              ${grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'}/>
                               ${textContainer.text['membershipEditHasDirectMembership']}
                           </c:otherwise>
                         </c:choose>
@@ -86,22 +88,26 @@
                     <label for="member-start-date"
                       class="control-label">${textContainer.text['membershipEditLabelStartDate'] }</label>
                     <div class="controls">
-                      <input type="text" name="startDate"  placeholder="${textContainer.text['membershipEditDatePlaceholder'] }"  
-                        value="${grouperRequestContainer.membershipGuiContainer.directGuiMembership.startDateLabel }" id="member-start-date"><span class="help-block">${textContainer.text['membershipEditLabelStartDateSubtext'] }</span>
+                      <input type="text" name="startDate"  placeholder="${textContainer.text['membershipEditDatePlaceholder'] }"
+                                 value="${grouperRequestContainer.membershipGuiContainer.directGuiMembership.startDateLabel }" id="member-start-date"
+                                 ${grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'}>
+                      <span class="help-block">${textContainer.text['membershipEditLabelStartDateSubtext'] }</span>
                     </div>
                   </div>
                   <div class="control-group">
                     <label for="member-end-date" class="control-label">${textContainer.text['membershipEditLabelEndDate'] }</label>
                     <div class="controls">
                       <input type="text" name="endDate" placeholder="${textContainer.text['membershipEditDatePlaceholder'] }"
-                        value="${grouperRequestContainer.membershipGuiContainer.directGuiMembership.endDateLabel }" id="member-end-date"><span class="help-block">${textContainer.text['membershipEditLabelEndDateSubtext'] }</span>
+                                 value="${grouperRequestContainer.membershipGuiContainer.directGuiMembership.endDateLabel }" id="member-end-date"
+                                 ${grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'} >
+                      <span class="help-block">${textContainer.text['membershipEditLabelEndDateSubtext'] }</span>
                     </div>
                   </div>
                   <c:if test="${grouperRequestContainer.groupContainer.canAdmin}">
                     <div class="control-group">
                       <label class="control-label">${textContainer.text['membershipEditLabelDirectPrivileges'] }</label>
                       <div class="controls">
-                        <c:forEach items="admins,readers,updaters,optins,optouts,groupAttrReaders,groupAttrUpdaters,viewers" var="fieldName">
+                        <c:forEach items="admins,readers,updaters,groupAttrReaders,groupAttrUpdaters,viewers" var="fieldName">
                           <c:set value="${grouperRequestContainer.membershipGuiContainer.privilegeGuiMembershipSubjectContainer.guiMembershipContainers[fieldName]}" 
                             var="guiMembershipContainer" />
                           <label class="checkbox inline">
@@ -112,10 +118,11 @@
                         </c:forEach>
                       </div>
                     </div>
+                    <%--todo--%>
                     <div class="control-group">
                       <label class="control-label">${textContainer.text['membershipEditLabelIndirectPrivileges'] }</label>
                       <div class="controls">
-                        <c:forEach items="admins,readers,updaters,optins,optouts,groupAttrReaders,groupAttrUpdaters,viewers" var="fieldName">
+                        <c:forEach items="admins,readers,updaters,groupAttrReaders,groupAttrUpdaters,viewers" var="fieldName">
                           <c:set value="${grouperRequestContainer.membershipGuiContainer.privilegeGuiMembershipSubjectContainer.guiMembershipContainers[fieldName]}" 
                             var="guiMembershipContainer" />
                           <label class="checkbox inline">
@@ -132,7 +139,7 @@
                   
                     <c:if test="${grouperRequestContainer.groupContainer.canUpdate}">
                       <a href="#" onclick="ajax('../app/UiV2Membership.saveMembership', {formIds: 'editMembershipFormId'}); return false;" class="btn btn-primary">${textContainer.text['membershipEditSaveButton'] }</a> 
-                    </c:if>
+                    <%--</c:if>--%>
                     <c:choose>
                       <c:when test="${grouperRequestContainer.membershipGuiContainer.editMembershipFromSubject}">
                         <a href="#" onclick="return guiV2link('operation=UiV2Subject.viewSubject&subjectId=${grouperRequestContainer.subjectContainer.guiSubject.subject.id}&sourceId=${grouperRequestContainer.subjectContainer.guiSubject.subject.sourceId}');"
@@ -143,6 +150,7 @@
                            class="btn">${textContainer.text['membershipEditCancelButton']}</a>
                       </c:otherwise>
                     </c:choose>
+                    </c:if>
                     <c:if test="${grouperRequestContainer.membershipGuiContainer.guiMembershipSubjectContainer.guiMembershipContainers['members'].membershipContainer.membershipAssignType.nonImmediate}">
                     
                       <a href="#" onclick="return guiV2link('operation=UiV2Membership.traceMembership&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}&memberId=${grouperRequestContainer.subjectContainer.guiSubject.memberId}&field=members&backTo=membership');"

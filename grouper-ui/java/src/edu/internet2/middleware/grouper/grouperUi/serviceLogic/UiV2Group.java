@@ -120,6 +120,8 @@ import edu.internet2.middleware.subject.Source;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;
 import edu.internet2.middleware.subject.provider.SourceManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * operations in the group screen
@@ -127,6 +129,8 @@ import edu.internet2.middleware.subject.provider.SourceManager;
  *
  */
 public class UiV2Group {
+
+  private static Logger log = LoggerFactory.getLogger(UiV2Group.class);
 
   
   /**
@@ -1059,40 +1063,41 @@ public class UiV2Group {
    * @param response
    */
   public void joinGroup(HttpServletRequest request, HttpServletResponse response) {
-
-    final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
-    
-    GrouperSession grouperSession = null;
-  
-    Group group = null;
-  
-    try {
-  
-      grouperSession = GrouperSession.start(loggedInSubject);
-  
-      group = retrieveGroupHelper(request, AccessPrivilege.OPTIN).getGroup();
-      
-      if (group == null) {
-        return;
-      }
-
-      group.addMember(loggedInSubject, false);
-
-      GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
-      
-      guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success, 
-          TextContainer.retrieveFromRequest().getText().get("groupJoinSuccess")));
-
-      //redisplay so the button will change, note, this will not change the memberships
-      guiResponseJs.addAction(GuiScreenAction.newInnerHtmlFromJsp("#groupMoreActionsButtonContentsDivId", 
-          "/WEB-INF/grouperUi2/group/groupMoreActionsButtonContents.jsp"));
-
-      GrouperUserDataApi.recentlyUsedGroupAdd(GrouperUiUserData.grouperUiGroupNameForUserData(), 
-          loggedInSubject, group);
-
-    } finally {
-      GrouperSession.stopQuietly(grouperSession);
-    }
+    //Not support in uoa
+    log.warn("NOT SUPPORT OPTINS");
+//    final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
+//
+//    GrouperSession grouperSession = null;
+//
+//    Group group = null;
+//
+//    try {
+//
+//      grouperSession = GrouperSession.start(loggedInSubject);
+//
+//      group = retrieveGroupHelper(request, AccessPrivilege.OPTIN).getGroup();
+//
+//      if (group == null) {
+//        return;
+//      }
+//
+//      group.addMember(loggedInSubject, false);
+//
+//      GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
+//
+//      guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success,
+//          TextContainer.retrieveFromRequest().getText().get("groupJoinSuccess")));
+//
+//      //redisplay so the button will change, note, this will not change the memberships
+//      guiResponseJs.addAction(GuiScreenAction.newInnerHtmlFromJsp("#groupMoreActionsButtonContentsDivId",
+//          "/WEB-INF/grouperUi2/group/groupMoreActionsButtonContents.jsp"));
+//
+//      GrouperUserDataApi.recentlyUsedGroupAdd(GrouperUiUserData.grouperUiGroupNameForUserData(),
+//          loggedInSubject, group);
+//
+//    } finally {
+//      GrouperSession.stopQuietly(grouperSession);
+//    }
 
   }
   
@@ -1102,40 +1107,41 @@ public class UiV2Group {
    * @param response
    */
   public void leaveGroup(HttpServletRequest request, HttpServletResponse response) {
+    log.warn("NOT SUPPORT OPTOUT");
 
-    final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
-    
-    GrouperSession grouperSession = null;
-  
-    Group group = null;
-  
-    try {
-  
-      grouperSession = GrouperSession.start(loggedInSubject);
-  
-      group = retrieveGroupHelper(request, AccessPrivilege.OPTOUT).getGroup();
-      
-      if (group == null) {
-        return;
-      }
-
-      group.deleteMember(loggedInSubject, false);
-
-      GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
-      
-      guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success, 
-          TextContainer.retrieveFromRequest().getText().get("groupLeaveSuccess")));
-
-      //redisplay so the button will change, note, this will not change the memberships
-      guiResponseJs.addAction(GuiScreenAction.newInnerHtmlFromJsp("#groupMoreActionsButtonContentsDivId", 
-          "/WEB-INF/grouperUi2/group/groupMoreActionsButtonContents.jsp"));
-
-      GrouperUserDataApi.recentlyUsedGroupAdd(GrouperUiUserData.grouperUiGroupNameForUserData(), 
-          loggedInSubject, group);
-
-    } finally {
-      GrouperSession.stopQuietly(grouperSession);
-    }
+//    final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
+//
+//    GrouperSession grouperSession = null;
+//
+//    Group group = null;
+//
+//    try {
+//
+//      grouperSession = GrouperSession.start(loggedInSubject);
+//
+//      group = retrieveGroupHelper(request, AccessPrivilege.OPTOUT).getGroup();
+//
+//      if (group == null) {
+//        return;
+//      }
+//
+//      group.deleteMember(loggedInSubject, false);
+//
+//      GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
+//
+//      guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success,
+//          TextContainer.retrieveFromRequest().getText().get("groupLeaveSuccess")));
+//
+//      //redisplay so the button will change, note, this will not change the memberships
+//      guiResponseJs.addAction(GuiScreenAction.newInnerHtmlFromJsp("#groupMoreActionsButtonContentsDivId",
+//          "/WEB-INF/grouperUi2/group/groupMoreActionsButtonContents.jsp"));
+//
+//      GrouperUserDataApi.recentlyUsedGroupAdd(GrouperUiUserData.grouperUiGroupNameForUserData(),
+//          loggedInSubject, group);
+//
+//    } finally {
+//      GrouperSession.stopQuietly(grouperSession);
+//    }
 
   }
   

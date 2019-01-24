@@ -101,12 +101,12 @@
                                   <label class="checkbox inline">
                                     <input type="checkbox" name="privileges_viewers" value="true" />${textContainer.text['priv.viewUpper'] }
                                   </label>
-                                  <label class="checkbox inline">
-                                    <input type="checkbox" name="privileges_optins" value="true" />${textContainer.text['priv.optinUpper'] }
-                                  </label>
-                                  <label class="checkbox inline">
-                                    <input type="checkbox" name="privileges_optouts" value="true" />${textContainer.text['priv.optoutUpper'] }
-                                  </label>
+                                  <%--<label class="checkbox inline">--%>
+                                    <%--<input type="checkbox" name="privileges_optins" value="true" />${textContainer.text['priv.optinUpper'] }--%>
+                                  <%--</label>--%>
+                                  <%--<label class="checkbox inline">--%>
+                                    <%--<input type="checkbox" name="privileges_optouts" value="true" />${textContainer.text['priv.optoutUpper'] }--%>
+                                  <%--</label>--%>
                                   <label class="checkbox inline">
                                     <input type="checkbox" name="privileges_groupAttrReaders" value="true" />${textContainer.text['priv.groupAttrReadUpper'] }
                                   </label>

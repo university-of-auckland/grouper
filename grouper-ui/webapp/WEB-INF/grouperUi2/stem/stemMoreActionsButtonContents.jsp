@@ -3,6 +3,7 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
 
                     <!-- start stem/stemMoreActionsButtonContents.jsp -->
+                    <c:set value="${grouperRequestContainer.stemContainer.wheelGroupMember}" var="isWheelGroupMember"></c:set>
 
                     <c:if test="${grouperRequestContainer.stemContainer.canAdminPrivileges }">
                       <%-- on the privs tab, show the add member button --%>
@@ -18,6 +19,7 @@
                     <%-- HJ 20150319 
                     <div class="btn-group btn-block"><a data-toggle="dropdown" href="#" class="btn btn-medium btn-block dropdown-toggle">More actions<span class="caret"></span></a>
                     --%>
+                    <%--disable copy folder, move folder--%>
                     <div class="btn-group btn-block">
                     	<a data-toggle="dropdown" href="#" class="btn btn-medium btn-block dropdown-toggle" 
                     		aria-haspopup="true" aria-label="${textContainer.text['ariaLabelGuiMoreStemActions']}" aria-expanded="false" role="menu" 
@@ -63,8 +65,8 @@
                         <c:if test="${grouperRequestContainer.stemContainer.canReadAttributes || grouperRequestContainer.stemContainer.canCreateStems}">
                           <li class="divider"></li>
                         </c:if>
-                        <c:if test="${grouperRequestContainer.stemContainer.canCreateStems}">
-                          <li><a href="#" 
+                        <c:if test="${isWheelGroupMember}">
+                          <li><a href="#"
                              onclick="return guiV2link('operation=UiV2AttributeDef.newAttributeDef', {optionalFormElementNamesToSend: 'objectStemId'});">${textContainer.text['attributeDefNewCreateNewAttributeDefMenuButton'] }</a></li>
                           <li><a href="#" 
                              onclick="return guiV2link('operation=UiV2AttributeDefName.newAttributeDefName', {optionalFormElementNamesToSend: 'objectStemId'});">${textContainer.text['attributeDefNameNewCreateNewAttributeDefNameMenuButton'] }</a></li>
@@ -80,18 +82,19 @@
 
                           <li class="divider"></li>
 
-                          <li><a href="#" onclick="return guiV2link('operation=UiV2Stem.stemCopy&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
-                              >${textContainer.text['stemViewCopyStemButton'] }</a></li>
+                          <%--<li><a href="#" onclick="return guiV2link('operation=UiV2Stem.stemCopy&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"--%>
+                              <%-->${textContainer.text['stemViewCopyStemButton'] }</a></li>--%>
+                          <c:if test="${mediaMap['uiV2.stem.delete.enabled'] == 'true' && isWheelGroupMember}">
                           <li><a href="#" onclick="return guiV2link('operation=UiV2Stem.stemDelete&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
                               >${textContainer.text['stemViewDeleteStemButton'] }</a></li>
-
+                          </c:if>
                           <li><a href="#" onclick="return guiV2link('operation=UiV2Stem.stemEdit&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
                               >${textContainer.text['stemViewEditStemButton'] }</a></li>
 
-                          <li><a href="#" onclick="return guiV2link('operation=UiV2Stem.stemMove&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
-                              >${textContainer.text['stemViewMoveStemButton'] }</a></li>
+                          <%--<li><a href="#" onclick="return guiV2link('operation=UiV2Stem.stemMove&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"--%>
+                              <%-->${textContainer.text['stemViewMoveStemButton'] }</a></li>--%>
                           <li class="divider"></li>
-                          <c:if test="${isWheelGroupMember || grouperRequestContainer.stemContainer.canAdminPrivileges}">
+                          <c:if test="${grouperRequestContainer.stemContainer.canAdminPrivileges}">
                             <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2Attestation.stemAttestation&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
                               >${textContainer.text['attestationButton'] }</a></li>
                           </c:if>
@@ -105,16 +108,16 @@
                         <c:if test="${grouperRequestContainer.stemContainer.canCreateGroups && grouperRequestContainer.stemContainer.canCreateStems }">
 
                           <li class="divider"></li>
-
+                          <c:if test="${isWheelGroupMember}">
                           <li><a href="#" onclick="return guiV2link('operation=UiV2Template.newTemplate&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
                               >${textContainer.text['createNewTemplateMenuButton'] }</a></li>
-                         
+                          </c:if>
                         </c:if>
                         <c:if test="${grouperRequestContainer.objectTypeContainer.canReadObjectType}">
                           <li class="divider"></li>
                           <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2GrouperObjectTypes.viewObjectTypesOnFolder&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
                             >${textContainer.text['objectTypeMoreActionsMenuLabel'] }</a></li>
-                          
+
                         </c:if>
                       </ul>
                     </div>
