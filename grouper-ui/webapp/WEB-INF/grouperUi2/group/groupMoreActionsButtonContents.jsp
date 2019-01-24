@@ -51,6 +51,11 @@
                           </c:if>
                           <li><a href="#" onclick="return guiV2link('operation=UiV2Group.groupEdit&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}'); return false;"
                             >${textContainer.text['groupViewEditGroupButton'] }</a></li>
+                            
+                          <c:if test="${grouperRequestContainer.groupContainer.guiGroup.typeRole}">
+                            <li><a href="#" onclick="return guiV2link('operation=UiV2Role.roleEditInheritance&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}'); return false;"
+                            >${textContainer.text['roleViewEditInheritanceButton'] }</a></li>                      
+                          </c:if>  
                         </c:if>
                         <%--<c:if test="${grouperRequestContainer.groupContainer.canUpdate && grouperRequestContainer.groupContainer.canRead }">--%>
                         <c:if test="${isWheelGroupMember}">
