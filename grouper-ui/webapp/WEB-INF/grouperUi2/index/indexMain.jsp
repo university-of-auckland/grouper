@@ -62,6 +62,7 @@
                     </tbody>
                   </table>
                   --%>
+                  <c:if test="${mediaMap['uiV2.widget.enabled'] == 'true'}">
                   <div class="row-fluid">
 
                     <div class="span4 well well-widget">
@@ -91,6 +92,7 @@
                       </div>
                     </div>
                   </div>
+                  </c:if>
                 </div>
               </div>
               <!-- end indexMain.jsp -->
