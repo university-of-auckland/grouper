@@ -6,3 +6,6 @@ build:
 deploy:
 	time mvn clean deploy  -f grouper-parent/pom.xml  -DskipTests -Dlicense.skip=true
 	# time mvn clean deploy  -f grouper-parent/pom.xml  -DskipTests -Dlicense.skip=true -Dmaven.test.skip=true
+
+site:
+	time mvn clean site site:deploy  -f grouper-parent/pom.xml  -DskipTests -Dlicense.skip=true
