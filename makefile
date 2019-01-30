@@ -8,4 +8,7 @@ deploy:
 	# time mvn clean deploy  -f grouper-parent/pom.xml  -DskipTests -Dlicense.skip=true -Dmaven.test.skip=true
 
 site:
-	time mvn clean site site:deploy  -f grouper-parent/pom.xml  -DskipTests -Dlicense.skip=true
+	time mvn site site:deploy -f grouper-parent/pom.xml -DskipTests -Dlicense.skip=true
+	cd /tmp/grouper-parent
+	open index.html
+
