@@ -1,5 +1,10 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
 
+                <div class="data-table-bottom gradient-background">
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.myStemsContainer.myStemsGuiPaging}" 
+                    formName="myStemsPagingForm" ajaxFormIds="myStemsForm"
+                    refreshOperation="../app/UiV2MyStems.myStemsSubmit" />
+                </div>
                 <table class="table table-hover table-bordered table-striped table-condensed data-table table-paths">
                   <thead>
                     <tr>
