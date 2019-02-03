@@ -30,7 +30,8 @@ deploy:
 	#mvn -f pom2_processed.xml deploy -DskipTests
 	@echo ${buildNumber}
 	mvn deploy:deploy-file -DrepositoryId=uoa-central -DgroupId=edu.internet2.grouper -DartifactId=grouper-deploy -Dversion=2.4.0-build${buildNumber} -Dpackaging=tar.gz -DrepositoryId=uoa-releases -Durl=https://nexus.auckland.ac.nz/nexus/content/repositories/releases/ -Dfile=grouper-2.4.0.tar.gz
-
+	git tag 2.4.0-build${buildNumber}
+	git push --tags
 
 ##
 ## tar!!
