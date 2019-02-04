@@ -2,6 +2,9 @@
 ## jar
 ##
 
+buildNumber0 := `grep buildNumber buildNumber.properties | grep = | cut -d= -f2`;
+buildNumber := $(shell echo ${buildNumber0})
+
 all:	package copy resources deploy
 
 package:
@@ -28,7 +31,7 @@ deploy:
 ##
 ## tar!!
 ##
-package_tar:
+package_jar:
 	mvn -f pom2.xml clean package -DskipTests
 	cp target/pom2.xml pom2_processed.xml
 	mvn -f pom2_processed.xml package -DskipTests
@@ -45,8 +48,8 @@ archive:
 	gzip grouper-2.4.0.tar
 
 deploy_tar:
-	buildNumber=`grep buildNumber buildNumber.properties | grep = | cut -d= -f2`
-	@echo ${buildNumber}
-	mvn deploy:deploy-file -DrepositoryId=uoa-central -DgroupId=edu.internet2.grouper -DartifactId=grouper-deploy -Dversion=2.4.0-build${buildNumber} -Dpackaging=tar.gz -DrepositoryId=uoa-releases -Durl=https://nexus.auckland.ac.nz/nexus/content/repositories/releases/ -Dfile=grouper-2.4.0.tar.gz
-	git tag -f 2.4.0-build${buildNumber}
+	# export buildNumber=`grep buildNumber buildNumber.properties | grep = | cut -d= -f2`;
+	@echo Deploying release $(buildNumber)
+	mvn deploy:deploy-file -DrepositoryId=uoa-central -DgroupId=edu.internet2.grouper -DartifactId=grouper-deploy -Dversion=2.4.0-build$(buildNumber) -Dpackaging=tar.gz -DrepositoryId=uoa-releases -Durl=https://nexus.auckland.ac.nz/nexus/content/repositories/releases/ -Dfile=grouper-2.4.0.tar.gz
+	git tag -f 2.4.0-build$(buildNumber)
 	git push -f --tags
