@@ -6,7 +6,7 @@ all:	package copy resources deploy
 
 package:
 	mvn package -DskipTests
-	mvn -f pom2.xml package -DskipTests
+	mvn -f target/pom2.xml package -DskipTests
 
 copy:
 	cp target/grouper*-SNAPSHOT.jar target/grouper-ui-2.4.0-build*.jar
@@ -25,13 +25,13 @@ archive:
 
 deploy:
 	export buildNumber=`grep buildNumber buildNumber.properties | grep = | cut -d= -f2`
+	@echo ${buildNumber}
 	# mvn -f pom2.xml deploy -DartifactId=grouper-ui -Dversion=2.4.0-build14 -Dfile=target/grouper-ui-2.4.0-build.jar -DskipTests
 	# mvn -f target/pom2.xml deploy -DskipTests
 	#mvn -f pom2_processed.xml deploy -DskipTests
-	@echo ${buildNumber}
 	mvn deploy:deploy-file -DrepositoryId=uoa-central -DgroupId=edu.internet2.grouper -DartifactId=grouper-deploy -Dversion=2.4.0-build${buildNumber} -Dpackaging=tar.gz -DrepositoryId=uoa-releases -Durl=https://nexus.auckland.ac.nz/nexus/content/repositories/releases/ -Dfile=grouper-2.4.0.tar.gz
-	git tag 2.4.0-build${buildNumber}
-	git push --tags
+	git tag -f 2.4.0-build${buildNumber}
+	git push -f --tags
 
 ##
 ## tar!!
