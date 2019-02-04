@@ -18,7 +18,7 @@ archive:
 	mkdir -p grouper-ui/dist/grouper
 	cp -r webapp/WEB-INF/ grouper-ui/dist/grouper/WEB-INF
 	mkdir -p grouper-ui/dist/grouper
-	rm grouper-ui/dist/grouper/WEB-INF/web.xml
+	rm -f grouper-ui/dist/grouper/WEB-INF/web.xml
 	tar cvf grouper-2.4.0.tar grouper-ui
 	#tar -cvf arch.tar --transform 's,^,/usr/local/,S' ./webapp/WEB-INF
 	gzip grouper-2.4.0.tar
