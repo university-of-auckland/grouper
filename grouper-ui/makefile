@@ -32,8 +32,8 @@ deploy:
 ## tar!!
 ##
 package_tar:
-	mvn -f pom2.xml clean package -DskipTests
-	cp target/pom2.xml pom2_processed.xml
+	# mvn -f pom2.xml clean package -DskipTests
+	# cp target/pom2.xml pom2_processed.xml
 	# mvn -f pom2_processed.xml package -DskipTests
 
 archive:
