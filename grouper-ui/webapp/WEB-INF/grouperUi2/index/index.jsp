@@ -1,4 +1,5 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
+<%@page import="edu.internet2.middleware.grouper.misc.GrouperStartup"%>
 
 <!DOCTYPE html>
 <html>
@@ -109,8 +110,9 @@
           
         </div>
         <hr>
-        <footer>
-          <p>&copy; ${textContainer.text['institutionName'] }</p>
+        <footer style="text-align: center;">
+          <p style="text-align: center;">&copy; ${textContainer.text['institutionName'] }</p>
+          <p style="text-align: center;"><%= GrouperStartup.versionTimestamp() %></p>
         </footer>
       </div>
     </div>
