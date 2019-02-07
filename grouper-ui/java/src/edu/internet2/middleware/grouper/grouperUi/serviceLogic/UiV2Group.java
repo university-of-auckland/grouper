@@ -319,11 +319,7 @@ public class UiV2Group {
    * @param response
    */
   public void removeMemberForThisGroupsMemberships(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()) {
-      LOG.warn("Can't remove members from this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
-  
+
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
   
     GrouperSession grouperSession = null;
@@ -338,7 +334,10 @@ public class UiV2Group {
       if (group == null) {
         return;
       }
-
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
+        return;
+      }
       String ownerGroupId = request.getParameter("ownerGroupId");
       
       Group ownerGroup = GroupFinder.findByUuid(grouperSession, ownerGroupId, false);
@@ -389,11 +388,7 @@ public class UiV2Group {
    * @param response
    */
   public void removeMembersForThisGroupsMemberships(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Can't remove members from this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
-  
+
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
   
     GrouperSession grouperSession = null;
@@ -408,7 +403,10 @@ public class UiV2Group {
       if (group == null) {
         return;
       }
-
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
+        return;
+      }
       Set<String> membershipsIds = new HashSet<String>();
       
       for (int i=0;i<1000;i++) {
@@ -472,11 +470,6 @@ public class UiV2Group {
    * @param response
    */
   public void removeMember(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Can't remove members from this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
-  
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
   
     GrouperSession grouperSession = null;
@@ -489,6 +482,11 @@ public class UiV2Group {
       final Group group = retrieveGroupHelper(request, AccessPrivilege.UPDATE).getGroup();
   
       if (group == null) {
+        return;
+      }
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
 
@@ -851,11 +849,6 @@ public class UiV2Group {
    * @param response
    */
   public void addMemberSubmit(final HttpServletRequest request, final HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Can't add members to this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
-
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
 
     GrouperSession grouperSession = null;
@@ -868,6 +861,11 @@ public class UiV2Group {
       final Group group = retrieveGroupHelper(request, AccessPrivilege.UPDATE).getGroup();
   
       if (group == null) {
+        return;
+      }
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Can't add members to this group as it is not editable: " + group.getName());
         return;
       }
     
@@ -990,12 +988,6 @@ public class UiV2Group {
    * @param response
    */
   public void assignPrivilege(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Can't assign privileges for this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
-
-
     GrouperRequestContainer grouperRequestContainer = GrouperRequestContainer.retrieveFromRequestOrCreate();
   
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
@@ -1011,7 +1003,12 @@ public class UiV2Group {
       if (group == null) {
         return;
       }
-  
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Can't assign privileges for this group as it is not editable: " + group.getName());
+        return;
+      }
+
       GroupContainer groupContainer = grouperRequestContainer.getGroupContainer();
   
       //?assign=false&groupId=${grouperRequestContainer.groupContainer.guiGroup.stem.id}&fieldName=${fieldName}&memberId=${guiMembershipSubjectContainer.guiMember.member.uuid}
@@ -1251,12 +1248,6 @@ public class UiV2Group {
    * @param response
    */
   public void assignPrivilegeBatch(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Can't assign privileges for this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
-
-
     GrouperRequestContainer grouperRequestContainer = GrouperRequestContainer.retrieveFromRequestOrCreate();
 
     GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
@@ -1273,7 +1264,12 @@ public class UiV2Group {
       if (group == null) {
         return;
       }
-  
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Can't assign privileges for this group as it is not editable: " + group.getName());
+        return;
+      }
+
       GroupContainer groupContainer = grouperRequestContainer.getGroupContainer();
   
       //UiV2Group.assignPrivilegeBatch?groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}
@@ -1568,7 +1564,7 @@ public class UiV2Group {
    * @param response
    */
   public void groupDelete(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable() || !GrouperUiConfig.retrieveConfig().propertyValueBoolean("uiV2.group.delete.enabled", false)){
+    if (!GrouperUiConfig.retrieveConfig().propertyValueBoolean("uiV2.group.delete.enabled", false)){
       LOG.warn("NOT SUPPORT GROUP DELETE");
       return;
     }
@@ -1589,6 +1585,10 @@ public class UiV2Group {
         return;
       }
 
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Cannot delete group cause it is not editable " + group.getName());
+        return;
+      }
       GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
       
       if (GrouperUiConfig.retrieveConfig().propertyValueBoolean("uiV2.group.checkForFactorWhenDeletingGroup", true)) {
@@ -1638,7 +1638,7 @@ public class UiV2Group {
    * @param response
    */
   public void groupDeleteSubmit(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable() || !GrouperUiConfig.retrieveConfig().propertyValueBoolean("uiV2.group.delete.enabled", false)){
+    if (GrouperUiConfig.retrieveConfig().propertyValueBoolean("uiV2.group.delete.enabled", false)){
       LOG.warn("NOT SUPPORT GROUP DELETE");
       return;
     }
@@ -1658,7 +1658,11 @@ public class UiV2Group {
       if (group == null) {
         return;
       }
-      
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Cannot delete group cause it is not editable " + group.getName());
+        return;
+      }
       String stemId = group.getParentUuid();
       
       GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
@@ -1980,10 +1984,6 @@ public class UiV2Group {
    * @param response
    */
   public void groupEdit(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Cannot edit this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
     
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
     
@@ -2000,7 +2000,12 @@ public class UiV2Group {
       if (group == null) {
         return;
       }
-  
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Cannot edit this group as it is not editable: " + group.getName());
+        return;
+      }
+
       GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().getGuiGroup().setShowBreadcrumbLink(true);
       GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().getGuiGroup().setShowBreadcrumbLinkSeparator(false);
       
@@ -2020,11 +2025,6 @@ public class UiV2Group {
    * @param response
    */
   public void groupEditSubmit(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Cannot edit this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
-
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
   
     GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
@@ -2040,6 +2040,11 @@ public class UiV2Group {
       group = retrieveGroupHelper(request, AccessPrivilege.ADMIN).getGroup();
       
       if (group == null) {
+        return;
+      }
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Cannot edit this group as it is not editable: " + group.getName());
         return;
       }
 
@@ -2703,11 +2708,6 @@ public class UiV2Group {
    * @param response
    */
   public void removeMembers(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Cannot remove members from this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
-
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
   
     GrouperSession grouperSession = null;
@@ -2722,7 +2722,12 @@ public class UiV2Group {
       if (group == null) {
         return;
       }
-  
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Cannot remove members from this group as it is not editable: " + group.getName());
+        return;
+      }
+
       final Set<String> membershipsIds = new HashSet<String>();
       
       for (int i=0;i<1000;i++) {
@@ -2946,10 +2951,6 @@ public class UiV2Group {
    * @param response
    */
   public void thisGroupsPrivilegesAssignPrivilege(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Cannot assign privilege for this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
   
     GrouperSession grouperSession = null;
@@ -3027,10 +3028,7 @@ public class UiV2Group {
    * @param response
    */
   public void thisGroupsPrivilegesAssignPrivilegeBatch(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Cannot assign privileges for this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
+
     GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
   
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
@@ -4259,10 +4257,6 @@ public class UiV2Group {
    * @param response
    */
   public void groupEditComposite(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Cannot edit this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
 
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
     
@@ -4279,6 +4273,11 @@ public class UiV2Group {
       group = retrieveGroupHelper(request, AccessPrivilege.UPDATE).getGroup();
       
       if (group == null) {
+        return;
+      }
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Cannot edit this group as it is not editable: " + group.getName());
         return;
       }
 
@@ -4462,11 +4461,6 @@ public class UiV2Group {
    * @param response
    */
   public void groupEditCompositeSubmit(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Cannot edit this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
-
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
   
     GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
@@ -4484,7 +4478,12 @@ public class UiV2Group {
       if (group == null) {
         return;
       }
-  
+
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Cannot edit this group as it is not editable: " + group.getName());
+        return;
+      }
+
       //see if composite, should submit true or false
       boolean userSelectedComposite = GrouperUtil.booleanValue(request.getParameter("groupComposite[]"));
       
@@ -4881,10 +4880,6 @@ public class UiV2Group {
    * @param response
    */
   public void convertGroupToRole(HttpServletRequest request, HttpServletResponse response) {
-    if (!isGroupEditable()){
-      LOG.warn("Cannot edit this group as it is not editable: " + request.getParameter("groupName"));
-      return;
-    }
 
     final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
     
@@ -4901,7 +4896,10 @@ public class UiV2Group {
       if (group == null) {
         return;
       }
-      
+      if (!GrouperUiUtils.isGroupEditable(group)){
+        LOG.warn("Cannot edit this group as it is not editable: " + group.getName());
+        return;
+      }
       //update the group
       group.setTypeOfGroup(TypeOfGroup.role);
       group.store();
@@ -5032,10 +5030,5 @@ public class UiV2Group {
 //      GrouperSession.stopQuietly(grouperSession);
 //    }
 //  }
-
-  private boolean isGroupEditable(){
-    GroupContainer groupContainer = GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer();
-    return groupContainer.isEditable();
-  }
 
 }
