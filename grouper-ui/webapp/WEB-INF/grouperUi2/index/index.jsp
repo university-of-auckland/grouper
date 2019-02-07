@@ -112,6 +112,7 @@
         <hr>
         <footer style="text-align: center;">
           <p style="text-align: center;">&copy; ${textContainer.text['institutionName'] }</p>
+Boo
           <p style="text-align: center;"><%= GrouperStartup.versionTimestamp() %></p>
         </footer>
       </div>
