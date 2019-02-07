@@ -939,17 +939,20 @@ public class UiV2GroupImport {
       }
       
       groups = groupFinder.findGroups();
+
+      // filter out non-editable groups
+      Set<Group> editableGroups = GrouperUiUtils.filterEditableGroups(groups);
       
       guiPaging.setTotalRecordCount(queryOptions.getQueryPaging().getTotalRecordCount());
       
-      if (GrouperUtil.length(groups) == 0) {
+      if (GrouperUtil.length(editableGroups) == 0) {
 
         guiResponseJs.addAction(GuiScreenAction.newInnerHtml("#addGroupResults", 
             TextContainer.retrieveFromRequest().getText().get("groupImportAddGroupNotFound")));
         return;
       }
       
-      Set<GuiGroup> guiGroups = GuiGroup.convertFromGroups(groups);
+      Set<GuiGroup> guiGroups = GuiGroup.convertFromGroups(editableGroups);
       
       groupContainer.setGuiGroups(guiGroups);
   

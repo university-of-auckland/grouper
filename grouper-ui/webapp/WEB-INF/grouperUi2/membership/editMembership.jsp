@@ -48,6 +48,7 @@
                       ${grouper:escapeHtml(grouperRequestContainer.subjectContainer.guiSubject.subject.description)}
                     </div>
                   </div>
+                  <c:set var="isGroupEditable" value="${grouperRequestContainer.groupContainer.editable}"/>
                   <div class="control-group">
                     <label class="control-label hide">${textContainer.text['membershipEditLabelMembership'] }</label>
                     <div class="controls">
@@ -55,12 +56,12 @@
                         <c:choose>
                           <c:when test="${grouperRequestContainer.membershipGuiContainer.directMembership}">
                             <input type="checkbox" name="hasMembership" checked="checked" value="true"
-                              ${grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'}/>
+                              ${isGroupEditable && grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'}/>
                               ${textContainer.text['membershipEditHasDirectMembership']}
                           </c:when>
                           <c:otherwise>
                             <input type="checkbox" name="hasMembership" value="true"
-                              ${grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'}/>
+                              ${isGroupEditable && grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'}/>
                               ${textContainer.text['membershipEditHasDirectMembership']}
                           </c:otherwise>
                         </c:choose>
@@ -90,7 +91,7 @@
                     <div class="controls">
                       <input type="text" name="startDate"  placeholder="${textContainer.text['membershipEditDatePlaceholder'] }"
                                  value="${grouperRequestContainer.membershipGuiContainer.directGuiMembership.startDateLabel }" id="member-start-date"
-                                 ${grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'}>
+                                 ${isGroupEditable && grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'}>
                       <span class="help-block">${textContainer.text['membershipEditLabelStartDateSubtext'] }</span>
                     </div>
                   </div>
@@ -99,7 +100,7 @@
                     <div class="controls">
                       <input type="text" name="endDate" placeholder="${textContainer.text['membershipEditDatePlaceholder'] }"
                                  value="${grouperRequestContainer.membershipGuiContainer.directGuiMembership.endDateLabel }" id="member-end-date"
-                                 ${grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'} >
+                                 ${isGroupEditable && grouperRequestContainer.groupContainer.canUpdate ? '' : 'disabled="disabled"'} >
                       <span class="help-block">${textContainer.text['membershipEditLabelEndDateSubtext'] }</span>
                     </div>
                   </div>

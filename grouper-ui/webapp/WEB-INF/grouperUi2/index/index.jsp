@@ -80,6 +80,7 @@
                     <li><a href="#" 
                       onclick="return guiV2link('operation=UiV2Main.miscellaneous');">${textContainer.text['indexMiscellaneousButton'] }</a></li>
                   </c:if>
+                    <li><a href="#" onclick="return guiV2link('operation=UiV2Stem.viewStem&stemId=root');">Browse Folders</a> </li>
                   </ul>
                 </div>
               </div>
@@ -87,16 +88,17 @@
               <%--<i class="fa fa-refresh" style="cursor: pointer;" aria-label="${textContainer.text['ariaLabelGuiRefreshFolderBrowse'] }"--%>
                 <%--onclick="dojoInitMenu()"--%>
               <%--></i></div>--%>
-              <div class="accordion-inner">
-                <script>
-                  $(document).ready(function(){
-                    dojoInitMenu();
-                  });
-                </script>
+              <%--<div class="accordion-inner">--%>
+                <%--<script>--%>
+                  <%--$(document).ready(function(){--%>
+                    <%--dojoInitMenu();--%>
+                  <%--});--%>
+                <%--</script>--%>
                 <%--<div id="folderTreeContainerId">--%>
                   <%--<div id="folderTree"></div>--%>
                 <%--</div>--%>
-              </div>
+              <%--</div>--%>
+
             </div>
           </div>
           
