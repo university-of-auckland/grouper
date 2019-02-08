@@ -53,3 +53,5 @@ deploy_tar:
 	# export buildNumber=`grep buildNumber buildNumber.properties | grep = | cut -d= -f2`;
 	@echo Deploying release $(buildNumber)
 	mvn deploy:deploy-file -DrepositoryId=uoa-releases -DgroupId=edu.internet2.grouper -DartifactId=grouper-deploy -Dversion=2.4.0-build$(buildNumber) -Dpackaging=tar.gz -Durl=https://nexus.auckland.ac.nz/nexus/content/repositories/releases/ -Dfile=grouper-2.4.0.tar.gz
+	git tag -f 2.4.0-build${buildNumber}
+	git push -f --tags
