@@ -264,7 +264,7 @@ public class SimpleMembershipUpdateImportExport {
       List<String[]> memberData = new ArrayList<String[]>(); 
       for (Member member : members) {
         // feed in your array (or convert your data to an array)
-        String[] entries = new String[]{member.getSubjectSourceId(), member.getSubjectId()};
+        String[] entries = new String[]{/* member.getSubjectSourceId(), */ member.getSubjectId()};
         memberData.add(entries);
       }      
   
@@ -304,7 +304,7 @@ public class SimpleMembershipUpdateImportExport {
       }
       
       CSVWriter writer = new CSVWriter(out);
-      writer.writeNext(new String[]{"sourceId", "entityId"});
+      writer.writeNext(new String[]{/* "subjectId", */ "entityId"});
       for (String[] entries: memberData) {
         // feed in your array (or convert your data to an array)
         writer.writeNext(entries);
