@@ -1,4 +1,5 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
+<%@page import="edu.internet2.middleware.grouper.misc.GrouperStartup"%>
 
 <!DOCTYPE html>
 <html>
@@ -83,19 +84,19 @@
                   </ul>
                 </div>
               </div>
-              <div class="btn btn-block btn-grouper last" style="cursor: default;">${textContainer.text['indexBrowseFolders'] }
-              <i class="fa fa-refresh" style="cursor: pointer;" aria-label="${textContainer.text['ariaLabelGuiRefreshFolderBrowse'] }"
-                onclick="dojoInitMenu()"
-              ></i></div>
+              <%--<div class="btn btn-block btn-grouper last" style="cursor: default;">${textContainer.text['indexBrowseFolders'] }--%>
+              <%--<i class="fa fa-refresh" style="cursor: pointer;" aria-label="${textContainer.text['ariaLabelGuiRefreshFolderBrowse'] }"--%>
+                <%--onclick="dojoInitMenu()"--%>
+              <%--></i></div>--%>
               <div class="accordion-inner">
                 <script>
                   $(document).ready(function(){
                     dojoInitMenu();
                   });
                 </script>
-                <div id="folderTreeContainerId">
-                  <div id="folderTree"></div>
-                </div>
+                <%--<div id="folderTreeContainerId">--%>
+                  <%--<div id="folderTree"></div>--%>
+                <%--</div>--%>
               </div>
             </div>
           </div>
@@ -109,8 +110,9 @@
           
         </div>
         <hr>
-        <footer>
-          <p>&copy; ${textContainer.text['institutionName'] }</p>
+        <footer style="text-align: center;">
+          <p style="text-align: center;">&copy; ${textContainer.text['institutionName'] }</p>
+          <p style="text-align: center;"><%= GrouperStartup.versionTimestamp() %></p>
         </footer>
       </div>
     </div>

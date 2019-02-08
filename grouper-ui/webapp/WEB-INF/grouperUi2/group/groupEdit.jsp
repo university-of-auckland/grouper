@@ -61,19 +61,19 @@
                             ${grouperRequestContainer.groupContainer.guiGroup.grantAllView ? 'checked="checked"' : '' }                          
                           />${textContainer.text['priv.viewUpper'] }
                         </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_optins" value="true"
-                            ${grouperRequestContainer.groupContainer.guiGroup.grantAllOptin ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.optinUpper'] }
-                        </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_optouts" value="true"
-                            ${grouperRequestContainer.groupContainer.guiGroup.grantAllOptout ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.optoutUpper'] }
-                        </label>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_optins" value="true"--%>
+                            <%--${grouperRequestContainer.groupContainer.guiGroup.grantAllOptin ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.optinUpper'] }--%>
+                        <%--</label>--%>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_optouts" value="true"--%>
+                            <%--${grouperRequestContainer.groupContainer.guiGroup.grantAllOptout ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.optoutUpper'] }--%>
+                        <%--</label>--%>
                         <label class="checkbox inline">
                           <input type="checkbox" name="privileges_groupAttrReaders" value="true"
-                            ${grouperRequestContainer.groupContainer.guiGroup.grantAllAttrRead ? 'checked="checked"' : '' }                          
+                            ${grouperRequestContainer.groupContainer.guiGroup.grantAllAttrRead ? 'checked="checked"' : '' }
                           />${textContainer.text['priv.groupAttrReadUpper'] }
                         </label>
 

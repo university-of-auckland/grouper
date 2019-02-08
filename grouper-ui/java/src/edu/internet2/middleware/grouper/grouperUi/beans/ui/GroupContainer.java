@@ -29,6 +29,7 @@ import edu.internet2.middleware.grouper.grouperUi.beans.json.GuiPaging;
 import edu.internet2.middleware.grouper.grouperUi.beans.json.GuiSorting;
 import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
 import edu.internet2.middleware.grouper.privs.AccessPrivilege;
+import edu.internet2.middleware.grouper.privs.PrivilegeHelper;
 import edu.internet2.middleware.grouper.ui.GrouperUiFilter;
 import edu.internet2.middleware.grouper.ui.util.GrouperUiConfig;
 import edu.internet2.middleware.grouper.ui.util.GrouperUiUserData;
@@ -104,7 +105,6 @@ public class GroupContainer {
     this.compositeLeftFactorGuiGroup = compositeLeftFactorGuiGroup1;
   }
 
-  
   /**
    * if displaying a composite, this is the right factor
    * @return the compositeRightFactorGuiGroup

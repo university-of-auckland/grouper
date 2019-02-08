@@ -89,16 +89,16 @@
                             ${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllView ? 'checked="checked"' : '' }                          
                           />${textContainer.text['priv.viewUpper'] }
                         </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_optins" value="true"
-                            ${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllOptin ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.optinUpper'] }
-                        </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_optouts" value="true"
-                            ${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllOptout ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.optoutUpper'] }
-                        </label>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_optins" value="true"--%>
+                            <%--${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllOptin ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.optinUpper'] }--%>
+                        <%--</label>--%>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_optouts" value="true"--%>
+                            <%--${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllOptout ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.optoutUpper'] }--%>
+                        <%--</label>--%>
                         <label class="checkbox inline">
                           <input type="checkbox" name="privileges_groupAttrReaders" value="true"
                             ${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllAttrRead ? 'checked="checked"' : '' }                          

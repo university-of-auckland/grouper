@@ -29,8 +29,8 @@
                         <option value="update">${textContainer.text['thisGroupsPrivilegesPriv_update'] }</option>
                         <option value="read">${textContainer.text['thisGroupsPrivilegesPriv_read'] }</option>
                         <option value="view">${textContainer.text['thisGroupsPrivilegesPriv_view'] }</option>
-                        <option value="optin">${textContainer.text['thisGroupsPrivilegesPriv_optin'] }</option>
-                        <option value="optout">${textContainer.text['thisGroupsPrivilegesPriv_optout'] }</option>
+                        <%--<option value="optin">${textContainer.text['thisGroupsPrivilegesPriv_optin'] }</option>--%>
+                        <%--<option value="optout">${textContainer.text['thisGroupsPrivilegesPriv_optout'] }</option>--%>
                         <option value="groupAttrRead">${textContainer.text['thisGroupsPrivilegesPriv_groupAttrRead'] }</option>
                         <option value="groupAttrUpdate">${textContainer.text['thisGroupsPrivilegesPriv_groupAttrUpdate'] }</option>
                         <%-- option value="create">${textContainer.text['thisGroupsPrivilegesPriv_create'] }</option>

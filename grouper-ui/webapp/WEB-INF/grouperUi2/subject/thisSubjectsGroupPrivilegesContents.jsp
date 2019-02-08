@@ -26,8 +26,8 @@
                               <option value="assign_viewers">${textContainer.text['groupPrivilegesAssignViewPrivilege'] }</option>
                               <option value="assign_groupAttrReaders">${textContainer.text['groupPrivilegesAssignGroupAttributeReadPrivilege'] }</option>
                               <option value="assign_groupAttrUpdaters">${textContainer.text['groupPrivilegesAssignGroupAttributeUpdatePrivilege'] }</option>
-                              <option value="assign_optins">${textContainer.text['groupPrivilegesAssignOptinPrivilege'] }</option>
-                              <option value="assign_optouts">${textContainer.text['groupPrivilegesAssignOptoutPrivilege'] }</option>
+                              <%--<option value="assign_optins">${textContainer.text['groupPrivilegesAssignOptinPrivilege'] }</option>--%>
+                              <%--<option value="assign_optouts">${textContainer.text['groupPrivilegesAssignOptoutPrivilege'] }</option>--%>
                               <option value="revoke_admins">${textContainer.text['groupPrivilegesRevokeAdminPrivilege'] }</option>
                               <option value="revoke_updaters">${textContainer.text['groupPrivilegesRevokeUpdatePrivilege'] }</option>
                               <option value="revoke_readersUpdaters">${textContainer.text['groupPrivilegesRevokeReadUpdatePrivilege'] }</option>
@@ -35,8 +35,8 @@
                               <option value="revoke_viewers">${textContainer.text['groupPrivilegesRevokeViewPrivilege'] }</option>
                               <option value="revoke_groupAttrReaders">${textContainer.text['groupPrivilegesRevokeGroupAttributeReadPrivilege'] }</option>
                               <option value="revoke_groupAttrUpdaters">${textContainer.text['groupPrivilegesRevokeGroupAttributeUpdatePrivilege'] }</option>
-                              <option value="revoke_optins">${textContainer.text['groupPrivilegesRevokeOptinPrivilege'] }</option>
-                              <option value="revoke_optouts">${textContainer.text['groupPrivilegesRevokeOptoutPrivilege'] }</option>
+                              <%--<option value="revoke_optins">${textContainer.text['groupPrivilegesRevokeOptinPrivilege'] }</option>--%>
+                              <%--<option value="revoke_optouts">${textContainer.text['groupPrivilegesRevokeOptoutPrivilege'] }</option>--%>
                               <option value="revoke_all">${textContainer.text['groupPrivilegesRevokeAllPrivilege'] }</option>
 
                             </select>
@@ -61,8 +61,8 @@
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colAdmin'] }</th>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colRead'] }</th>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colUpdate'] }</th>
-                      <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colOptin'] }</th>
-                      <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colOptout'] }</th>
+                      <%--<th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colOptin'] }</th>--%>
+                      <%--<th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colOptout'] }</th>--%>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colAttributeRead'] }</th>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colAttributeUpdate'] }</th>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colView'] }</th>
@@ -82,7 +82,7 @@
                         <td class="expand foo-clicker" style="white-space: nowrap">${guiMembershipSubjectContainer.guiGroup.shortLinkWithIcon}
                         </td>
                         <%-- loop through the fields for groups --%>
-                        <c:forEach items="admins,readers,updaters,optins,optouts,groupAttrReaders,groupAttrUpdaters,viewers" var="fieldName">
+                        <c:forEach items="admins,readers,updaters,groupAttrReaders,groupAttrUpdaters,viewers" var="fieldName">
                           <td data-hide="phone,medium" class="direct-actions privilege" >
                             <c:set value="${guiMembershipSubjectContainer.guiMembershipContainers[fieldName]}" var="guiMembershipContainer" />
                             <%-- if there is a container, then there is an assignment of some sort... --%>

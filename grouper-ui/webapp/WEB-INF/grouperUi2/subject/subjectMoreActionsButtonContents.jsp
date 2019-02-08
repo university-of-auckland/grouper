@@ -1,7 +1,8 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
 
  <!-- start subject/subjectMoreActionsButtonContents.jsp -->
- <%-- on the privs tab, show the add member button --%>            
+ <%-- on the privs tab, show the add member button --%>
+<c:if test="${grouperRequestContainer.stemContainer.wheelGroupMember}">
  <c:choose>
    <c:when test="${grouperRequestContainer.stemContainer.showAddMember}">
      <a id="show-add-block" href="#" onclick="$('#add-block-stem-container').toggle('slow'); return false;" class="btn btn-medium btn-primary btn-block"
@@ -14,9 +15,10 @@
    <c:otherwise>
      <a id="show-add-block" href="#" onclick="$('#add-block-container').toggle('slow'); return false;" class="btn btn-medium btn-block btn-primary"
          style="white-space: nowrap;">
-       <i class="fa fa-plus"></i> ${textContainer.text['subjectViewMoreActionsAddMembers'] }</a> 
+       <i class="fa fa-plus"></i> ${textContainer.text['subjectViewMoreActionsAddMembers'] }</a>
    </c:otherwise>
  </c:choose>
+</c:if>
  
  <div class="btn-group btn-block">
  
@@ -30,30 +32,30 @@
      <c:choose>
 		   <c:when test="${grouperRequestContainer.subjectContainer.favorite}">
 		     <li>
-		       <a href="#" 
+		       <a href="#"
 		         onclick="ajax('../app/UiV2Subject.removeFromMyFavorites?subjectId=${grouperRequestContainer.subjectContainer.guiSubject.subject.id}&sourceId=${grouperRequestContainer.subjectContainer.guiSubject.subject.sourceId}'); return false;"
 		       >${textContainer.text['subjectViewMoreActionsRemoveFromMyFavorites'] }</a>
 		     </li>
 		   </c:when>
 		   <c:otherwise>
 		     <li>
-		       <a href="#" 
+		       <a href="#"
 		         onclick="ajax('../app/UiV2Subject.addToMyFavorites?subjectId=${grouperRequestContainer.subjectContainer.guiSubject.subject.id}&sourceId=${grouperRequestContainer.subjectContainer.guiSubject.subject.sourceId}'); return false;"
 		       >${textContainer.text['subjectViewMoreActionsAddToMyFavorites']}</a>
 		     </li>
 		   </c:otherwise>
 		 </c:choose>
- 
+     <c:if test="${grouperRequestContainer.stemContainer.wheelGroupMember}" >
      <li class="divider"></li>
      <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2SubjectPermission.subjectPermission&subjectId=${grouperRequestContainer.subjectContainer.guiSubject.subject.id}&sourceId=${grouperRequestContainer.subjectContainer.guiSubject.subject.sourceId}'); return false;"
                               >${textContainer.text['subjectViewPermissionsButton'] }</a></li>
-     
      <li class="divider"></li>
      <li>
        <a href="#" onclick="ajax('../app/UiV2SubjectAttributeAssignment.viewAttributeAssignments?subjectId=${grouperRequestContainer.subjectContainer.guiSubject.subject.id}&sourceId=${grouperRequestContainer.subjectContainer.guiSubject.subject.sourceId}'); return false;">
          ${textContainer.text['subjectAttributeAssignmentsButton'] }
        </a>
      </li>
+     </c:if>
      <c:if test="${grouperRequestContainer.subjectContainer.canSeeAudits}">
      
        <li class="divider"></li>

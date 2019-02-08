@@ -1,5 +1,5 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
-
+<c:if test="${mediaMap['uiV2.stem.delete.enabled'] == 'true'}">
             <%-- for the new group or new stem button --%>
             <input type="hidden" name="objectStemId" value="${grouperRequestContainer.stemContainer.guiStem.stem.id}" />
 
@@ -17,3 +17,7 @@
                 <a href="#" class="btn btn-cancel" role="button" onclick="return guiV2link('operation=UiV2Stem.viewStem&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}');" >${textContainer.text['stemCancelButton'] }</a></div>
               </div>
             </div>
+</c:if>
+<c:if test="${mediaMap['uiV2.stem.delete.enabled'] != 'true'}">
+    Not Support
+</c:if>
