@@ -190,7 +190,7 @@
             <resource>
                 <directory>conf</directory>
             </resource>
-			<resource>
+            <resource>
                 <directory>misc</directory>
             </resource>
         </resources>
