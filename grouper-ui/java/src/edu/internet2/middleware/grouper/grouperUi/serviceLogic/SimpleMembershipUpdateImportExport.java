@@ -100,7 +100,7 @@ public class SimpleMembershipUpdateImportExport {
    * @param immediateOnly
    * @throws IOException
    */
-  public static void exportGroupAllFieldsToBrowser(Group group, String headersCommaSeparated, String exportAllSortField, boolean immediateOnly) {
+  public static void exportGroupAllFieldsToBrowser2(Group group, String headersCommaSeparated, String exportAllSortField, boolean immediateOnly) {
     
     try {
       Set<Member> members = immediateOnly ? group.getImmediateMembers() : group.getMembers();
@@ -531,11 +531,12 @@ public class SimpleMembershipUpdateImportExport {
 	 * 
 	 * @see exportGroupSubjectIdsCsv()
 	 */
-	public static void exportGroupSubjectIdsCsv(Group group, boolean immediateOnly, String uoa) {
+//  public static void exportGroupSubjectIdsCsv(Group group, boolean immediateOnly, String uoa) {
+  public static void exportGroupAllFieldsToBrowser(Group group, String headersCommaSeparated, String exportAllSortField, boolean immediateOnly) {
 		System.out.println("exportGroupUOA");
-		String headersCommaSeparated = "uoaid,upi,name";
+		headersCommaSeparated = "uoaid,upi,name";
 		headersCommaSeparated = "entityId,loginid,name";
-		String exportAllSortField = "name";
+		exportAllSortField = "name";
 
 		try {
 			Set<Member> members = immediateOnly ? group.getImmediateMembers() : group.getMembers();

@@ -253,7 +253,7 @@ public class UiV2GroupImport {
       String fileName = urlStrings.get(4);
 
       if ("uoa".equals(groupExportOptions)) {
-        SimpleMembershipUpdateImportExport.exportGroupSubjectIdsCsv(group, false, "uoa");
+        // SimpleMembershipUpdateImportExport.exportGroupSubjectIdsCsv(group, false, "uoa");
         // SimpleMembershipUpdateImportExport.exportGroupUOA(group, false);
       } else {
         if (exportAll) {
