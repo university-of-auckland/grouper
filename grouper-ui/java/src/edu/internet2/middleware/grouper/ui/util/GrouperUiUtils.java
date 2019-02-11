@@ -55,6 +55,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.jstl.fmt.LocalizationContext;
 
+import edu.internet2.middleware.grouper.attr.AttributeDefName;
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssignGroupDelegate;
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.collections.set.ListOrderedSet;
 import org.apache.commons.lang.StringUtils;
@@ -1944,6 +1946,41 @@ public class GrouperUiUtils {
     }
     //cant clone
     throw new RuntimeException("Unsupported object type: " + GrouperUtil.className(object));
+  }
+
+  private static final String NOT_EDITABLE_ATTRIBUTE = "etc:uoa:not_editable";
+
+  public static boolean isGroupEditable(Group group) {
+    if (group != null) {
+      AttributeAssignGroupDelegate attributeAssignGroupDelegate = group.getAttributeDelegate();
+      if (attributeAssignGroupDelegate != null) {
+        Set<AttributeDefName> attributes = attributeAssignGroupDelegate.retrieveAttributes();
+        if (attributes != null) {
+          for (AttributeDefName attr : attributes) {
+            if (attr.getName().equals(NOT_EDITABLE_ATTRIBUTE)) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }else {
+      return false;
+    }
+  }
+
+  public static Set<Group> filterEditableGroups(Set<Group> groups) {
+    Set<Group> editableGroups = new LinkedHashSet<Group>();
+    if (groups != null && groups.size() > 0) {
+      Iterator<Group> ite = groups.iterator();
+      while (ite.hasNext()) {
+        Group thisGroup = ite.next();
+        if (isGroupEditable(thisGroup)) {
+          editableGroups.add(thisGroup);
+        }
+      }
+    }
+    return editableGroups;
   }
   
 }

@@ -4,4 +4,3 @@
 
                 <a href="../app/UiV2GroupImport.groupExportSubmit/groupId%3d${grouperRequestContainer.groupContainer.guiGroup.group.id}/${grouperRequestContainer.groupImportContainer.exportAll ? 'all' : 'ids'}/${grouperRequestContainer.groupImportContainer.exportFileName}" class="btn btn-primary">${textContainer.text['groupExportExportButton'] }</a> 
                 <a href="#" class="btn btn-cancel" onclick="return guiV2link('operation=UiV2Group.viewGroup&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}');" >${textContainer.text['groupExportReturnToGroupButton'] }</a>
-                <a href="../app/UiV2GroupImport.groupExportSubmit/groupId%3d${grouperRequestContainer.groupContainer.guiGroup.group.id}/${'uoa'}/${grouperRequestContainer.groupImportContainer.exportFileName}" class="btn btn-primary">${textContainer.text['groupExportExportButton'] } UOA</a> 

@@ -1,4 +1,5 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
+<c:set var="isGroupEditable" value="${grouperRequestContainer.groupContainer.editable}"/>
 
               <%-- tell add member to refresh audits --%>
               <form id="groupRefreshPartFormId">
@@ -10,6 +11,7 @@
                   <thead>
                     <tr>
                       <td colspan="11" class="table-toolbar gradient-background">
+                        <c:if test="${isGroupEditable}">
                         <div class="row-fluid">
                           <div class="span1">
                             <label for="people-update">${textContainer.text['groupPrivilegesUpdateBulkLabel'] }</label>
@@ -46,6 +48,7 @@
                               onclick="ajax('../app/UiV2Group.assignPrivilegeBatch?groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}', {formIds: 'groupFilterPrivilegesFormId,groupPagingPrivilegesFormId,groupPagingPrivilegesFormPageNumberId,groupPrivilegeFormId'}); return false;">${textContainer.text['groupPrivilegesUpdateSelected'] }</button>
                           </div>
                         </div>
+                        </c:if>
                       </td>
                     </tr>
                     <tr>
@@ -80,7 +83,6 @@
                         <td class="expand foo-clicker" style="white-space: nowrap">${guiMembershipSubjectContainer.guiSubject.shortLinkWithIcon}
                         </td>
                         <%-- loop through the fields for groups --%>
-                        <%--todo--%>
                         <c:forEach items="admins,readers,updaters,groupAttrReaders,groupAttrUpdaters,viewers" var="fieldName">
                           <td data-hide="phone,medium" class="direct-actions privilege" >
                             <c:set value="${guiMembershipSubjectContainer.guiMembershipContainers[fieldName]}" var="guiMembershipContainer" />
@@ -103,6 +105,7 @@
                           </td>
                         </c:forEach>
                         <td>
+                          <c:if test="${isGroupEditable}">
                           <div class="btn-group"><a data-toggle="dropdown" href="#" aria-label="${textContainer.text['ariaLabelGuiMoreOptions']}" class="btn btn-mini dropdown-toggle" 
                           	aria-haspopup="true" aria-expanded="false" role="menu" onclick="$('#membership-more-options${i}').is(':visible') === true ? $(this).attr('aria-expanded','false') : $(this).attr('aria-expanded',function(index, currentValue) { $('#membership-more-options${i} li').first().focus();return true;});">
                           	${textContainer.text['groupPrivilegesActions']} 
@@ -117,6 +120,7 @@
                               </c:if>
                             </ul>
                           </div>
+                          </c:if>
                         </td>
                       </tr>
                       <c:set var="i" value="${i+1}" />

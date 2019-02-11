@@ -76,7 +76,6 @@ import edu.internet2.middleware.grouper.ui.util.HttpContentType;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
 
-
 /**
  * ajax methods for simple memebrship update import and export actions
  */
@@ -101,7 +100,7 @@ public class SimpleMembershipUpdateImportExport {
    * @param immediateOnly
    * @throws IOException
    */
-  public static void exportGroupAllFieldsToBrowser(Group group, String headersCommaSeparated, String exportAllSortField, boolean immediateOnly) {
+  public static void exportGroupAllFieldsToBrowser2(Group group, String headersCommaSeparated, String exportAllSortField, boolean immediateOnly) {
     
     try {
       Set<Member> members = immediateOnly ? group.getImmediateMembers() : group.getMembers();
@@ -264,7 +263,7 @@ public class SimpleMembershipUpdateImportExport {
       List<String[]> memberData = new ArrayList<String[]>(); 
       for (Member member : members) {
         // feed in your array (or convert your data to an array)
-        String[] entries = new String[]{member.getSubjectSourceId(), member.getSubjectId()};
+        String[] entries = new String[]{/* member.getSubjectSourceId(), */ member.getSubjectId()};
         memberData.add(entries);
       }      
   
@@ -304,7 +303,7 @@ public class SimpleMembershipUpdateImportExport {
       }
       
       CSVWriter writer = new CSVWriter(out);
-      writer.writeNext(new String[]{"sourceId", "entityId"});
+      writer.writeNext(new String[]{/* "subjectId", */ "entityId"});
       for (String[] entries: memberData) {
         // feed in your array (or convert your data to an array)
         writer.writeNext(entries);
@@ -345,175 +344,286 @@ public class SimpleMembershipUpdateImportExport {
 	      });
 	}
 
+	// Moved to legacy UI fork of this class
+	// public void exportSubjectIdsCsv(HttpServletRequest httpServletRequest,
+	// HttpServletResponse httpServletResponse)
+	// public void importCsv(HttpServletRequest httpServletRequest,
+	// HttpServletResponse httpServletResponse)
 
-  // Moved to legacy UI fork of this class
-  //public void exportSubjectIdsCsv(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
-  //public void importCsv(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
+	/**
+	 * exception from import
+	 */
+	@SuppressWarnings("serial")
+	public static class GrouperImportException extends RuntimeException {
 
-  /**
-   * exception from import
-   */
-  @SuppressWarnings("serial")
-  public static class GrouperImportException extends RuntimeException {
+		/**
+		 * 
+		 */
+		public GrouperImportException() {
+			super();
+		}
 
-    /**
-     * 
-     */
-    public GrouperImportException() {
-      super();
-    }
+		/**
+		 * @param message
+		 * @param cause
+		 */
+		public GrouperImportException(String message, Throwable cause) {
+			super(message, cause);
+		}
 
-    /**
-     * @param message
-     * @param cause
-     */
-    public GrouperImportException(String message, Throwable cause) {
-      super(message, cause);
-    }
+		/**
+		 * @param message
+		 */
+		public GrouperImportException(String message) {
+			super(message);
+		}
 
-    /**
-     * @param message
-     */
-    public GrouperImportException(String message) {
-      super(message);
-    }
+		/**
+		 * @param cause
+		 */
+		public GrouperImportException(Throwable cause) {
+			super(cause);
+		}
 
-    /**
-     * @param cause
-     */
-    public GrouperImportException(Throwable cause) {
-      super(cause);
-    }
-    
-    
-  }
-  
-  /**
-   * Note, this will close the reader passed in
-   * @param originalReader
-   * @param fileName
-   * @param subjectErrors pass in a list and errors will be put in here
-   * @param errorSubjectIdsOnRow is a map where the key is subjectId and the value if the line number
-   * @param isFileUpload true if file upload, as opposed to a textarea
-   * @return the list, never null
-   * @throws GrouperImportException for messages to the screen
-   */
-  @SuppressWarnings("unchecked")
-  public static List<Subject> parseCsvImportFile(Reader originalReader, String fileName, List<String> subjectErrors, 
-      Map<String, Integer> errorSubjectIdsOnRow, boolean isFileUpload) throws GrouperImportException {
-    
-    //convert from CSV to 
-    CSVReader reader = null;
-    
-    try {
-      //note, the first row is the title
-      List<String[]> csvEntries = null;
-    
-      try {
-        reader = new CSVReader(originalReader);
-        csvEntries = reader.readAll();
-      } catch (IOException ioe) {
-        throw new GrouperImportException("Error processing file: " + fileName, ioe);
-      }
-      
-      List<Subject> uploadedSubjects = new ArrayList<Subject>();
-      
-      //lets get the headers
-      int sourceIdColumn = -1;
-      int subjectIdColumn = -1;
-      int subjectIdentifierColumn = -1;
-      int subjectIdOrIdentifierColumn = -1;
-      
-      //must have lines
-      if (GrouperUtil.length(csvEntries) == 0) {
-        if (isFileUpload) {
-          throw new GrouperImportException(GrouperUiUtils.message("simpleMembershipUpdate.importErrorNoWrongFile"));
-        }
-        throw new GrouperImportException(GrouperUiUtils.message("simpleMembershipUpdate.importErrorBlankTextarea"));
-      }
-      
-      //lets go through the headers
-      String[] headers = csvEntries.get(0);
-      int headerSize = headers.length;
-      boolean foundHeader = false;
-      for (int i=0;i<headerSize;i++) {
-        if ("sourceId".equalsIgnoreCase(headers[i])) {
-          foundHeader = true;
-          sourceIdColumn = i;
-        }
-        if ("subjectId".equalsIgnoreCase(headers[i]) || "entityId".equalsIgnoreCase(headers[i])) {
-          foundHeader = true;
-          subjectIdColumn = i;
-        }
-        if ("subjectIdentifier".equalsIgnoreCase(headers[i]) || "entityIdentifier".equalsIgnoreCase(headers[i])) {
-          foundHeader = true;
-          subjectIdentifierColumn = i;
-        }
-        if ("subjectIdOrIdentifier".equalsIgnoreCase(headers[i]) || "entityIdOrIdentifier".equalsIgnoreCase(headers[i])) {
-          foundHeader = true;
-          subjectIdOrIdentifierColumn = i;
-        }
-      }
-      
-      //normally start on index 1, if the first row is header
-      int startIndex = 1;
-      
-      //must pass in an id
-      if (subjectIdColumn == -1 && subjectIdentifierColumn == -1 && subjectIdOrIdentifierColumn == -1) {
-        if (!foundHeader && headerSize == 1) {
-          //there was no header, so pretend like it was subjectIdOrIdentifier
-          subjectIdOrIdentifierColumn = 0;
-          startIndex = 0;
-        } else {
-          throw new GrouperImportException(TextContainer.retrieveFromRequest().getText().get("simpleMembershipUpdate.importErrorNoIdCol"));
-        }
-      }
-      
-      //ok, lets go through the rows, start after the headers
-      for (int i=startIndex;i<csvEntries.size();i++) {
-        String[] csvEntry = csvEntries.get(i);
-        int row = i+1;
-        
-        //try catch each one and see where we get
-        String subjectId = null;
-        String subjectIdentifier = null;
-        String subjectIdOrIdentifier = null;
-        try {
-          String sourceId = null;
-    
-          sourceId = sourceIdColumn == -1 ? null : csvEntry[sourceIdColumn]; 
-          subjectId = subjectIdColumn == -1 ? null : csvEntry[subjectIdColumn]; 
-          subjectIdentifier = subjectIdentifierColumn == -1 ? null : csvEntry[subjectIdentifierColumn]; 
-          subjectIdOrIdentifier = subjectIdOrIdentifierColumn == -1 ? null : csvEntry[subjectIdOrIdentifierColumn]; 
-          
-          ImportSubjectWrapper importSubjectWrapper = 
-            new ImportSubjectWrapper(row, sourceId, subjectId, subjectIdentifier, subjectIdOrIdentifier, csvEntry);
-          uploadedSubjects.add(importSubjectWrapper);
-          
-        } catch (Exception e) {
-          LOG.info(e);
-          subjectErrors.add("Error on " + ImportSubjectWrapper.errorLabelForRowStatic(row, csvEntry) + ": " +    e.getMessage());
-          
-          String errorSubjectId = StringUtils.defaultIfEmpty(subjectId, subjectIdentifier);
-          errorSubjectId = StringUtils.defaultIfEmpty(errorSubjectId, subjectIdOrIdentifier);
-          
-          errorSubjectIdsOnRow.put(errorSubjectId, row);
-        }
-      
-      }
-      
-      return uploadedSubjects;
-      
-    } finally {
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (Exception e) {
-          LOG.warn("error", e);
-        }
-      }
-    }
-    
-  }
+	}
 
+	/**
+	 * Note, this will close the reader passed in
+	 * 
+	 * @param originalReader
+	 * @param fileName
+	 * @param subjectErrors        pass in a list and errors will be put in here
+	 * @param errorSubjectIdsOnRow is a map where the key is subjectId and the value
+	 *                             if the line number
+	 * @param isFileUpload         true if file upload, as opposed to a textarea
+	 * @return the list, never null
+	 * @throws GrouperImportException for messages to the screen
+	 */
+	@SuppressWarnings("unchecked")
+	public static List<Subject> parseCsvImportFile(Reader originalReader, String fileName, List<String> subjectErrors,
+			Map<String, Integer> errorSubjectIdsOnRow, boolean isFileUpload) throws GrouperImportException {
+
+		// convert from CSV to
+		CSVReader reader = null;
+
+		try {
+			// note, the first row is the title
+			List<String[]> csvEntries = null;
+
+			try {
+				reader = new CSVReader(originalReader);
+				csvEntries = reader.readAll();
+			} catch (IOException ioe) {
+				throw new GrouperImportException("Error processing file: " + fileName, ioe);
+			}
+
+			List<Subject> uploadedSubjects = new ArrayList<Subject>();
+
+			// lets get the headers
+			int sourceIdColumn = -1;
+			int subjectIdColumn = -1;
+			int subjectIdentifierColumn = -1;
+			int subjectIdOrIdentifierColumn = -1;
+
+			// must have lines
+			if (GrouperUtil.length(csvEntries) == 0) {
+				if (isFileUpload) {
+					throw new GrouperImportException(
+							GrouperUiUtils.message("simpleMembershipUpdate.importErrorNoWrongFile"));
+				}
+				throw new GrouperImportException(
+						GrouperUiUtils.message("simpleMembershipUpdate.importErrorBlankTextarea"));
+			}
+
+			// lets go through the headers
+			String[] headers = csvEntries.get(0);
+			int headerSize = headers.length;
+			boolean foundHeader = false;
+			for (int i = 0; i < headerSize; i++) {
+				if ("sourceId".equalsIgnoreCase(headers[i])) {
+					foundHeader = true;
+					sourceIdColumn = i;
+				}
+				if ("subjectId".equalsIgnoreCase(headers[i]) || "entityId".equalsIgnoreCase(headers[i])) {
+					foundHeader = true;
+					subjectIdColumn = i;
+				}
+				if ("subjectIdentifier".equalsIgnoreCase(headers[i])
+						|| "entityIdentifier".equalsIgnoreCase(headers[i])) {
+					foundHeader = true;
+					subjectIdentifierColumn = i;
+				}
+				if ("subjectIdOrIdentifier".equalsIgnoreCase(headers[i])
+						|| "entityIdOrIdentifier".equalsIgnoreCase(headers[i])) {
+					foundHeader = true;
+					subjectIdOrIdentifierColumn = i;
+				}
+			}
+
+			// normally start on index 1, if the first row is header
+			int startIndex = 1;
+
+			// must pass in an id
+			if (subjectIdColumn == -1 && subjectIdentifierColumn == -1 && subjectIdOrIdentifierColumn == -1) {
+				if (!foundHeader && headerSize == 1) {
+					// there was no header, so pretend like it was subjectIdOrIdentifier
+					subjectIdOrIdentifierColumn = 0;
+					startIndex = 0;
+				} else {
+					throw new GrouperImportException(TextContainer.retrieveFromRequest().getText()
+							.get("simpleMembershipUpdate.importErrorNoIdCol"));
+				}
+			}
+
+			// ok, lets go through the rows, start after the headers
+			for (int i = startIndex; i < csvEntries.size(); i++) {
+				String[] csvEntry = csvEntries.get(i);
+				int row = i + 1;
+
+				// try catch each one and see where we get
+				String subjectId = null;
+				String subjectIdentifier = null;
+				String subjectIdOrIdentifier = null;
+				try {
+					String sourceId = null;
+
+					sourceId = sourceIdColumn == -1 ? null : csvEntry[sourceIdColumn];
+					subjectId = subjectIdColumn == -1 ? null : csvEntry[subjectIdColumn];
+					subjectIdentifier = subjectIdentifierColumn == -1 ? null : csvEntry[subjectIdentifierColumn];
+					subjectIdOrIdentifier = subjectIdOrIdentifierColumn == -1 ? null
+							: csvEntry[subjectIdOrIdentifierColumn];
+
+					ImportSubjectWrapper importSubjectWrapper = new ImportSubjectWrapper(row, sourceId, subjectId,
+							subjectIdentifier, subjectIdOrIdentifier, csvEntry);
+					uploadedSubjects.add(importSubjectWrapper);
+
+				} catch (Exception e) {
+					LOG.info(e);
+					subjectErrors.add("Error on " + ImportSubjectWrapper.errorLabelForRowStatic(row, csvEntry) + ": "
+							+ e.getMessage());
+
+					String errorSubjectId = StringUtils.defaultIfEmpty(subjectId, subjectIdentifier);
+					errorSubjectId = StringUtils.defaultIfEmpty(errorSubjectId, subjectIdOrIdentifier);
+
+					errorSubjectIdsOnRow.put(errorSubjectId, row);
+				}
+
+			}
+
+			return uploadedSubjects;
+
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (Exception e) {
+					LOG.warn("error", e);
+				}
+			}
+		}
+	}
+
+	/**
+	 * exportGroupUOA
+	 * 
+	 * @param group
+	 * @param immediateOnly
+	 * 
+	 * @see exportGroupSubjectIdsCsv()
+	 */
+//  public static void exportGroupSubjectIdsCsv(Group group, boolean immediateOnly, String uoa) {
+  public static void exportGroupAllFieldsToBrowser(Group group, String headersCommaSeparated, String exportAllSortField, boolean immediateOnly) {
+		System.out.println("exportGroupUOA");
+		headersCommaSeparated = "uoaid,upi,name";
+		headersCommaSeparated = "entityId,loginid,name";
+		exportAllSortField = "name";
+
+		try {
+			Set<Member> members = immediateOnly ? group.getImmediateMembers() : group.getMembers();
+
+			Member.resolveSubjects(members, true);
+
+			HttpServletResponse response = GrouperUiFilter.retrieveHttpServletResponse();
+
+			String[] headers = GrouperUtil.splitTrim(headersCommaSeparated, ",");
+
+			// note: isError is second to last col, error is the last column
+			boolean[] isAttribute = new boolean[headers.length];
+			int sortCol = 0;
+			int sourceIdCol = -1;
+			for (int i = 0; i < headers.length; i++) {
+				isAttribute[i] = !nonAttributeCols.contains(headers[i].toLowerCase());
+
+				if (StringUtils.equalsIgnoreCase(headers[i], exportAllSortField)) {
+					sortCol = i;
+				} else if (StringUtils.equalsIgnoreCase("sourceId", headers[i])) {
+					sourceIdCol = i;
+				}
+			}
+
+			List<String[]> memberData = new ArrayList<String[]>();
+			for (Member member : members) {
+				// feed in your array (or convert your data to an array)
+				String[] entries = exportAllStringArray(member, headers, isAttribute);
+				memberData.add(entries);
+			}
+
+			final int SOURCE_ID_COL = sourceIdCol;
+			final int SORT_COL = sortCol;
+			// sort
+			Collections.sort(memberData, new Comparator() {
+
+				/**
+				 * 
+				 * @param o1
+				 * @param o2
+				 * @return 1, -1, 0
+				 */
+				public int compare(Object o1, Object o2) {
+					String[] first = (String[]) o1;
+					String[] second = (String[]) o2;
+					if (SOURCE_ID_COL != -1 && !StringUtils.equals(first[SOURCE_ID_COL], second[SOURCE_ID_COL])) {
+						return GrouperUiUtils.compare(first[SOURCE_ID_COL], second[SOURCE_ID_COL], true);
+					}
+					return GrouperUiUtils.compare(first[SORT_COL], second[SORT_COL], true);
+				}
+			});
+
+			// say it is CSV
+			response.setContentType(HttpContentType.TEXT_CSV.getContentType());
+
+			String groupExtensionFileName = GuiGroup.getExportAllFileNameStatic(group);
+
+			response.setHeader("Content-Disposition", "inline;filename=\"" + groupExtensionFileName + "\"");
+
+			// just write some stuff
+			PrintWriter out = null;
+
+			try {
+				out = response.getWriter();
+			} catch (Exception e) {
+				throw new RuntimeException("Cant get response.getWriter: ", e);
+			}
+
+			CSVWriter writer = new CSVWriter(out);
+			String[] headersNew = new String[headers.length + 2];
+			System.arraycopy(headers, 0, headersNew, 0, headers.length);
+			headersNew[headers.length] = "success";
+			headersNew[headers.length + 1] = "errorMessage";
+			writer.writeNext(headersNew);
+			for (String[] entries : memberData) {
+				// feed in your array (or convert your data to an array)
+				writer.writeNext(entries);
+			}
+			writer.close();
+			auditExport(group.getUuid(), group.getName(), memberData.size(), groupExtensionFileName);
+
+		} catch (NoSessionException se) {
+			throw se;
+		} catch (Exception se) {
+			throw new RuntimeException(
+					"Error exporting all members from group: " + group.getName() + ", " + se.getMessage(), se);
+		}
+		throw new ControllerDone();
+	}
 }
