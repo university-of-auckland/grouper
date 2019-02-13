@@ -26,6 +26,6 @@
                 </table>
                 <div class="data-table-bottom gradient-background">
                   <grouper:paging2 guiPaging="${grouperRequestContainer.indexContainer.myActivityGuiPaging}" 
-                    formName="myActivityPagingForm" ajaxFormIds="myActivityForm"
+                    formName="myActivityPagingForm2" ajaxFormIds="myActivityForm"
                     refreshOperation="../app/UiV2Main.myActivitySubmit" />
                 </div>

@@ -32,6 +32,6 @@
                 </table>
                 <div class="data-table-bottom gradient-background">
                   <grouper:paging2 guiPaging="${grouperRequestContainer.indexContainer.myFavoritesGuiPaging}" 
-                    formName="myFavoritesPagingForm" ajaxFormIds="myFavoritesForm"
+                    formName="myFavoritesPagingForm2" ajaxFormIds="myFavoritesForm"
                     refreshOperation="../app/UiV2Main.myFavoritesSubmit" />
                 </div>

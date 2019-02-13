@@ -32,6 +32,6 @@
                 </table>
                 <div class="data-table-bottom gradient-background">
                   <grouper:paging2 guiPaging="${grouperRequestContainer.serviceContainer.guiPaging}" 
-                    formName="viewServicePagingForm" ajaxFormIds="viewServiceForm"
+                    formName="viewServicePagingForm2" ajaxFormIds="viewServiceForm"
                     refreshOperation="../app/UiV2Service.viewServiceSubmit" />
                 </div>

@@ -31,6 +31,6 @@
                   </tbody>
                 </table>
                 <div class="data-table-bottom gradient-background">
-                  <grouper:paging2 guiPaging="${grouperRequestContainer.stemContainer.guiPaging}" formName="stemPagingForm" ajaxFormIds="stemFilterFormId"
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.stemContainer.guiPaging}" formName="stemPagingForm2" ajaxFormIds="stemFilterFormId"
                     refreshOperation="../app/UiV2Stem.filter?stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}" />
                 </div>

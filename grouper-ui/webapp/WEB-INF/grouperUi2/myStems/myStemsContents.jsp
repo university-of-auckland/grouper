@@ -32,6 +32,6 @@
                 </table>
                 <div class="data-table-bottom gradient-background">
                   <grouper:paging2 guiPaging="${grouperRequestContainer.myStemsContainer.myStemsGuiPaging}" 
-                    formName="myStemsPagingForm" ajaxFormIds="myStemsForm"
+                    formName="myStemsPagingForm2" ajaxFormIds="myStemsForm"
                     refreshOperation="../app/UiV2MyStems.myStemsSubmit" />
                 </div>

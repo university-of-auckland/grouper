@@ -85,6 +85,6 @@
                 </table>
                 </form>
                 <div class="data-table-bottom gradient-background">
-                  <grouper:paging2 guiPaging="${grouperRequestContainer.subjectContainer.guiPaging}" formName="groupPagingForm" ajaxFormIds="groupFilterFormId"
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.subjectContainer.guiPaging}" formName="groupPagingForm2" ajaxFormIds="groupFilterFormId"
                     refreshOperation="../app/UiV2Subject.filter?subjectId=${grouperRequestContainer.subjectContainer.guiSubject.subject.id}&sourceId=${grouperRequestContainer.subjectContainer.guiSubject.subject.sourceId}" />
                 </div>
