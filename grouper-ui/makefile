@@ -45,7 +45,9 @@ archive:
 	cp target/grouper-ui*SNAPSHOT.jar grouper-ui/dist/grouper/WEB-INF/lib/grouper-ui.jar
 	mkdir -p grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/
 	cp target/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/UiV2GroupImport.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/UiV2GroupImport.class 
+	mkdir -p grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/beans/ui/
 	cp target/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/SimpleMembershipUpdateImportExport.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/SimpleMembershipUpdateImportExport.class 
+	cp target/classes/edu/internet2/middleware/grouper/grouperUi/beans/ui/GroupContainer.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/beans/ui/GroupContainer.class
 	rm -f grouper-2.4.0.tar
 	tar cvf grouper-2.4.0.tar grouper-ui
 	#tar -cvf arch.tar --transform 's,^,/usr/local/,S' ./webapp/WEB-INF
