@@ -45,9 +45,12 @@ archive:
 	cp target/grouper-ui*SNAPSHOT.jar grouper-ui/dist/grouper/WEB-INF/lib/grouper-ui.jar
 	mkdir -p grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/
 	cp target/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/UiV2GroupImport.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/UiV2GroupImport.class 
+	cp target/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/UiV2Group*.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/
 	mkdir -p grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/beans/ui/
-	cp target/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/SimpleMembershipUpdateImportExport.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/SimpleMembershipUpdateImportExport.class 
+	cp target/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/SimpleMembershipUpdateImportExport*.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/
 	cp target/classes/edu/internet2/middleware/grouper/grouperUi/beans/ui/GroupContainer.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/beans/ui/GroupContainer.class
+	mkdir -p grouper-ui/dist/grouper/WEB-INF/classes/grouperText/
+	cp ./conf/grouperText/grouper.text.en.us.base.properties grouper-ui/dist/grouper/WEB-INF/classes/grouperText/grouper.text.en.us.properties
 	rm -f grouper-2.4.0.tar
 	tar cvf grouper-2.4.0.tar grouper-ui
 	#tar -cvf arch.tar --transform 's,^,/usr/local/,S' ./webapp/WEB-INF
@@ -59,4 +62,5 @@ deploy_tar:
 	@echo Deploying release $(buildNumber)
 	mvn deploy:deploy-file -DrepositoryId=uoa-releases -DgroupId=edu.internet2.grouper -DartifactId=grouper-deploy -Dversion=2.4.0-build$(buildNumber) -Dpackaging=tar.gz -Durl=https://nexus.auckland.ac.nz/nexus/content/repositories/releases/ -Dfile=grouper-2.4.0.tar.gz
 	git tag -f 2.4.0-build${buildNumber}
+
 	git push -f --tags
