@@ -56,10 +56,13 @@ import edu.internet2.middleware.grouper.app.loader.GrouperLoaderType;
 import edu.internet2.middleware.grouper.app.loader.ldap.LoaderLdapUtils;
 import edu.internet2.middleware.grouper.attr.AttributeDef;
 import edu.internet2.middleware.grouper.attr.AttributeDefName;
+import edu.internet2.middleware.grouper.attr.AttributeDefValueType;
 import edu.internet2.middleware.grouper.attr.assign.AttributeAssign;
 import edu.internet2.middleware.grouper.attr.assign.AttributeAssignGroupDelegate;
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssignResult;
 import edu.internet2.middleware.grouper.attr.finder.AttributeAssignValueFinder;
 import edu.internet2.middleware.grouper.attr.finder.AttributeAssignValueFinder.AttributeAssignValueFinderResult;
+import edu.internet2.middleware.grouper.attr.value.AttributeAssignValue;
 import edu.internet2.middleware.grouper.attr.finder.AttributeDefFinder;
 import edu.internet2.middleware.grouper.attr.finder.AttributeDefNameFinder;
 import edu.internet2.middleware.grouper.audit.AuditEntry;
@@ -1746,11 +1749,23 @@ public class UiV2Group {
    * @param grouperObject
    * 
    */
-  public void setGroupAttributesOnGroupCreate(GrouperObject grouperObject) {
+  public void setGroupAttributesOnGroupCreate(/* GrouperSession grouperSession, */ GrouperObject grouperObject) {
     AttributeDefName attributeDefName = new AttributeDefName();
-    attributeDefName.setStemId("etc:esb:provision_to");
+    attributeDefName.setStemId("etc:pspng:provision_to");
     // attributeDefName.setName("provision_to");
-    attributeDefName = AttributeDefNameFinder.findByName("etc:esb:provision_to", true);
+    attributeDefName = AttributeDefNameFinder.findByName("etc:pspng:provision_to", true);
+
+    attributeDefName.getAttributeDef().setAssignToMember(true);
+    attributeDefName.getAttributeDef().setValueType(AttributeDefValueType.string);
+    attributeDefName.getAttributeDef().setMultiValued(false);
+    
+    // assign value
+    AttributeAssignResult attributeAssignResult = ((Group) grouperObject).getAttributeDelegate()
+        .assignAttribute(attributeDefName);
+    AttributeAssign attributeAssign = attributeAssignResult.getAttributeAssign();
+    AttributeAssignValue attributeAssignValue = attributeAssign.getValueDelegate()
+        .assignValueString("pspng_activedirectory").getAttributeAssignValue();
+
     AttributeAssignGroupDelegate attributeDelegate = ((Group) grouperObject).getAttributeDelegate();
     attributeDelegate.assignAttribute(attributeDefName);
     // attributeDelegate.addAttribute(attributeDefName);
