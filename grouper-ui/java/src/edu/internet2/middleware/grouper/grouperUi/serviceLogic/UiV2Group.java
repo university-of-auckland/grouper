@@ -1747,9 +1747,6 @@ public class UiV2Group {
    * 
    */
   public void setGroupAttributesOnGroupCreate(GrouperObject grouperObject) {
-//    final String attributeDefNameId = request.getParameter("attributeDefNameComboName");
-//    final AttributeDefName attributeDefName = AttributeDefNameFinder.findById(attributeDefNameId, false);
-
     AttributeDefName attributeDefName = new AttributeDefName();
     attributeDefName.setStemId("etc:esb:provision_to");
     // attributeDefName.setName("provision_to");
@@ -1758,26 +1755,19 @@ public class UiV2Group {
     attributeDelegate.assignAttribute(attributeDefName);
     // attributeDelegate.addAttribute(attributeDefName);
 
-    GrouperObjectTypesAttributeValue grouperObjectTypesAttributeValue = new GrouperObjectTypesAttributeValue();
-    grouperObjectTypesAttributeValue.setDirectAssignment(true);
-    grouperObjectTypesAttributeValue.setObjectTypeName("etc:esb:provision_to");
-    grouperObjectTypesAttributeValue.setObjectTypeOwnerStemId("etc:esb");
-
-    List<GrouperObjectTypesAttributeValue> attributes = GrouperObjectTypesConfiguration
-        .getGrouperObjectTypesAttributeValues(grouperObject);
-    // check if attribute already there
+    attributeDefName = new AttributeDefName();
+    attributeDefName.setStemId("etc:esb:publish_to");
+    attributeDefName = AttributeDefNameFinder.findByName("etc:esb:publish_to", true);
+    attributeDelegate = ((Group) grouperObject).getAttributeDelegate();
+    attributeDelegate.assignAttribute(attributeDefName);
 
     // save
-    GrouperObjectTypesConfiguration.saveOrUpdateTypeAttributes(grouperObjectTypesAttributeValue, grouperObject);
+//    GrouperObjectTypesConfiguration.saveOrUpdateTypeAttributes(grouperObjectTypesAttributeValue, grouperObject);
 
-    grouperObjectTypesAttributeValue = new GrouperObjectTypesAttributeValue();
-    grouperObjectTypesAttributeValue.setDirectAssignment(true);
-    grouperObjectTypesAttributeValue.setObjectTypeName("etc:esb:publish_to");
-
-    attributes = GrouperObjectTypesConfiguration.getGrouperObjectTypesAttributeValues(grouperObject);
+//    attributes = GrouperObjectTypesConfiguration.getGrouperObjectTypesAttributeValues(grouperObject);
     // check if attribute already there
 
-    GrouperObjectTypesConfiguration.saveOrUpdateTypeAttributes(grouperObjectTypesAttributeValue, grouperObject);
+//    GrouperObjectTypesConfiguration.saveOrUpdateTypeAttributes(grouperObjectTypesAttributeValue, grouperObject);
 
   }
 
@@ -1787,17 +1777,13 @@ public class UiV2Group {
    * @param grouperObject
    */
   public void setGroupAttributesOnGroupEdit(GrouperObject grouperObject) {
-    GrouperObjectTypesAttributeValue grouperObjectTypesAttributeValue = new GrouperObjectTypesAttributeValue();
-    grouperObjectTypesAttributeValue.setDirectAssignment(true);
-    grouperObjectTypesAttributeValue.setObjectTypeName("etc:esb:publish_to");
-
-    List<GrouperObjectTypesAttributeValue> attributes = GrouperObjectTypesConfiguration
-        .getGrouperObjectTypesAttributeValues(grouperObject);
-    // check if attribute already there
-
-    // save
-    GrouperObjectTypesConfiguration.saveOrUpdateTypeAttributes(grouperObjectTypesAttributeValue, grouperObject);
-
+    AttributeDefName attributeDefName = new AttributeDefName();
+    attributeDefName.setStemId("etc:esb:provision_to");
+    // attributeDefName.setName("provision_to");
+    attributeDefName = AttributeDefNameFinder.findByName("etc:esb:publish_to", true);
+    AttributeAssignGroupDelegate attributeDelegate = ((Group) grouperObject).getAttributeDelegate();
+    attributeDelegate.assignAttribute(attributeDefName);
+    // attributeDelegate.addAttribute(attributeDefName);
   }
 
   /**
