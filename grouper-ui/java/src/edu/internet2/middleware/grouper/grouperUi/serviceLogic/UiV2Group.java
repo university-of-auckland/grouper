@@ -62,9 +62,9 @@ import edu.internet2.middleware.grouper.attr.assign.AttributeAssignGroupDelegate
 import edu.internet2.middleware.grouper.attr.assign.AttributeAssignResult;
 import edu.internet2.middleware.grouper.attr.finder.AttributeAssignValueFinder;
 import edu.internet2.middleware.grouper.attr.finder.AttributeAssignValueFinder.AttributeAssignValueFinderResult;
-import edu.internet2.middleware.grouper.attr.value.AttributeAssignValue;
 import edu.internet2.middleware.grouper.attr.finder.AttributeDefFinder;
 import edu.internet2.middleware.grouper.attr.finder.AttributeDefNameFinder;
+import edu.internet2.middleware.grouper.attr.value.AttributeAssignValue;
 import edu.internet2.middleware.grouper.audit.AuditEntry;
 import edu.internet2.middleware.grouper.audit.UserAuditQuery;
 import edu.internet2.middleware.grouper.cfg.GrouperConfig;
@@ -353,6 +353,10 @@ public class UiV2Group {
         LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
+
+      // UOA if we change group membership
+      setGroupAttributesOnGroupMembershipChange(group);
+
       String ownerGroupId = request.getParameter("ownerGroupId");
 
       Group ownerGroup = GroupFinder.findByUuid(grouperSession, ownerGroupId, false);
@@ -422,6 +426,10 @@ public class UiV2Group {
         LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
+
+      // UOA if we change group membership
+      setGroupAttributesOnGroupMembershipChange(group);
+
       Set<String> membershipsIds = new HashSet<String>();
 
       for (int i = 0; i < 1000; i++) {
@@ -505,6 +513,9 @@ public class UiV2Group {
         LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
+
+      // UOA if we change group membership
+      setGroupAttributesOnGroupMembershipChange(group);
 
       String memberId = request.getParameter("memberId");
 
@@ -887,6 +898,9 @@ public class UiV2Group {
         LOG.warn("Can't add members to this group as it is not editable: " + group.getName());
         return;
       }
+
+      // UOA if we change group membership
+      setGroupAttributesOnGroupMembershipChange(group);
 
       String subjectString = request.getParameter("groupAddMemberComboName");
 
@@ -1749,7 +1763,8 @@ public class UiV2Group {
    * @param grouperObject
    * 
    */
-  public void setGroupAttributesOnGroupCreate(/* GrouperSession grouperSession, */ GrouperObject grouperObject) {
+  public void setGroupAttributesOnGroupCreate(/* GrouperSession grouperSession, */ GrouperObject grouperObject,
+      boolean syncToActiveDirectory) {
     AttributeDefName attributeDefName = new AttributeDefName();
     attributeDefName.setStemId("etc:pspng:provision_to");
     // attributeDefName.setName("provision_to");
@@ -1758,18 +1773,22 @@ public class UiV2Group {
     attributeDefName.getAttributeDef().setAssignToMember(true);
     attributeDefName.getAttributeDef().setValueType(AttributeDefValueType.string);
     attributeDefName.getAttributeDef().setMultiValued(false);
-    
+
+    AttributeAssignGroupDelegate attributeDelegate;
     // assign value
-    AttributeAssignResult attributeAssignResult = ((Group) grouperObject).getAttributeDelegate()
-        .assignAttribute(attributeDefName);
-    AttributeAssign attributeAssign = attributeAssignResult.getAttributeAssign();
-    AttributeAssignValue attributeAssignValue = attributeAssign.getValueDelegate()
-        .assignValueString("pspng_activedirectory").getAttributeAssignValue();
+    if (syncToActiveDirectory) {
+      AttributeAssignResult attributeAssignResult = ((Group) grouperObject).getAttributeDelegate()
+          .assignAttribute(attributeDefName);
+      AttributeAssign attributeAssign = attributeAssignResult.getAttributeAssign();
+      AttributeAssignValue attributeAssignValue = attributeAssign.getValueDelegate()
+          .assignValueString("pspng_activedirectory").getAttributeAssignValue();
 
-    AttributeAssignGroupDelegate attributeDelegate = ((Group) grouperObject).getAttributeDelegate();
-    attributeDelegate.assignAttribute(attributeDefName);
-    // attributeDelegate.addAttribute(attributeDefName);
+      attributeDelegate = ((Group) grouperObject).getAttributeDelegate();
+      attributeDelegate.assignAttribute(attributeDefName);
+      // attributeDelegate.addAttribute(attributeDefName);
+    }
 
+    // publish_to always set
     attributeDefName = new AttributeDefName();
     attributeDefName.setStemId("etc:esb:publish_to");
     attributeDefName = AttributeDefNameFinder.findByName("etc:esb:publish_to", true);
@@ -1787,11 +1806,11 @@ public class UiV2Group {
   }
 
   /**
-   * UOA Set attributes on group edit
+   * UOA Set attributes on group membership change
    * 
    * @param grouperObject
    */
-  public void setGroupAttributesOnGroupEdit(GrouperObject grouperObject) {
+  public void setGroupAttributesOnGroupMembershipChange(GrouperObject grouperObject) {
     AttributeDefName attributeDefName = new AttributeDefName();
     attributeDefName.setStemId("etc:esb:provision_to");
     // attributeDefName.setName("provision_to");
@@ -1833,6 +1852,8 @@ public class UiV2Group {
       final boolean attrReadChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrReaders[]"),
           false);
       final boolean attrUpdateChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrUpdaters[]"),
+          false);
+      final boolean syncToActiveDirectory = GrouperUtil.booleanValue(request.getParameter("syncToActiveDirectory[]"),
           false);
 
       String groupType = request.getParameter("groupType[]");
@@ -1905,7 +1926,7 @@ public class UiV2Group {
           });
 
       if (group != null) {
-        setGroupAttributesOnGroupCreate(group);
+        setGroupAttributesOnGroupCreate(group, syncToActiveDirectory);
 
         guiResponseJs.addAction(
             GuiScreenAction.newValidationMessage(GuiMessageType.error, editIdChecked ? "#groupId" : "#groupName",
@@ -1923,7 +1944,7 @@ public class UiV2Group {
             .assignPrivAllOptout(optoutChecked).assignPrivAllRead(readChecked).assignPrivAllUpdate(updateChecked)
             .assignPrivAllView(viewChecked).save();
 
-        setGroupAttributesOnGroupCreate(group);
+        setGroupAttributesOnGroupCreate(group, syncToActiveDirectory);
       } catch (GrouperValidationException gve) {
         handleGrouperValidationException(guiResponseJs, gve);
         return;
@@ -2178,8 +2199,6 @@ public class UiV2Group {
             .assignPrivAllOptin(optinChecked).assignPrivAllOptout(optoutChecked).assignPrivAllRead(readChecked)
             .assignPrivAllUpdate(updateChecked).assignPrivAllView(viewChecked);
         group = groupSave.save();
-
-        setGroupAttributesOnGroupEdit(group);
 
         // go to the view group screen
         guiResponseJs.addAction(
@@ -2806,6 +2825,9 @@ public class UiV2Group {
         LOG.warn("Cannot remove members from this group as it is not editable: " + group.getName());
         return;
       }
+
+      // UOA if we change group membership
+      setGroupAttributesOnGroupMembershipChange(group);
 
       final Set<String> membershipsIds = new HashSet<String>();
 
