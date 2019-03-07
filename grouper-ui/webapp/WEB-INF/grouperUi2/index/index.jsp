@@ -5,6 +5,7 @@
 <html>
   <!-- start index.jsp -->
   <head><title>${textContainer.text['guiTitle']}</title>
+  <meta name="version" content="<%= GrouperStartup.versionTimestamp() %>">
   <%@ include file="../assetsJsp/commonHead.jsp"%>
   </head>
   <body class="full claro">
@@ -114,7 +115,6 @@
         <hr>
         <footer style="text-align: center;">
           <p style="text-align: center;">&copy; ${textContainer.text['institutionName'] }</p>
-          <p style="text-align: center;"><%= GrouperStartup.versionTimestamp() %></p>
         </footer>
       </div>
     </div>
