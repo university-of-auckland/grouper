@@ -355,7 +355,7 @@ public class UiV2Group {
       }
 
       // UOA if we change group membership
-      setGroupAttributesOnGroupMembershipChange(group);
+      GrouperUiUtils.setGroupAttributesOnGroupMembershipChange(group);
 
       String ownerGroupId = request.getParameter("ownerGroupId");
 
@@ -428,7 +428,7 @@ public class UiV2Group {
       }
 
       // UOA if we change group membership
-      setGroupAttributesOnGroupMembershipChange(group);
+      GrouperUiUtils.setGroupAttributesOnGroupMembershipChange(group);
 
       Set<String> membershipsIds = new HashSet<String>();
 
@@ -515,7 +515,7 @@ public class UiV2Group {
       }
 
       // UOA if we change group membership
-      setGroupAttributesOnGroupMembershipChange(group);
+      GrouperUiUtils.setGroupAttributesOnGroupMembershipChange(group);
 
       String memberId = request.getParameter("memberId");
 
@@ -900,7 +900,7 @@ public class UiV2Group {
       }
 
       // UOA if we change group membership
-      setGroupAttributesOnGroupMembershipChange(group);
+      GrouperUiUtils.setGroupAttributesOnGroupMembershipChange(group);
 
       String subjectString = request.getParameter("groupAddMemberComboName");
 
@@ -1698,6 +1698,10 @@ public class UiV2Group {
         LOG.warn("Cannot delete group cause it is not editable " + group.getName());
         return;
       }
+
+      // UOA if we change group membership
+      GrouperUiUtils.setGroupAttributesOnGroupMembershipChange(group);
+
       String stemId = group.getParentUuid();
 
       GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
@@ -1755,69 +1759,6 @@ public class UiV2Group {
       GrouperSession.stopQuietly(grouperSession);
     }
 
-  }
-
-  /**
-   * UOA Set attributes on create
-   * 
-   * @param grouperObject
-   * 
-   */
-  public void setGroupAttributesOnGroupCreate(/* GrouperSession grouperSession, */ GrouperObject grouperObject,
-      boolean syncToActiveDirectory) {
-    AttributeDefName attributeDefName = new AttributeDefName();
-    attributeDefName.setStemId("etc:pspng:provision_to");
-    // attributeDefName.setName("provision_to");
-    attributeDefName = AttributeDefNameFinder.findByName("etc:pspng:provision_to", true);
-
-    attributeDefName.getAttributeDef().setAssignToMember(true);
-    attributeDefName.getAttributeDef().setValueType(AttributeDefValueType.string);
-    attributeDefName.getAttributeDef().setMultiValued(false);
-
-    AttributeAssignGroupDelegate attributeDelegate;
-    // assign value
-    if (syncToActiveDirectory) {
-      AttributeAssignResult attributeAssignResult = ((Group) grouperObject).getAttributeDelegate()
-          .assignAttribute(attributeDefName);
-      AttributeAssign attributeAssign = attributeAssignResult.getAttributeAssign();
-      AttributeAssignValue attributeAssignValue = attributeAssign.getValueDelegate()
-          .assignValueString("pspng_activedirectory").getAttributeAssignValue();
-
-      attributeDelegate = ((Group) grouperObject).getAttributeDelegate();
-      attributeDelegate.assignAttribute(attributeDefName);
-      // attributeDelegate.addAttribute(attributeDefName);
-    }
-
-    // publish_to always set
-    attributeDefName = new AttributeDefName();
-    attributeDefName.setStemId("etc:esb:publish_to");
-    attributeDefName = AttributeDefNameFinder.findByName("etc:esb:publish_to", true);
-    attributeDelegate = ((Group) grouperObject).getAttributeDelegate();
-    attributeDelegate.assignAttribute(attributeDefName);
-
-    // save
-//    GrouperObjectTypesConfiguration.saveOrUpdateTypeAttributes(grouperObjectTypesAttributeValue, grouperObject);
-
-//    attributes = GrouperObjectTypesConfiguration.getGrouperObjectTypesAttributeValues(grouperObject);
-    // check if attribute already there
-
-//    GrouperObjectTypesConfiguration.saveOrUpdateTypeAttributes(grouperObjectTypesAttributeValue, grouperObject);
-
-  }
-
-  /**
-   * UOA Set attributes on group membership change
-   * 
-   * @param grouperObject
-   */
-  public void setGroupAttributesOnGroupMembershipChange(GrouperObject grouperObject) {
-    AttributeDefName attributeDefName = new AttributeDefName();
-    attributeDefName.setStemId("etc:esb:provision_to");
-    // attributeDefName.setName("provision_to");
-    attributeDefName = AttributeDefNameFinder.findByName("etc:esb:publish_to", true);
-    AttributeAssignGroupDelegate attributeDelegate = ((Group) grouperObject).getAttributeDelegate();
-    attributeDelegate.assignAttribute(attributeDefName);
-    // attributeDelegate.addAttribute(attributeDefName);
   }
 
   /**
@@ -1926,7 +1867,7 @@ public class UiV2Group {
           });
 
       if (group != null) {
-        setGroupAttributesOnGroupCreate(group, syncToActiveDirectory);
+        GrouperUiUtils.setGroupAttributesOnGroupCreate(group, syncToActiveDirectory);
 
         guiResponseJs.addAction(
             GuiScreenAction.newValidationMessage(GuiMessageType.error, editIdChecked ? "#groupId" : "#groupName",
@@ -1944,7 +1885,7 @@ public class UiV2Group {
             .assignPrivAllOptout(optoutChecked).assignPrivAllRead(readChecked).assignPrivAllUpdate(updateChecked)
             .assignPrivAllView(viewChecked).save();
 
-        setGroupAttributesOnGroupCreate(group, syncToActiveDirectory);
+        GrouperUiUtils.setGroupAttributesOnGroupCreate(group, syncToActiveDirectory);
       } catch (GrouperValidationException gve) {
         handleGrouperValidationException(guiResponseJs, gve);
         return;
@@ -2827,7 +2768,7 @@ public class UiV2Group {
       }
 
       // UOA if we change group membership
-      setGroupAttributesOnGroupMembershipChange(group);
+      GrouperUiUtils.setGroupAttributesOnGroupMembershipChange(group);
 
       final Set<String> membershipsIds = new HashSet<String>();
 
