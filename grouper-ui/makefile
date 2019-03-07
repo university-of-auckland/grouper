@@ -49,6 +49,8 @@ archive:
 	mkdir -p grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/beans/ui/
 	cp target/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/SimpleMembershipUpdateImportExport*.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/serviceLogic/
 	cp target/classes/edu/internet2/middleware/grouper/grouperUi/beans/ui/GroupContainer.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/grouperUi/beans/ui/GroupContainer.class
+	mkdir -p grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/ui/util/
+	cp target/classes/edu/internet2/middleware/grouper/ui/util/GrouperUiUtils*.class grouper-ui/dist/grouper/WEB-INF/classes/edu/internet2/middleware/grouper/ui/util/
 	mkdir -p grouper-ui/dist/grouper/WEB-INF/classes/grouperText/
 	cp ./conf/grouperText/grouper.text.en.us.base.properties grouper-ui/dist/grouper/WEB-INF/classes/grouperText/grouper.text.en.us.properties
 	rm -f grouper-2.4.0.tar
