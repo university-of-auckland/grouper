@@ -11,3 +11,5 @@ webapp/WEB-INF/lib/*.jar
 /.project
 /.classpath
 /bin/
+
+grouper-2.4.0.tar.gz
