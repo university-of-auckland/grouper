@@ -17,8 +17,12 @@ package edu.internet2.middleware.grouper.pspng;
  ******************************************************************************/
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -50,7 +54,25 @@ public class PspChangelogConsumerShim extends ChangeLogConsumerBase {
       MDC.put("why", "CLog/");
       MDC.put("who", consumerName+"/");
       LOG.info("{}: +processChangeLogEntries({})", consumerName, changeLogEntryList.size());
-      
+
+      String elFilter = GrouperLoaderConfig.retrieveConfig().propertyValueString("changeLog.consumer."
+              + consumerName + ".elfilter", "");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("elFilter {}", elFilter);
+      }
+
+      if (!StringUtils.isBlank(elFilter)){
+        String[] types = elFilter.split(",");
+        List<String> filteredTypes = Arrays.asList(types);
+        List<ChangeLogEntry> filteredout = new ArrayList<>();
+        for (ChangeLogEntry entry : changeLogEntryList) {
+          if (!filteredTypes.contains(entry.getChangeLogType().getActionName())){
+            filteredout.add(entry);
+          }
+        }
+        changeLogEntryList.removeAll(filteredout);
+      }
+
       Provisioner provisioner;
       try {
         provisioner = ProvisionerFactory.getIncrementalProvisioner(consumerName);

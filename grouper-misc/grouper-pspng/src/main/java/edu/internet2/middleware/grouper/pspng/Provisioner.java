@@ -469,7 +469,7 @@ public abstract class Provisioner
         return false;
     }
 
-    return workItem.matchesChangelogType(ChangelogHandlingConfig.allRelevantChangelogTypes );
+    return workItem.matchesChangelogType(ChangelogHandlingConfig.changelogTypesThatAreHandledIncrementally );
   }
 
 
