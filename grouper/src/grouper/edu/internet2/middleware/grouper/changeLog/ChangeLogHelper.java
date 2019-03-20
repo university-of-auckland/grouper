@@ -262,6 +262,8 @@ public class ChangeLogHelper {
           GrouperDAOFactory.getFactory().getChangeLogConsumer().saveOrUpdate(changeLogConsumer);
         }
         
+        // UOA
+        if (0 != changeLogEntryList.size()) {
         long lastSequenceInBatch = changeLogEntryList.get(changeLogEntryList.size()-1).getSequenceNumber();
   
         
@@ -287,6 +289,7 @@ public class ChangeLogHelper {
           hib3GrouploaderLog.appendJobMessage(errorString);
           //didnt get all the way through
           error = true;
+        }
         }
         
         if (error) {

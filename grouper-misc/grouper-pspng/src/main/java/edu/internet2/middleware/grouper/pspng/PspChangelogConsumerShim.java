@@ -64,6 +64,13 @@ public class PspChangelogConsumerShim extends ChangeLogConsumerBase {
   @Override
   public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
       ChangeLogProcessorMetadata changeLogProcessorMetadata) {
+    // This determines which changelog entries to acknowledge: The highest
+    // number entry before we have a failure
+    long lastSuccessfulChangelogEntry = -1;
+    int numSuccessfulWorkItems = 0;
+    int numFailedWorkItems = 0;
+    int numSuccessfulWorkItems_thatWillBeRetried = 0;
+
     try {
       String consumerName = changeLogProcessorMetadata.getConsumerName();
       MDC.put("why", "CLog/");
@@ -85,6 +92,9 @@ public class PspChangelogConsumerShim extends ChangeLogConsumerBase {
         for (ChangeLogEntry entry : changeLogEntryList) {
           EsbEvent esbEvent = mapChangeLogEntryToEsbEvent(entry);
           if (!matchesFilter(esbEvent, elFilter)) {
+            if (entry.getSequenceNumber() > lastSuccessfulChangelogEntry) {
+              lastSuccessfulChangelogEntry = entry.getSequenceNumber();
+            }
             filteredout.add(entry);
           }
         }
@@ -118,13 +128,6 @@ public class PspChangelogConsumerShim extends ChangeLogConsumerBase {
       }
 
       provisioner.provisionBatchOfItems(workItems);
-
-      // This determines which changelog entries to acknowledge: The highest
-      // number entry before we have a failure
-      long lastSuccessfulChangelogEntry = -1;
-      int numSuccessfulWorkItems = 0;
-      int numFailedWorkItems = 0;
-      int numSuccessfulWorkItems_thatWillBeRetried = 0;
 
       String firstErrorMessage = null;
 
