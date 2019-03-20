@@ -19,12 +19,10 @@
 
 package edu.internet2.middleware.grouper.changeLog.esb.consumer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import edu.internet2.middleware.grouper.Membership;
+import edu.internet2.middleware.grouper.misc.GrouperDAOFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 
@@ -485,6 +483,22 @@ public class EsbConsumer extends ChangeLogConsumerBase {
               
             }
           }
+
+          // UOA custom filter - filter out future memberships
+          if (processEvent) {
+            if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD) ||
+                    changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
+              Membership membership = GrouperDAOFactory.getFactory().getMembership().findByUuid(event.getId(),false, false);
+              if (membership != null && !membership.isEnabled()) { // inactive membership
+                LOG.debug("INACTIVE MEMBERSHIP!!! Sequencd number " + event.getSequenceNumber() + ", id is " + event.getId());
+                if (membership.getEnabledTimeDb() != null && membership.getEnabledTimeDb().longValue() > new Date().getTime()) { // future membership
+                  processEvent = false;
+                }
+              }
+            }
+          }
+
+          LOG.info("Event " + event.getEventType() + " with sequence number " + event.getSequenceNumber() + " will be processed " + processEvent);
           
           if (processEvent) {
 
