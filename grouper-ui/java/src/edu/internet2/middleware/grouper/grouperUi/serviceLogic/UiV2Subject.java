@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -304,18 +305,21 @@ public class UiV2Subject {
       }
       
       groups = groupFinder.findGroups();
-      
+
+      // filter out non-editable groups
+      Set<Group> editableGroups = GrouperUiUtils.filterEditableGroups(groups);
+
       guiPaging.setTotalRecordCount(queryOptions.getQueryPaging().getTotalRecordCount());
       
-      if (GrouperUtil.length(groups) == 0) {
+      if (GrouperUtil.length(editableGroups) == 0) {
 
         guiResponseJs.addAction(GuiScreenAction.newInnerHtml("#addGroupResults", 
             TextContainer.retrieveFromRequest().getText().get("subjectViewAddMemberNoSubjectsFound")));
         return;
       }
       
-      Set<GuiGroup> guiGroups = GuiGroup.convertFromGroups(groups);
-      
+      Set<GuiGroup> guiGroups = GuiGroup.convertFromGroups(editableGroups);
+
       subjectContainer.setGuiGroupsAddMember(guiGroups);
   
       guiResponseJs.addAction(GuiScreenAction.newInnerHtmlFromJsp("#addGroupResults", 

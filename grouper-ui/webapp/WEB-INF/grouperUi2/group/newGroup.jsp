@@ -69,6 +69,12 @@
                       <textarea id="groupDescription" name=description rows="3" cols="40" class="input-block-level"></textarea><span class="help-block">${textContainer.text['groupCreateDescriptionDescription'] }</span>
                     </div>
                   </div>
+                  <div class="control-group">
+                    <label for="syncToActiveDirectory" class="control-label"></label>
+                    <div class="controls">
+                      <input id="syncToActiveDirectory" name="syncToActiveDirectory" rows="3" cols="40" class="input-block-level" type="checkbox">&nbsp;Sync to Active Directory<br/>
+                    </div>
+                  </div>
                   <p class="shownAdvancedProperties"><a href="#" 
                     onclick="$('.hiddenAdvancedProperties').show('slow'); $('.shownAdvancedProperties').hide('slow'); return false;" 
                     >${textContainer.text['groupCreateAdvanced'] } <i class="fa fa-angle-down"></i></a></p>
@@ -89,16 +95,16 @@
                             ${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllView ? 'checked="checked"' : '' }                          
                           />${textContainer.text['priv.viewUpper'] }
                         </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_optins" value="true"
-                            ${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllOptin ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.optinUpper'] }
-                        </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_optouts" value="true"
-                            ${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllOptout ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.optoutUpper'] }
-                        </label>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_optins" value="true"--%>
+                            <%--${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllOptin ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.optinUpper'] }--%>
+                        <%--</label>--%>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_optouts" value="true"--%>
+                            <%--${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllOptout ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.optoutUpper'] }--%>
+                        <%--</label>--%>
                         <label class="checkbox inline">
                           <input type="checkbox" name="privileges_groupAttrReaders" value="true"
                             ${grouperRequestContainer.groupContainer.configDefaultGroupsCreateGrantAllAttrRead ? 'checked="checked"' : '' }                          

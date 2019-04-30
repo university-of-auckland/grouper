@@ -710,7 +710,7 @@ public class UiV2GrouperLoader {
   public static void setupLoaderManagedGroup(final Group group, final GrouperLoaderContainer grouperLoaderContainer) {
     
     GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
-      
+
       public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
 
         AttributeDefName loaderMetadataAttributeDefName = AttributeDefNameFinder.findByName(loaderMetadataStemName()+":"+GrouperLoader.LOADER_METADATA_VALUE_DEF, false);

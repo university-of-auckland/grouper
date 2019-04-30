@@ -12,6 +12,7 @@
            </c:if>
          </div>
         </div>
+        <c:if test="${grouperRequestContainer.groupContainer.canUpdateAttributes}">
         <div class="row-fluid">
          <div id="assign-group-attribute-block-container" class="well hide">
           <form id="assignAttributeGroupForm" class="form-horizontal">
@@ -34,6 +35,7 @@
          
          </div>
          </div>
+        </c:if>
          <!-- This div is filled with the table of existing group attribute assignments -->
          <div id="viewAttributeAssignments">
            

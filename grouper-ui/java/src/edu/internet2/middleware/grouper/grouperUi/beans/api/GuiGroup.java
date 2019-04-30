@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssignGroupDelegate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -414,6 +415,10 @@ public class GuiGroup extends GuiObjectBase implements Serializable {
   public String getLinkWithIcon() {
     
     return linkHelper(true);
+  }
+
+  public boolean isEditable() {
+      return GrouperUiUtils.isGroupEditable(this.group);
   }
 
   /**

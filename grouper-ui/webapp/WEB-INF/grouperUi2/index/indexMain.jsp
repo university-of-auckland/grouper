@@ -62,8 +62,9 @@
                     </tbody>
                   </table>
                   --%>
-                  <div class="row-fluid">     
-  
+                  <c:if test="${mediaMap['uiV2.widget.enabled'] == 'true'}">
+                  <div class="row-fluid">
+
                     <div class="span4 well well-widget">
                       <c:set var="col" value="0" scope="request" />
                       <%@ include file="../index/indexColumnMenu.jsp"%>
@@ -72,7 +73,7 @@
                         <jsp:include page="../index/index${grouperRequestContainer.indexContainer.panelCol0}.jsp" />
                       </div>
                     </div>
-  
+
                     <div class="span4 well well-widget">
                       <c:set var="col" value="1" scope="request" />
                       <%@ include file="../index/indexColumnMenu.jsp"%>
@@ -81,7 +82,7 @@
                         <jsp:include page="../index/index${grouperRequestContainer.indexContainer.panelCol1}.jsp" />
                       </div>
                     </div>
-  
+
                     <div class="span4 well well-widget">
                       <c:set var="col" value="2" scope="request" />
                       <%@ include file="../index/indexColumnMenu.jsp"%>
@@ -91,6 +92,7 @@
                       </div>
                     </div>
                   </div>
+                  </c:if>
                 </div>
               </div>
               <!-- end indexMain.jsp -->

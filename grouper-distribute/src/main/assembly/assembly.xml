@@ -1,0 +1,69 @@
+<!-- Source distribution -->
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://maven.apache.org/xsd/assembly-1.1.1.xsd">
+    <id>dist</id>
+    <formats>
+        <format>tar</format>
+    </formats>
+
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <!--<dependencySets>-->
+        <!--<dependencySet>-->
+            <!--<useProjectArtifact>false</useProjectArtifact>-->
+            <!--<useTransitiveDependencies>true</useTransitiveDependencies>-->
+            <!--<outputDirectory>lib</outputDirectory>-->
+            <!--<unpack>false</unpack>-->
+            <!--<excludes>-->
+                <!--<exclude>edu.internet2.middleware.grouper:*:*</exclude>-->
+            <!--</excludes>-->
+        <!--</dependencySet>-->
+    <!--</dependencySets>-->
+
+    <moduleSets>
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>edu.internet2.middleware.grouper:grouper-ui</include>
+                <include>edu.internet2.middleware.grouper:grouper-ws</include>
+            </includes>
+
+            <sources>
+                <includeModuleDirectory>false</includeModuleDirectory>
+                <excludes>
+                    <exclude>**</exclude>
+                </excludes>
+
+                <fileSets>
+                    <fileSet>
+                        <directory>${project.basedir}/webapp</directory>
+                        <useDefaultExcludes>true</useDefaultExcludes>
+                        <outputDirectory>${module.artifactId}-2.4.0/dist/grouper</outputDirectory>
+                    </fileSet>
+                </fileSets>
+            </sources>
+        </moduleSet>
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>edu.internet2.middleware.grouper:grouper</include>
+                <include>edu.internet2.middleware.grouper:grouper-ws</include>
+                <include>edu.internet2.middleware.grouper:grouper-ui</include>
+                <include>edu.internet2.middleware.grouper:grouper-pspng</include>
+                <include>edu.internet2.middleware.grouper:grouperClient</include>
+            </includes>
+
+            <binaries>
+                <outputDirectory>modules</outputDirectory>
+                <excludes>
+                    <exclude>*:*impl*</exclude>
+                    <exclude>*:*jdk15*</exclude>
+                </excludes>
+                <unpack>false</unpack>
+            </binaries>
+        </moduleSet>
+
+    </moduleSets>
+
+
+</assembly>

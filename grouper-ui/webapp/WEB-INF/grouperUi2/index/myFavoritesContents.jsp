@@ -1,5 +1,10 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
 
+                <div class="data-table-bottom gradient-background">
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.indexContainer.myFavoritesGuiPaging}" 
+                    formName="myFavoritesPagingForm" ajaxFormIds="myFavoritesForm"
+                    refreshOperation="../app/UiV2Main.myFavoritesSubmit" />
+                </div>
                 <table class="table table-hover table-bordered table-striped table-condensed data-table table-paths">
                   <thead>
                     <tr>
@@ -27,6 +32,6 @@
                 </table>
                 <div class="data-table-bottom gradient-background">
                   <grouper:paging2 guiPaging="${grouperRequestContainer.indexContainer.myFavoritesGuiPaging}" 
-                    formName="myFavoritesPagingForm" ajaxFormIds="myFavoritesForm"
+                    formName="myFavoritesPagingForm2" ajaxFormIds="myFavoritesForm"
                     refreshOperation="../app/UiV2Main.myFavoritesSubmit" />
                 </div>

@@ -22,6 +22,10 @@ import java.util.Set;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.attr.AttributeDefName;
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssign;
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssignDelegatable;
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssignGroupDelegate;
 import edu.internet2.middleware.grouper.cfg.GrouperConfig;
 import edu.internet2.middleware.grouper.exception.GrouperSessionException;
 import edu.internet2.middleware.grouper.grouperUi.beans.api.GuiAttributeAssign;
@@ -33,6 +37,7 @@ import edu.internet2.middleware.grouper.grouperUi.beans.json.GuiPaging;
 import edu.internet2.middleware.grouper.grouperUi.beans.json.GuiSorting;
 import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
 import edu.internet2.middleware.grouper.privs.AccessPrivilege;
+import edu.internet2.middleware.grouper.privs.PrivilegeHelper;
 import edu.internet2.middleware.grouper.ui.GrouperUiFilter;
 import edu.internet2.middleware.grouper.ui.util.GrouperUiUserData;
 import edu.internet2.middleware.grouper.userData.GrouperUserDataApi;
@@ -109,7 +114,6 @@ public class GroupContainer {
     this.compositeLeftFactorGuiGroup = compositeLeftFactorGuiGroup1;
   }
 
-  
   /**
    * if displaying a composite, this is the right factor
    * @return the compositeRightFactorGuiGroup
@@ -722,19 +726,19 @@ public class GroupContainer {
     
     if (this.canUpdate == null) {
       
-      final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
-      
-      this.canUpdate = (Boolean)GrouperSession.callbackGrouperSession(
-          GrouperSession.staticGrouperSession().internal_getRootSession(), new GrouperSessionHandler() {
-            
-            @Override
-            public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
-              return GroupContainer.this.getGuiGroup().getGroup().canHavePrivilege(loggedInSubject, AccessPrivilege.UPDATE.getName(), false);
-            }
-          });
-    }
-    
-    return this.canUpdate;
+        final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
+
+        this.canUpdate = (Boolean) GrouperSession.callbackGrouperSession(
+                GrouperSession.staticGrouperSession().internal_getRootSession(), new GrouperSessionHandler() {
+
+                  @Override
+                  public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
+                    return GroupContainer.this.getGuiGroup().getGroup().canHavePrivilege(loggedInSubject, AccessPrivilege.UPDATE.getName(), false);
+                  }
+                });
+      }
+
+      return this.canUpdate;
   }
   
   /**
@@ -918,6 +922,16 @@ public class GroupContainer {
   public void setGuiAttributeAssigns(Set<GuiAttributeAssign> guiAttributeAssigns) {
     this.guiAttributeAssigns = guiAttributeAssigns;
   }
+
+  private Boolean editable;
+
+  public boolean isEditable() {
+    if (this.editable == null) {
+      this.editable = this.guiGroup.isEditable();
+    }
+    return this.editable;
+  }
+
     
   private boolean showEnabledStatus;
   

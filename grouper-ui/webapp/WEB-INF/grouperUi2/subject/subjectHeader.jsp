@@ -30,7 +30,7 @@
                         <button data-dismiss="modal" aria-hidden="true" class="btn">${textContainer.text['subjectSearchCloseButton']}</button>
                       </div>
                     </div>
-
+                    <c:if test="${grouperRequestContainer.stemContainer.wheelGroupMember}">
                     <div id="add-block-container" class="well gradient-background hide">
                       <div id="add-groups">
                         <form id="add-groups-form" target="#" class="form-horizontal form-highlight">
@@ -80,12 +80,12 @@
                               <label class="checkbox inline">
                                 <input type="checkbox" name="privileges_viewers" value="true" />${textContainer.text['priv.viewUpper'] }
                               </label>
-                              <label class="checkbox inline">
-                                <input type="checkbox" name="privileges_optins" value="true" />${textContainer.text['priv.optinUpper'] }
-                              </label>
-                              <label class="checkbox inline">
-                                <input type="checkbox" name="privileges_optouts" value="true" />${textContainer.text['priv.optoutUpper'] }
-                              </label>
+                              <%--<label class="checkbox inline">--%>
+                                <%--<input type="checkbox" name="privileges_optins" value="true" />${textContainer.text['priv.optinUpper'] }--%>
+                              <%--</label>--%>
+                              <%--<label class="checkbox inline">--%>
+                                <%--<input type="checkbox" name="privileges_optouts" value="true" />${textContainer.text['priv.optoutUpper'] }--%>
+                              <%--</label>--%>
                               <label class="checkbox inline">
                                 <input type="checkbox" name="privileges_groupAttrReaders" value="true" />${textContainer.text['priv.groupAttrReadUpper'] }
                               </label>
@@ -103,7 +103,7 @@
                         </form>
                       </div>
                     </div>
-
+                    </c:if>
 
                     <div id="stem-search" tabindex="-1" role="dialog" aria-labelledby="stem-search-label" aria-hidden="true" class="modal hide fade">
                       <div class="modal-header"><a href="#" data-dismiss="modal" aria-hidden="true" class="close">x</a>
@@ -216,12 +216,12 @@
                               <label class="checkbox inline">
                                 <input type="checkbox" name="privileges_attrViewers" value="true" />${textContainer.text['priv.attrViewUpper'] }
                               </label>
-                              <label class="checkbox inline">
-                                <input type="checkbox" name="privileges_attrOptins" value="true" />${textContainer.text['priv.attrOptinUpper'] }
-                              </label>
-                              <label class="checkbox inline">
-                                <input type="checkbox" name="privileges_attrOptouts" value="true" />${textContainer.text['priv.attrOptoutUpper'] }
-                              </label>
+                              <%--<label class="checkbox inline">--%>
+                                <%--<input type="checkbox" name="privileges_attrOptins" value="true" />${textContainer.text['priv.attrOptinUpper'] }--%>
+                              <%--</label>--%>
+                              <%--<label class="checkbox inline">--%>
+                                <%--<input type="checkbox" name="privileges_attrOptouts" value="true" />${textContainer.text['priv.attrOptoutUpper'] }--%>
+                              <%--</label>--%>
                               <label class="checkbox inline">
                                 <input type="checkbox" name="privileges_attrDefAttrReaders" value="true" />${textContainer.text['priv.attrDefAttrReadUpper'] }
                               </label>

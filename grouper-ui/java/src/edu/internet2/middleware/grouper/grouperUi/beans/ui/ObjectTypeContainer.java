@@ -284,23 +284,26 @@ public class ObjectTypeContainer {
    * @return true if can read
    */
   public boolean isCanReadObjectType() {
+    if (!isObjectTypesEnabled()) {
+      return false;
+    }
     
     GuiGroup guiGroup = GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().getGuiGroup();
-    
+
     if (guiGroup != null) {
       if (GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().isCanRead()) {
         return true;
       }
     }
-    
+
     GuiStem guiStem = GrouperRequestContainer.retrieveFromRequestOrCreate().getStemContainer().getGuiStem();
-    
+
     if (guiStem != null) {
       if (GrouperRequestContainer.retrieveFromRequestOrCreate().getStemContainer().isCanAdminPrivileges()) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -309,17 +312,20 @@ public class ObjectTypeContainer {
    * @return true if can write
    */
   public boolean isCanWriteObjectType() {
-    
+    if (!isObjectTypesEnabled()) {
+      return false;
+    }
+
     GuiGroup guiGroup = GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().getGuiGroup();
-    
+
     if (guiGroup != null) {
       if (GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().isCanAdmin()) {
         return true;
       }
     }
-    
+
     GuiStem guiStem = GrouperRequestContainer.retrieveFromRequestOrCreate().getStemContainer().getGuiStem();
-    
+
     if (guiStem != null) {
       if (GrouperRequestContainer.retrieveFromRequestOrCreate().getStemContainer().isCanAdminPrivileges()) {
         return true;

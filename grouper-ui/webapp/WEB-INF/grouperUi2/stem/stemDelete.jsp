@@ -1,5 +1,5 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
-
+<c:if test="${mediaMap['uiV2.stem.delete.enabled'] == 'true'}">
             <%-- for the new group or new stem button --%>
             <input type="hidden" name="objectStemId" value="${grouperRequestContainer.stemContainer.guiStem.stem.id}" />
 
@@ -241,3 +241,7 @@
                  --%>
               </div>
             </div>
+</c:if>
+<c:if test="${mediaMap['uiV2.stem.delete.enabled'] != 'true'}">
+    Not Support
+</c:if>

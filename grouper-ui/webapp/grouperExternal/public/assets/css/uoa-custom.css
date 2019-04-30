@@ -1,0 +1,7 @@
+/* Custom CSS for University of Auckland */
+
+/* Change banner colour to represent different environments - Modified by skoh023 */
+.navbar-inner {
+  background-color: ${background-colour};
+  background-image: none;
+}

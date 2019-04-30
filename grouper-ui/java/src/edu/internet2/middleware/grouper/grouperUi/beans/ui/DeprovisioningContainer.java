@@ -169,7 +169,7 @@ public class DeprovisioningContainer {
     }
     return false;
   }
-  
+
   /**
    * overall configuration for this user and this object (group, folder, attributeDef)
    */
@@ -296,6 +296,9 @@ public class DeprovisioningContainer {
    * @return true if can read
    */
   public boolean isCanReadDeprovisioning() {
+    if (!isDeprovisioningEnabled()) {
+      return false;
+    }
     
     GuiGroup guiGroup = GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().getGuiGroup();
     
@@ -328,6 +331,9 @@ public class DeprovisioningContainer {
    * @return true if can write
    */
   public boolean isCanWriteDeprovisioning() {
+    if (!isDeprovisioningEnabled()) {
+      return false;
+    }
     
     GuiGroup guiGroup = GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().getGuiGroup();
     
@@ -442,6 +448,9 @@ public class DeprovisioningContainer {
    * @return true if allowed to deprovision
    */
   public boolean isAllowedToDeprovision() {
+    if (!isDeprovisioningEnabled()) {
+      return false;
+    }
 
     Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
     return GrouperDeprovisioningLogic.allowedToDeprovision(loggedInSubject);

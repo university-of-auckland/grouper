@@ -1,4 +1,5 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
+<c:set var="isGroupEditable" value="${grouperRequestContainer.groupContainer.editable}"/>
 
               <%-- tell add member to refresh audits --%>
               <form id="groupRefreshPartFormId">
@@ -10,6 +11,7 @@
                   <thead>
                     <tr>
                       <td colspan="11" class="table-toolbar gradient-background">
+                        <c:if test="${isGroupEditable}">
                         <div class="row-fluid">
                           <div class="span1">
                             <label for="people-update">${textContainer.text['groupPrivilegesUpdateBulkLabel'] }</label>
@@ -26,8 +28,8 @@
                               <option value="assign_viewers">${textContainer.text['groupPrivilegesAssignViewPrivilege'] }</option>
                               <option value="assign_groupAttrReaders">${textContainer.text['groupPrivilegesAssignGroupAttributeReadPrivilege'] }</option>
                               <option value="assign_groupAttrUpdaters">${textContainer.text['groupPrivilegesAssignGroupAttributeUpdatePrivilege'] }</option>
-                              <option value="assign_optins">${textContainer.text['groupPrivilegesAssignOptinPrivilege'] }</option>
-                              <option value="assign_optouts">${textContainer.text['groupPrivilegesAssignOptoutPrivilege'] }</option>
+                              <%--<option value="assign_optins">${textContainer.text['groupPrivilegesAssignOptinPrivilege'] }</option>--%>
+                              <%--<option value="assign_optouts">${textContainer.text['groupPrivilegesAssignOptoutPrivilege'] }</option>--%>
                               <option value="revoke_admins">${textContainer.text['groupPrivilegesRevokeAdminPrivilege'] }</option>
                               <option value="revoke_updaters">${textContainer.text['groupPrivilegesRevokeUpdatePrivilege'] }</option>
                               <option value="revoke_readersUpdaters">${textContainer.text['groupPrivilegesRevokeReadUpdatePrivilege'] }</option>
@@ -35,8 +37,8 @@
                               <option value="revoke_viewers">${textContainer.text['groupPrivilegesRevokeViewPrivilege'] }</option>
                               <option value="revoke_groupAttrReaders">${textContainer.text['groupPrivilegesRevokeGroupAttributeReadPrivilege'] }</option>
                               <option value="revoke_groupAttrUpdaters">${textContainer.text['groupPrivilegesRevokeGroupAttributeUpdatePrivilege'] }</option>
-                              <option value="revoke_optins">${textContainer.text['groupPrivilegesRevokeOptinPrivilege'] }</option>
-                              <option value="revoke_optouts">${textContainer.text['groupPrivilegesRevokeOptoutPrivilege'] }</option>
+                              <%--<option value="revoke_optins">${textContainer.text['groupPrivilegesRevokeOptinPrivilege'] }</option>--%>
+                              <%--<option value="revoke_optouts">${textContainer.text['groupPrivilegesRevokeOptoutPrivilege'] }</option>--%>
                               <option value="revoke_all">${textContainer.text['groupPrivilegesRevokeAllPrivilege'] }</option>
 
                             </select>
@@ -46,6 +48,7 @@
                               onclick="ajax('../app/UiV2Group.assignPrivilegeBatch?groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}', {formIds: 'groupFilterPrivilegesFormId,groupPagingPrivilegesFormId,groupPagingPrivilegesFormPageNumberId,groupPrivilegeFormId'}); return false;">${textContainer.text['groupPrivilegesUpdateSelected'] }</button>
                           </div>
                         </div>
+                        </c:if>
                       </td>
                     </tr>
                     <tr>
@@ -58,8 +61,8 @@
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colAdmin'] }</th>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colRead'] }</th>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colUpdate'] }</th>
-                      <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colOptin'] }</th>
-                      <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colOptout'] }</th>
+                      <%--<th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colOptin'] }</th>--%>
+                      <%--<th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colOptout'] }</th>--%>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colAttributeRead'] }</th>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colAttributeUpdate'] }</th>
                       <th data-hide="phone" style="white-space: nowrap; text-align: center; width: 10em;">${textContainer.text['priv.colView'] }</th>
@@ -80,7 +83,7 @@
                         <td class="expand foo-clicker" style="white-space: nowrap">${guiMembershipSubjectContainer.guiSubject.shortLinkWithIcon}
                         </td>
                         <%-- loop through the fields for groups --%>
-                        <c:forEach items="admins,readers,updaters,optins,optouts,groupAttrReaders,groupAttrUpdaters,viewers" var="fieldName">
+                        <c:forEach items="admins,readers,updaters,groupAttrReaders,groupAttrUpdaters,viewers" var="fieldName">
                           <td data-hide="phone,medium" class="direct-actions privilege" >
                             <c:set value="${guiMembershipSubjectContainer.guiMembershipContainers[fieldName]}" var="guiMembershipContainer" />
                             <%-- if there is a container, then there is an assignment of some sort... --%>
@@ -102,6 +105,7 @@
                           </td>
                         </c:forEach>
                         <td>
+                          <c:if test="${isGroupEditable}">
                           <div class="btn-group"><a data-toggle="dropdown" href="#" aria-label="${textContainer.text['ariaLabelGuiMoreOptions']}" class="btn btn-mini dropdown-toggle" 
                           	aria-haspopup="true" aria-expanded="false" role="menu" onclick="$('#membership-more-options${i}').is(':visible') === true ? $(this).attr('aria-expanded','false') : $(this).attr('aria-expanded',function(index, currentValue) { $('#membership-more-options${i} li').first().focus();return true;});">
                           	${textContainer.text['groupPrivilegesActions']} 
@@ -116,6 +120,7 @@
                               </c:if>
                             </ul>
                           </div>
+                          </c:if>
                         </td>
                       </tr>
                       <c:set var="i" value="${i+1}" />
