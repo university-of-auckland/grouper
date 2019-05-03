@@ -158,6 +158,7 @@ public class FullSyncProvisioner  {
 
     for (QUEUE_TYPE queue_type : QUEUE_TYPE.values()) {
       if (queue_type.usesGrouperMessagingQueue) {
+        setUpGrouperMessagingQueue(queue_type);
         startMessageReadingThread(queue_type);
       }
     }
@@ -296,21 +297,6 @@ public class FullSyncProvisioner  {
 
       GrouperSession gs = GrouperSession.startRootSession();
 
-      // These methods are not atomic and paralell invocation results in Duplicate Key exceptions
-      // when the subject is added to groups multiple times
-      synchronized (grouperMessagingQueueSetupLock) {
-        GrouperBuiltinMessagingSystem.createQueue(messagingQueueName);
-        if (!GrouperBuiltinMessagingSystem.allowedToSendToQueue(messagingQueueName, gs.getSubject())) {
-          LOG.info("Queue permission: Granting send permission to subject={} for queue={}", messagingQueueName, gs.getSubject());
-          GrouperBuiltinMessagingSystem.allowSendToQueue(messagingQueueName, gs.getSubject());
-        }
-
-        if (!GrouperBuiltinMessagingSystem.allowedToReceiveFromQueue(messagingQueueName, gs.getSubject())) {
-          LOG.info("Queue permission: Granting receive permission to subject={} for queue={}", messagingQueueName, gs.getSubject());
-          GrouperBuiltinMessagingSystem.allowReceiveFromQueue(messagingQueueName, gs.getSubject());
-        }
-      }
-
       // In order to remain gentle in the face of repeating errors or empty queue-pull results,
       // we want to sleep in our loop. This variable is set to different values depending on
       // what happened in our last pull-and-process loop
@@ -405,6 +391,27 @@ public class FullSyncProvisioner  {
       }
   }
 
+  protected void setUpGrouperMessagingQueue(QUEUE_TYPE queueType) {
+    GrouperSession gs = GrouperSession.staticGrouperSession();
+    String messagingQueueName = queueType.getQueueName_grouperMessaging(this);
+
+    // These methods are not atomic and paralell invocation results in Duplicate Key exceptions
+    // when the subject is added to groups multiple times
+    synchronized (grouperMessagingQueueSetupLock) {
+      GrouperBuiltinMessagingSystem.createQueue(messagingQueueName);
+      if (!GrouperBuiltinMessagingSystem.allowedToSendToQueue(messagingQueueName, gs.getSubject())) {
+        LOG.info("Queue permission: Granting send permission to subject={} for queue={}", messagingQueueName, gs.getSubject());
+        GrouperBuiltinMessagingSystem.allowSendToQueue(messagingQueueName, gs.getSubject());
+      }
+
+      if (!GrouperBuiltinMessagingSystem.allowedToReceiveFromQueue(messagingQueueName, gs.getSubject())) {
+        LOG.info("Queue permission: Granting receive permission to subject={} for queue={}", messagingQueueName, gs.getSubject());
+        GrouperBuiltinMessagingSystem.allowReceiveFromQueue(messagingQueueName, gs.getSubject());
+      }
+    }
+  }
+
+
   protected void processQueueItem(FullSyncQueueItem queueItem) throws PspException {
     switch (queueItem.command) {
       case FULL_SYNC_GROUP:
@@ -417,7 +424,7 @@ public class FullSyncProvisioner  {
 
 
         queueItem.startStep("ReadGroupFromGrouper");
-        GrouperGroupInfo grouperGroupInfo = provisioner.getGroupInfo(queueItem.groupName);
+        GrouperGroupInfo grouperGroupInfo = provisioner.getGroupInfoOfExistingGroup(queueItem.groupName);
         if ( grouperGroupInfo==null ) {
           LOG.error("{}: Group not found for full-sync: '{}'", getConfigName(), queueItem.groupName);
           queueItem.processingCompletedUnsuccessfully(false, "Group not found");
@@ -685,7 +692,7 @@ public class FullSyncProvisioner  {
       provisioner.uncacheGroup(_grouperGroupInfo, null);
       provisioner.targetSystemGroupCache.clear();
 
-      GrouperGroupInfo grouperGroupInfo = provisioner.getGroupInfo(_grouperGroupInfo.getName());
+      GrouperGroupInfo grouperGroupInfo = provisioner.getGroupInfoOfExistingGroup(_grouperGroupInfo.getName());
 
       ProvisioningWorkItem workItem = ProvisioningWorkItem.createForFullSync(grouperGroupInfo, fullSyncQueueItem.asofDate);
       final List<ProvisioningWorkItem> workItems = Arrays.asList(workItem);

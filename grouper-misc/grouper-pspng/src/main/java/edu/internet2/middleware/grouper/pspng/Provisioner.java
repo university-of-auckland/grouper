@@ -455,7 +455,7 @@ public abstract class Provisioner
 
       // Groups that haven't been deleted: Skip them if they're not supposed to be provisioned
       if ( group != null && !group.hasGroupBeenDeleted() && !shouldGroupBeProvisioned(group)) {
-          workItem.markAsSkipped("Ignoring work item because group should not be provisioned");
+          workItem.markAsSkipped("Ignoring work item because (existing) group should not be provisioned");
           continue;
       }
 
@@ -463,7 +463,7 @@ public abstract class Provisioner
         result.add(workItem);
       } else {
         // Not going to process this item, so mark it as a success and don't add it to result
-        workItem.markAsSkipped("Ignoring work item because its ChangeLog type is not provisioning relevant: %s", workItem.getChangelogEntry());
+          workItem.markAsSkipped("Ignoring work item");
       }
     }
     
@@ -484,8 +484,10 @@ public abstract class Provisioner
     // (default is that we do ignore such changes)
     if ( getConfig().areChangesToInternalGrouperSubjectsIgnored() ) {
       Subject subject = workItem.getSubject(this);
-      if ( subject != null && subject.getSourceId().equalsIgnoreCase("g:gsa") )
+      if ( subject != null && subject.getSourceId().equalsIgnoreCase("g:gsa") ) {
+        workItem.markAsSkipped("Ignoring event about a g:gsa subject");
         return false;
+      }
     }
 
     // Only group-deletions are processed for groups that have been deleted
@@ -494,10 +496,16 @@ public abstract class Provisioner
     if ( workItem.getGroupInfo(this) != null &&
          workItem.getGroupInfo(this).hasGroupBeenDeleted() &&
          !workItem.matchesChangelogType(ChangeLogTypeBuiltin.GROUP_DELETE) ) {
+      workItem.markAsSkipped("Group has been deleted within Grouper. Skipping event because it is not the actual GROUP_DELETE event");
       return false;
     }
 
-    return workItem.matchesChangelogType(ChangelogHandlingConfig.allRelevantChangelogTypes );
+    if ( !workItem.matchesChangelogType(ChangelogHandlingConfig.allRelevantChangelogTypes) ) {
+      workItem.markAsSkipped("Changelog type is not relevant to PSPNG provisioning (see ChangelogHandlingConfig.allRelevantChangelogTypes)");
+      return false;
+    } else {
+      return true;
+    }
   }
 
 
@@ -578,7 +586,7 @@ public abstract class Provisioner
       }
     }
 
-    LOG.info("Information cached after {} will be ignored", newestAsOfDate);
+    LOG.info("Information cached before {} will be ignored", newestAsOfDate);
 
     Set<Subject> subjects = new HashSet<Subject>();
 
@@ -604,21 +612,34 @@ public abstract class Provisioner
   }
 
   protected void warnAboutCacheSizeConcerns() {
-    warnAboutCacheSizeConcerns(grouperGroupInfoCache.getStats().getObjectCount(), config.getGrouperGroupCacheSize(), "grouperGroupCacheSize");
-    warnAboutCacheSizeConcerns(targetSystemGroupCache.getStats().getObjectCount(), config.getGrouperGroupCacheSize(), "grouperGroupCacheSize");
-    warnAboutCacheSizeConcerns(grouperSubjectCache.getStats().getObjectCount(), config.getGrouperSubjectCacheSize(), "grouperSubjectCacheSize");
-    warnAboutCacheSizeConcerns(targetSystemUserCache.getStats().getObjectCount(), config.getGrouperSubjectCacheSize(), "grouperSubjectCacheSize");
+    warnAboutCacheSizeConcerns(grouperGroupInfoCache.getStats().getObjectCount(), config.getGrouperGroupCacheSize(), "grouper groups", "grouperGroupCacheSize");
+    warnAboutCacheSizeConcerns(targetSystemGroupCache.getStats().getObjectCount(), config.getGrouperGroupCacheSize(), "provisioned groups", "grouperGroupCacheSize");
+    warnAboutCacheSizeConcerns(grouperSubjectCache.getStats().getObjectCount(), config.getGrouperSubjectCacheSize(), "grouper subjects", "grouperSubjectCacheSize");
+    warnAboutCacheSizeConcerns(targetSystemUserCache.getStats().getObjectCount(), config.getGrouperSubjectCacheSize(), "provisioned subjects", "grouperSubjectCacheSize");
   }
 
-  private void warnAboutCacheSizeConcerns(long cacheObjectCount, int configuredSize, String configurationProperty) {
+  private void warnAboutCacheSizeConcerns(long cacheObjectCount, int configuredSize, String objectType, String configurationProperty) {
     if ( !config.areCacheSizeWarningsEnabled() )
       return;
 
-    double cacheFullness_percentage = 100.0*cacheObjectCount/configuredSize;
+    double cacheWarningThreshold_percentage = config.getCacheFullnessWarningThreshold_percentage();
+    long cacheWarningTreshold_count = Math.round(cacheWarningThreshold_percentage*configuredSize);
 
-    if ( cacheFullness_percentage > config.getCacheFullnessWarningThreshold_percentage() )
-      LOG.warn("Cache is very full (%.0f%%). Performance is much higher if {} is large enough to hold the number provisioned groups or subjects",
-              cacheFullness_percentage, configurationProperty);
+    long cacheFullness_percentage = Math.round(100.0*cacheObjectCount/configuredSize);
+
+    if ( cacheFullness_percentage >= cacheWarningThreshold_percentage ) {
+      LOG.warn("Cache of {} is very full ({}%). Provisioning performance is much better if {} is big enough to hold all {}. " +
+                      "({} is currently set to {}, and this warning occurs when cache is {}% full)",
+              objectType,
+              cacheFullness_percentage,
+              configurationProperty,
+              objectType,
+              configurationProperty, configuredSize,
+              cacheFullness_percentage);
+    } else {
+      LOG.debug("Cache of {} is sufficiently sized ({}% full) (property {}={})",
+              objectType, cacheFullness_percentage, configurationProperty, configuredSize);
+    }
 
   }
 
@@ -1510,7 +1531,7 @@ public abstract class Provisioner
       return subject;
   }
 
-  protected GrouperGroupInfo getGroupInfo(Group group) {
+  protected GrouperGroupInfo getGroupInfoOfExistingGroup(Group group) {
     String groupName = group.getName();
     GrouperGroupInfo result = grouperGroupInfoCache.get(groupName);
     if ( result == null ) {
@@ -1521,37 +1542,55 @@ public abstract class Provisioner
   }
   
   
-  protected GrouperGroupInfo getGroupInfo(String groupName) {
+  protected GrouperGroupInfo getGroupInfoOfExistingGroup(String groupName) {
     GrouperGroupInfo grouperGroupInfo = grouperGroupInfoCache.get(groupName);
-    
+
     // Return group if it was cached
-    if ( grouperGroupInfo != null )
+    if (grouperGroupInfo != null)
       return grouperGroupInfo;
-    
+
     try {
       // Look for an existing grouper group
-	    Group group = GroupFinder.findByName(GrouperSession.staticGrouperSession(false), groupName, false);
-	    
-	    if ( group != null ) {
-	      return getGroupInfo(group);
-	    }
+      Group group = GroupFinder.findByName(GrouperSession.staticGrouperSession(false), groupName, false);
+
+      if (group != null) {
+        return getGroupInfoOfExistingGroup(group);
+      }
+    } catch (GroupNotFoundException e) {
+      LOG.warn("Unable to find existing group '{}'", groupName);
     }
-    catch (GroupNotFoundException e) {
-      LOG.error("Unable to find existing group '{}'", groupName);
+    return null;
+  }
+
+  protected GrouperGroupInfo getGroupInfo(ProvisioningWorkItem workItem) {
+    String groupName = workItem.groupName;
+
+    if ( groupName == null ) {
+      return null;
     }
-    
+
+    GrouperGroupInfo result = getGroupInfoOfExistingGroup(groupName);
+    if ( result != null ) {
+      return result;
+    }
+
     try {
       // If an existing grouper group wasn't found, look for a PITGroup
         PITGroup pitGroup = PITGroupFinder.findMostRecentByName(groupName, false);
   	    
   	    if ( pitGroup != null ) {
-  	    	grouperGroupInfo = new GrouperGroupInfo(pitGroup);
-  	    	grouperGroupInfoCache.put(groupName, grouperGroupInfo);
-  	    	return grouperGroupInfo;
-  	    }
+  	    	result = new GrouperGroupInfo(pitGroup);
+  	    	result.idIndex = workItem.getGroupIdIndex();
+
+  	    	grouperGroupInfoCache.put(groupName, result);
+  	    	return result;
+  	    } else {
+  	      LOG.warn("Could not find PIT group: {}", groupName);
+  	      return null;
+            }
     }
     catch (GroupNotFoundException e) {
-      LOG.error("Unable to find PIT group '{}'", groupName);
+      LOG.warn("Unable to find PIT group '{}'", groupName);
     }
     
     return null;
