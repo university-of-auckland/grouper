@@ -1,6 +1,6 @@
 <!-- Source distribution -->
-<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://maven.apache.org/xsd/assembly-1.1.1.xsd">
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
     <id>dist</id>
     <formats>
         <format>tar</format>
@@ -8,24 +8,23 @@
 
     <includeBaseDirectory>false</includeBaseDirectory>
 
-    <!--<dependencySets>-->
-        <!--<dependencySet>-->
-            <!--<useProjectArtifact>false</useProjectArtifact>-->
-            <!--<useTransitiveDependencies>true</useTransitiveDependencies>-->
-            <!--<outputDirectory>lib</outputDirectory>-->
-            <!--<unpack>false</unpack>-->
-            <!--<excludes>-->
-                <!--<exclude>edu.internet2.middleware.grouper:*:*</exclude>-->
-            <!--</excludes>-->
-        <!--</dependencySet>-->
-    <!--</dependencySets>-->
+    <dependencySets>
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <outputDirectory>grouper.apiBinary-2.4.0/lib/grouper/</outputDirectory>
+            <unpack>false</unpack>
+            <includes>
+                <include>org.mortbay.jetty:jetty*</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
 
     <moduleSets>
         <moduleSet>
             <useAllReactorProjects>true</useAllReactorProjects>
             <includes>
                 <include>edu.internet2.middleware.grouper:grouper-ui</include>
-                <include>edu.internet2.middleware.grouper:grouper-ws</include>
             </includes>
 
             <sources>
@@ -38,7 +37,28 @@
                     <fileSet>
                         <directory>${project.basedir}/webapp</directory>
                         <useDefaultExcludes>true</useDefaultExcludes>
-                        <outputDirectory>${module.artifactId}-2.4.0/dist/grouper</outputDirectory>
+                        <outputDirectory>grouper.ui-2.4.0/dist/grouper</outputDirectory>
+                    </fileSet>
+                </fileSets>
+            </sources>
+        </moduleSet>
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>edu.internet2.middleware.grouper:grouper-ws</include>
+            </includes>
+
+            <sources>
+                <includeModuleDirectory>false</includeModuleDirectory>
+                <excludes>
+                    <exclude>**</exclude>
+                </excludes>
+
+                <fileSets>
+                    <fileSet>
+                        <directory>${project.basedir}/webapp/WEB-INF</directory>
+                        <useDefaultExcludes>true</useDefaultExcludes>
+                        <outputDirectory>grouper.ws-2.4.0/grouper-ws/build/dist/grouper-ws/WEB-INF</outputDirectory>
                     </fileSet>
                 </fileSets>
             </sources>

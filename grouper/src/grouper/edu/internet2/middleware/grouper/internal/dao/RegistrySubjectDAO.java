@@ -32,6 +32,7 @@
 
 package edu.internet2.middleware.grouper.internal.dao;
 import edu.internet2.middleware.grouper.RegistrySubject;
+import edu.internet2.middleware.grouper.hibernate.HibernateSession;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 
 /** 
@@ -62,6 +63,11 @@ public interface RegistrySubjectDAO extends GrouperDAO {
   RegistrySubject find(String id, String type) 
     throws  GrouperDAOException,
             SubjectNotFoundException;
+
+  /**
+   * @since 2.4.0.patch
+   */
+  public RegistrySubject find(String id, boolean exceptionIfNotFound) throws SubjectNotFoundException;
 
   /**
    * @since   1.2.0

@@ -893,4 +893,11 @@ extends Provisioner<ConfigurationClass, LdapUser, LdapGroup>
     ldapSystem.performLdapAdd(entryToAdd);
   }
 
+  public Set<String> getDnEscapedStrings() {
+    return dnEscapedStrings;
+  }
+
+  public Set<String> getLdapFilterEscapedStrings() {
+    return ldapFilterEscapedStrings;
+  }
 }

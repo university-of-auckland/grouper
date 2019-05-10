@@ -12,9 +12,7 @@
                   <c:if test="${grouperRequestContainer.stemContainer.canAdminPrivileges}">
                     <li><a role="tab" href="#" onclick="return guiV2link('operation=UiV2Stem.stemPrivileges&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}', {dontScrollTop: true});" >${textContainer.text['stemPrivileges'] }</a></li>
                   </c:if>
-                  <c:if test="${grouperRequestContainer.stemContainer.canReadPrivilegeInheritance}">
-                    <%@ include file="../stem/stemMoreTab.jsp" %>
-                  </c:if>
+                  <%@ include file="../stem/stemMoreTab.jsp" %>
                 </ul>
                 <div class="row-fluid">
                   <div class="lead span9">${textContainer.text['objectTypeFolderSettingsTitle'] }</div>
@@ -28,6 +26,3 @@
 
               </div>
             </div>
-            <c:if test="${grouperRequestContainer.indexContainer.menuRefreshOnView}">
-              <script>dojoInitMenu(${grouperRequestContainer.indexContainer.menuRefreshOnView});</script>
-            </c:if>

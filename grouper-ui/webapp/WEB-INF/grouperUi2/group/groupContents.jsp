@@ -63,14 +63,9 @@
                             <td>
                               <c:if test="${grouperRequestContainer.groupContainer.canUpdate}">
                                 <label class="checkbox checkbox-no-padding">
-                                  <c:choose>
-                                    <c:when test="${guiMembershipContainer.membershipContainer.membershipAssignType.immediate}">
-                                      <input type="checkbox" aria-label="${textContainer.text['groupViewDetailsMembershipCheckboxAriaLabel']}" name="membershipRow_${i}" value="${guiMembershipContainer.membershipContainer.immediateMembership.uuid}" class="membershipCheckbox" />
-                                    </c:when>
-                                    <c:otherwise>
-                                      <input type="checkbox" disabled="disabled"/>
-                                    </c:otherwise>
-                                  </c:choose>
+                                  <c:if test="${isGroupEditable && guiMembershipContainer.membershipContainer.membershipAssignType.immediate}">
+                                    <input type="checkbox" aria-label="${textContainer.text['groupViewDetailsMembershipCheckboxAriaLabel']}" name="membershipRow_${i}" value="${guiMembershipContainer.membershipContainer.immediateMembership.uuid}" class="membershipCheckbox" />
+                                  </c:if>
                                 </label>
                               </c:if>
                             </td>
@@ -98,7 +93,7 @@
                                     <c:if test="${grouperRequestContainer.groupContainer.canRead}">
                                       <li><a href="#" onclick="return guiV2link('operation=UiV2Membership.editMembership&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}&memberId=${guiMembershipSubjectContainer.guiMember.member.uuid}&field=members');" class="actions-revoke-membership">${textContainer.text['groupViewEditMembershipsAndPrivilegesButton'] }</a></li>
                                     </c:if>
-                                    <c:if test="${guiMembershipContainer.membershipContainer.membershipAssignType.immediate && grouperRequestContainer.groupContainer.canUpdate}">
+                                    <c:if test="${isGroupEditable && guiMembershipContainer.membershipContainer.membershipAssignType.immediate && grouperRequestContainer.groupContainer.canUpdate}">
                                       <li><a href="#" onclick="ajax('../app/UiV2Group.removeMember?groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}&memberId=${guiMembershipSubjectContainer.guiMember.member.uuid}', {formIds: 'groupFilterFormId,groupPagingFormId'}); return false;" class="actions-revoke-membership">${textContainer.text['groupViewRevokeMembershipButton'] }</a></li>
                                     </c:if>
                                     <c:if test="${guiMembershipContainer.membershipContainer.membershipAssignType.nonImmediate}">
