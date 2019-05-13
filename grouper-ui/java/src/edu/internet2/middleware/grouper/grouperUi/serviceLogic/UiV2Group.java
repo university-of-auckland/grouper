@@ -3996,7 +3996,7 @@ public class UiV2Group {
           groupFinder.assignTypeOfGroups(typesOfGroup);
         }
 
-        return groupFinder.findGroups();
+        return GrouperUiUtils.filterEditableGroups(groupFinder.findGroups());
 
       }
 
@@ -5040,7 +5040,6 @@ public class UiV2Group {
         return;
       }
 
-      // UOA check if group is editable
       if (!GrouperUiUtils.isGroupEditable(group)) {
         LOG.warn("Cannot edit this group as it is not editable: " + group.getName());
         return;
