@@ -776,17 +776,17 @@ public class GrouperUiUtils {
 
           // lets add the subject to the Member if not already there, so we dont have to
           // look it up again
-          Subject memberSubject = (Subject) GrouperUtil.fieldValue(next, "subj");
-          if (memberSubject == null) {
-            int subjectIndex = secondHashes.indexOf(hash);
-            Subject realSubject = second.get(subjectIndex);
-            // a little sanity here
-            if (!StringUtils.equals(realSubject.getId(), next.getSubjectId())
-                || !StringUtils.equals(realSubject.getSource().getId(), next.getSubjectSourceId())) {
-              throw new RuntimeException("These should be equal!!!");
-            }
-            GrouperUtil.assignField(next, "subj", realSubject);
-          }
+//          Subject memberSubject = (Subject) GrouperUtil.fieldValue(next, "subj");
+//          if (memberSubject == null) {
+//            int subjectIndex = secondHashes.indexOf(hash);
+//            Subject realSubject = second.get(subjectIndex);
+//            // a little sanity here
+//            if (!StringUtils.equals(realSubject.getId(), next.getSubjectId())
+//                || !StringUtils.equals(realSubject.getSource().getId(), next.getSubjectSourceId())) {
+//              throw new RuntimeException("These should be equal!!!");
+//            }
+//            GrouperUtil.assignField(next, "subj", realSubject);
+//          }
         }
         i++;
       }

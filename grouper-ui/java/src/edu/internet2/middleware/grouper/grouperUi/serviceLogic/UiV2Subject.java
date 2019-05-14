@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -742,6 +741,7 @@ public class UiV2Subject {
       } else {
 
         boolean madeChanges = group.deleteMember(subject, false);
+        GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
         if (madeChanges) {
     
@@ -1054,7 +1054,10 @@ public class UiV2Subject {
       boolean madeChanges = group.addOrEditMember(subject, defaultPrivs, memberChecked, adminChecked, 
           updateChecked, readChecked, viewChecked, optinChecked, optoutChecked, attrReadChecked, 
           attrUpdateChecked, null, null, false);
-      
+
+      // uoa set publish_to attribute
+      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
+
       if (madeChanges) {
   
         guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success, 
