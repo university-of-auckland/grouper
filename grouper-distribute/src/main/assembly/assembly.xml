@@ -16,6 +16,7 @@
             <unpack>false</unpack>
             <includes>
                 <include>org.mortbay.jetty:jetty*</include>
+                <include>org.apache.kafka:kafka-clients</include>
             </includes>
         </dependencySet>
     </dependencySets>
