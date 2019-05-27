@@ -2005,7 +2005,7 @@ public class GrouperUiUtils {
     }
 
     // publish_to always set
-    group.getAttributeDelegate().assignAttributeByName("etc:esb:publish_to");
+    setGroupAttributesOnMembershipChange(group);
   }
 
   /**
@@ -2015,8 +2015,9 @@ public class GrouperUiUtils {
    *
    */
   public static void setGroupAttributesOnMembershipChange(Group group) {
-    // set publish_to attribute
-    group.getAttributeDelegate().assignAttributeByName("etc:esb:publish_to");
+    if (!group.getName().startsWith("etc:")) {
+      group.getAttributeDelegate().assignAttributeByName("etc:esb:publish_to");
+    }
   }
 
   /**
