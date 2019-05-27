@@ -812,6 +812,8 @@ public class UiV2Subject {
   
           final Group group = membership.getOwnerGroup();
 
+          GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
+
           boolean allowed = (Boolean)GrouperSession.callbackGrouperSession(GrouperSession.staticGrouperSession().internal_getRootSession(), 
               new GrouperSessionHandler() {
             
