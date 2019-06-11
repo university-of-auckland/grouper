@@ -65,7 +65,7 @@ public class GrouperDeprovisioningEmailService {
    * @param grouperSession
    */
   public void sendEmailForAllAffiliations(GrouperSession grouperSession) {
-    
+
     if (!GrouperDeprovisioningSettings.deprovisioningEnabled()) {
       LOG.debug("Deprovisioning is not enabled!  Quitting!!");
     }
@@ -77,7 +77,7 @@ public class GrouperDeprovisioningEmailService {
     for (GrouperDeprovisioningAffiliation affiliation: affiliations.values()) {
       
       Set<Member> deprovisionedUsers = affiliation.getUsersWhoHaveBeenDeprovisioned();
-      
+
       Set<Membership> memberships = new HashSet<Membership>();
       
       for (Member member: deprovisionedUsers) {
@@ -161,16 +161,19 @@ public class GrouperDeprovisioningEmailService {
    */
   private void populatedEmailObjects(GrouperSession grouperSession, GrouperObject grouperObject, GrouperDeprovisioningAffiliation affiliation,
       Subject subject, Map<String, EmailPerPerson> userEmailObjects, boolean callFromDaemon) {
-    
+
     
     GrouperDeprovisioningAttributeValue attributeValue = getDeprovisioningAttributeValue(grouperObject, affiliation.getLabel());
     
     if (attributeValue == null) {
       return;
     }
-    
+
+    String subjectPrefix = StringUtils.defaultString(GrouperConfig.retrieveConfig().propertyValueString("mail.subject.prefix"));
+    boolean nonProd = subjectPrefix != null &&(subjectPrefix.toLowerCase().startsWith("dev") || subjectPrefix.toLowerCase().startsWith("test"));
+
     // don't send multiple emails same day to the same people when running daily job
-    if (attributeValue.getLastEmailedDate() != null && callFromDaemon) {
+    if (attributeValue.getLastEmailedDate() != null && callFromDaemon && !nonProd) {
       String today = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
 
       if (StringUtils.equals(attributeValue.getLastEmailedDateString(), today)) {
@@ -196,18 +199,20 @@ public class GrouperDeprovisioningEmailService {
       populateEmailObjectsHelper(grouperSession, grouperObject, subject, attributeValue, userEmailObjects);
     } else {
       String deprovisioningInheritedFromFolderId = attributeValue.getInheritedFromFolderIdString();
-      try {
-        Stem configurationStem = StemFinder.findByIdIndex(Long.valueOf(deprovisioningInheritedFromFolderId), true, new QueryOptions());
-        attributeValue = getDeprovisioningAttributeValue(configurationStem, affiliation.getLabel());
-        if (attributeValue != null) {
-          populateEmailObjectsHelper(grouperSession, grouperObject, subject, attributeValue, userEmailObjects);
+      if (deprovisioningInheritedFromFolderId != null) {
+        try {
+          Stem configurationStem = StemFinder.findByIdIndex(Long.valueOf(deprovisioningInheritedFromFolderId), true, new QueryOptions());
+          attributeValue = getDeprovisioningAttributeValue(configurationStem, affiliation.getLabel());
+          if (attributeValue != null) {
+            populateEmailObjectsHelper(grouperSession, grouperObject, subject, attributeValue, userEmailObjects);
+          }
+
+        } catch (Exception e) {
+          LOG.error(grouperObject.getName() + " has deprovisioningInheritedFromFolderId set to invalid folder id: " + deprovisioningInheritedFromFolderId);
         }
-        
-      } catch(Exception e) {
-        LOG.error(grouperObject.getName()+" has deprovisioningInheritedFromFolderId set to invalid folder id: "+deprovisioningInheritedFromFolderId);
       }
     }
-    
+
   }
   
   /**
@@ -261,7 +266,7 @@ public class GrouperDeprovisioningEmailService {
           emailPerPerson.deprovisioningAttributeDefEmailObjects.size();
       
       String sub = StringUtils.replace(subject, "$objectCount$", String.valueOf(objectCount));
-      
+
       // build body of the email
       StringBuilder emailBody = new StringBuilder(body);
       emailBody.append("\n");

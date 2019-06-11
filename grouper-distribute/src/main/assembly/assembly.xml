@@ -21,6 +21,13 @@
         </dependencySet>
     </dependencySets>
 
+    <fileSets>
+        <fileSet>
+            <directory>src/main/resources/templates</directory>
+            <outputDirectory>grouper.templates-2.4.0</outputDirectory>
+        </fileSet>
+    </fileSets>
+
     <moduleSets>
         <moduleSet>
             <useAllReactorProjects>true</useAllReactorProjects>
