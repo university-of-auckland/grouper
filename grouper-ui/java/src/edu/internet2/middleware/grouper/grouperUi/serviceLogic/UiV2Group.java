@@ -1967,8 +1967,8 @@ public class UiV2Group {
                 .assignPrivAllUpdate(updateChecked).assignPrivAllView(viewChecked)
                 .save();
 
-        // UoA set attributes on group creation
-        GrouperUiUtils.setGroupAttributesOnGroupCreate(group, syncToActiveDirectory);
+        // UoA set attributes on group change
+        GrouperUiUtils.setGroupAttributesOnGroupSave(group, syncToActiveDirectory);
 
       } catch (GrouperValidationException gve) {
         handleGrouperValidationException(guiResponseJs, gve);
@@ -2190,6 +2190,7 @@ public class UiV2Group {
       final boolean attrReadChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrReaders[]"), false);
       final boolean attrUpdateChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrUpdaters[]"), false);
       final boolean cannotAddSelf = GrouperUtil.booleanValue(request.getParameter("groupCreateCannotAddSelfName"), false);
+      final boolean syncToActiveDirectory = GrouperUtil.booleanValue(request.getParameter("syncToActiveDirectory[]"), false);
       String groupType = request.getParameter("groupType[]");
 
       final TypeOfGroup typeOfGroup = TypeOfGroup.valueOfIgnoreCase(groupType, true);
@@ -2231,7 +2232,10 @@ public class UiV2Group {
                 .assignPrivAllUpdate(updateChecked).assignPrivAllView(viewChecked);
         group = groupSave.save();
 
-        boolean madeChange = groupSave.getSaveResultType() != SaveResultType.NO_CHANGE;
+        // UoA set attributes on group creation
+        boolean synchToAdChanged = GrouperUiUtils.setGroupAttributesOnGroupSave(group, syncToActiveDirectory);
+
+        boolean madeChange = groupSave.getSaveResultType() != SaveResultType.NO_CHANGE || synchToAdChanged;
 
         GroupContainer groupContainer = GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer();
         if (groupContainer.isCannotAddSelfUserCanEdit()) {

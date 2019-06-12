@@ -70,9 +70,11 @@
                     </div>
                   </div>
                   <div class="control-group">
-                    <label for="syncToActiveDirectory" class="control-label"></label>
                     <div class="controls">
-                      <input id="syncToActiveDirectory" name="syncToActiveDirectory" rows="3" cols="40" class="input-block-level" type="checkbox">&nbsp;Sync to Active Directory<br/>
+                      <label class="checkbox inline">
+                        <input id="syncToActiveDirectory" name="syncToActiveDirectory" type="checkbox" />
+                        ${textContainer.text['syncToADLabel'] }
+                      </label>
                     </div>
                   </div>
                   <p class="shownAdvancedProperties"><a href="#" 

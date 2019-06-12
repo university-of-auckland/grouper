@@ -417,8 +417,17 @@ public class GuiGroup extends GuiObjectBase implements Serializable {
     return linkHelper(true);
   }
 
+  // uoa customise
   public boolean isEditable() {
       return GrouperUiUtils.isGroupEditable(this.group);
+  }
+
+  public boolean isSyncAD() {
+      return GrouperUiUtils.isGroupSyncAd(this.group);
+  }
+
+  public boolean isInternalGroup() {
+    return GrouperUiUtils.isInternalGroup(this.group);
   }
 
   /**
@@ -500,7 +509,7 @@ public class GuiGroup extends GuiObjectBase implements Serializable {
   }
 
   /**
-   * 
+   *
    */
   public GuiGroup() {
     

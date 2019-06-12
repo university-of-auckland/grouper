@@ -55,6 +55,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.jstl.fmt.LocalizationContext;
 
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssign;
+import edu.internet2.middleware.grouper.attr.value.AttributeValueDelegate;
 import net.sf.json.JSONArray;
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.collections.set.ListOrderedSet;
@@ -1954,23 +1956,19 @@ public class GrouperUiUtils {
     throw new RuntimeException("Unsupported object type: " + GrouperUtil.className(object));
   }
 
-  // UoA editable attribute
-  private static final String NOT_EDITABLE_ATTRIBUTE = "etc:uoa:not_editable";
+  // UoA customization
+  private static final String NOT_EDITABLE_ATTRIBUTE = "etc:uoa:not_editable_def";
+  private static final String PSPNG_PROVISION_TO_ATTRIBUTE = "etc:pspng:provision_to";
+  private static final String PSPNG_ACTIVEDIRECTORY = "pspng_activedirectory";
 
   public static boolean isGroupEditable(Group group) {
     if (group != null) {
-      AttributeAssignGroupDelegate attributeAssignGroupDelegate = group.getAttributeDelegate();
-      if (attributeAssignGroupDelegate != null) {
-        Set<AttributeDefName> attributes = attributeAssignGroupDelegate.retrieveAttributes();
-        if (attributes != null) {
-          for (AttributeDefName attr : attributes) {
-            if (attr.getName().equals(NOT_EDITABLE_ATTRIBUTE)) {
-              return false;
-            }
-          }
-        }
+      Set<AttributeAssign> attrs = group.getAttributeDelegate().retrieveAssignmentsByAttributeDef(NOT_EDITABLE_ATTRIBUTE);
+      if (attrs != null && attrs.size() > 0) {
+        return false;
+      }else {
+        return true;
       }
-      return true;
     } else {
       return false;
     }
@@ -1990,22 +1988,50 @@ public class GrouperUiUtils {
     return editableGroups;
   }
 
+  public static boolean isInternalGroup(Group group){
+    return group != null && group.getName().startsWith("etc:");
+  }
+
+  public static boolean isGroupSyncAd(Group group) {
+    if (group != null) {
+      String value = group.getAttributeValueDelegate().retrieveValueString(PSPNG_PROVISION_TO_ATTRIBUTE);
+      if (value != null && value.equals(PSPNG_ACTIVEDIRECTORY)) {
+        return true;
+      }else {
+        return false;
+      }
+    }
+    return false;
+  }
+
   /**
-   * UOA Set attributes on create
+   * UOA Set attributes on group save
    * 
    * @param group
    * @param syncToActiveDirectory
-   * 
+   * @return true if change happens
    */
-  public static void setGroupAttributesOnGroupCreate(Group group, boolean syncToActiveDirectory) {
-    if (syncToActiveDirectory) {
-      String syncToADAttrName = "etc:pspng:provision_to";
-      String synchToADAttrValue = "pspng_activedirectory";
-      group.getAttributeValueDelegate().assignValue(syncToADAttrName, synchToADAttrValue);
-    }
+  public static boolean setGroupAttributesOnGroupSave(Group group, boolean syncToActiveDirectory) {
+    boolean change = false;
+    if (!isInternalGroup(group)) {
+      boolean isGroupSyncAd = isGroupSyncAd(group);
+      AttributeValueDelegate delegate = group.getAttributeValueDelegate();
+      if (syncToActiveDirectory) {
+        if (!isGroupSyncAd) {
+          delegate.assignValue(PSPNG_PROVISION_TO_ATTRIBUTE, PSPNG_ACTIVEDIRECTORY);
+          change = true;
+        }
+      } else {
+        if (isGroupSyncAd) {
+          delegate.deleteValue(PSPNG_PROVISION_TO_ATTRIBUTE, PSPNG_ACTIVEDIRECTORY);
+          change = true;
+        }
+      }
 
-    // publish_to always set
-    setGroupAttributesOnMembershipChange(group);
+      // publish_to always set
+      setGroupAttributesOnMembershipChange(group);
+    }
+    return change;
   }
 
   /**
@@ -2015,7 +2041,7 @@ public class GrouperUiUtils {
    *
    */
   public static void setGroupAttributesOnMembershipChange(Group group) {
-    if (!group.getName().startsWith("etc:")) {
+    if (!isInternalGroup(group)) {
       group.getAttributeDelegate().assignAttributeByName("etc:esb:publish_to");
     }
   }
