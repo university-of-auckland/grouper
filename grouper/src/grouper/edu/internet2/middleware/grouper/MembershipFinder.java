@@ -927,24 +927,24 @@ public class MembershipFinder {
   public Membership findMembership(boolean exceptionIfNotFound) {
 
     Set<Object[]> memberships = findMembershipsMembers();
-    
+
     //this should find one if it is there...
     Membership membership = null;
-    
+
     if (GrouperUtil.length(memberships) > 1) {
       throw new RuntimeException("Why is there more than one membership found? " + this);
     }
-    
+
     if (GrouperUtil.length(memberships) == 1) {
       membership = (Membership)memberships.iterator().next()[0];
     }
-    
+
     if (membership == null && exceptionIfNotFound) {
-      throw new RuntimeException("could not find membership: " 
+      throw new RuntimeException("could not find membership: "
           + this);
     }
     return membership;
-    
+
   }
 
   /**

@@ -80,8 +80,8 @@ public class UoARuleConsumer extends ChangeLogConsumerBase {
                 return ;
             }
             // check if delete action is for future membership
-            if (isFutureMembership(groupId, subject)) {
-                LOG.debug("Future membership removal, skip");
+            if (addToWasGroupRequiered(groupId, subject)) {
+                LOG.debug("Not need to add to was group of " + groupName + ", skip");
                 return;
             }
 
@@ -156,30 +156,22 @@ public class UoARuleConsumer extends ChangeLogConsumerBase {
         return wasGroupMap;
     }
 
-
-    private static Field getMemberField() {
-        if (memberField == null){
-            memberField = FieldFinder.find("members", false);
-        }
-        LOG.debug("memberField " + memberField);
-        return memberField;
-    }
-
-    private boolean isFutureMembership(String groupId, Subject subject){
-        // check if delete action is for future membership
-        Membership currentMembership = new MembershipFinder().addGroupId(groupId).addSubject(subject)
-                .findMembership(false);
-        if (currentMembership != null && currentMembership.isImmediate()
-                && currentMembership.getEnabledTimeDb() != null && currentMembership.getEnabledTimeDb() > new Date().getTime()){
-            return true;
-        }else if (currentMembership != null && !currentMembership.isImmediate()){
-            Membership immidiateMembership = new MembershipFinder().addGroup(currentMembership.getViaGroup())
-                    .addSubject(subject).assignHasEnabledDate(true).findMembership(false);
-            if (immidiateMembership != null && immidiateMembership.getEnabledTimeDb() > new Date().getTime()) {
-                return true;
+    private boolean addToWasGroupRequiered(String groupId, Subject subject) {
+        Set<Membership> memberships = UoAUtils.getMemberships(Arrays.asList(groupId), UoAUtils.getSourceJDBC(), null, subjectId, false);
+        for (Membership membership : memberships) {
+            Membership thisMembership = membership;
+            if (!thisMembership.isImmediate()) {
+                thisMembership = new MembershipFinder().addGroup(membership.getViaGroup()).addSubject(subject)
+                        .addField(FieldFinder.find("members",false)).findMembership(false);
             }
+            if (thisMembership.isEnabled()){
+                return false;
+            }else if (thisMembership.getEnabledTimeDb() != null && thisMembership.getEnabledTimeDb() > new Date().getTime()){
+                    return false;
+            }
+
         }
-        return false;
+        return true;
     }
 
     private static Set<GrouperDeprovisioningAffiliation> getAllAffiliations() {

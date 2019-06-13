@@ -11,6 +11,7 @@ import edu.internet2.middleware.grouper.misc.GrouperDAOFactory;
 import edu.internet2.middleware.grouper.subj.SubjectResolverFactory;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Source;
+import edu.internet2.middleware.subject.Subject;
 import org.apache.commons.logging.Log;
 
 import java.util.*;
@@ -71,23 +72,26 @@ public class UoAUtils {
     }
 
     public static Set<Membership> getUserMemberships(String groupId, MembershipType type) {
-        return getMemberships(Arrays.asList(groupId), getSourceJDBC(), type);
+        return getMemberships(Arrays.asList(groupId), getSourceJDBC(), type, null, true);
     }
 
     public static Set<Membership> getUserMemberships(List<String> groupIds, MembershipType type) {
-        return getMemberships(groupIds, getSourceJDBC(), type);
+        return getMemberships(groupIds, getSourceJDBC(), type, null, true);
     }
 
     public static Set<Membership> getGourpMemberships(List<String> groupIds, MembershipType type) {
-        return getMemberships(groupIds, SubjectFinder.internal_getGSA(), type);
+        return getMemberships(groupIds, SubjectFinder.internal_getGSA(), type, null, true);
     }
 
-    public static Set<Membership> getMemberships (List<String> groupIds, Source source, MembershipType type) {
+    public static Set<Membership> getMemberships (List<String> groupIds, Source source, MembershipType type, String subjectId, boolean active) {
         Set<Source> sources = new HashSet<Source>();
+        Set<Membership> memberships = new HashSet<Membership>();
 
         MembershipFinder membershipFinder = new MembershipFinder().assignGroupIds(groupIds)
-                .assignField(FieldFinder.find("members",false)).assignEnabled(true);
-
+                .assignField(FieldFinder.find("members",false));
+        if (active) {
+            membershipFinder.assignEnabled(true);
+        }
         if (source != null) {
             sources.add(source);
             membershipFinder.assignSources(sources);
@@ -96,10 +100,16 @@ public class UoAUtils {
         if (type != null) {
             membershipFinder.assignMembershipType(type);
         }
-
+        if (subjectId != null) {
+            Subject subject = SubjectFinder.findById(subjectId, false);
+            if (subject != null) {
+                membershipFinder.addSubject(subject);
+            }else {
+                return memberships;
+            }
+        }
         Set<Object[]> results = membershipFinder.findMembershipsMembers();
 
-        Set<Membership> memberships = new HashSet<Membership>();
         if (results.size() > 0) {
             for (Object[] objArray : results){
                 if (objArray.length > 0) {
