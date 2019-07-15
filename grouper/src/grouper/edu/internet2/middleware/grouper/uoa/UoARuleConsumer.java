@@ -80,7 +80,7 @@ public class UoARuleConsumer extends ChangeLogConsumerBase {
                 return ;
             }
             // check if delete action is for future membership
-            if (addToWasGroupRequiered(groupId, subject)) {
+            if (!addToWasGroupRequiered(groupId, subject)) {
                 LOG.debug("Not need to add to was group of " + groupName + ", skip");
                 return;
             }
@@ -167,7 +167,7 @@ public class UoARuleConsumer extends ChangeLogConsumerBase {
             if (thisMembership.isEnabled()){
                 return false;
             }else if (thisMembership.getEnabledTimeDb() != null && thisMembership.getEnabledTimeDb() > new Date().getTime()){
-                    return false;
+                return false;
             }
 
         }

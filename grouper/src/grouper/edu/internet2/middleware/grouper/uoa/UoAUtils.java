@@ -79,7 +79,7 @@ public class UoAUtils {
         return getMemberships(groupIds, getSourceJDBC(), type, null, true);
     }
 
-    public static Set<Membership> getGourpMemberships(List<String> groupIds, MembershipType type) {
+    public static Set<Membership> getGroupMemberships(List<String> groupIds, MembershipType type) {
         return getMemberships(groupIds, SubjectFinder.internal_getGSA(), type, null, true);
     }
 
@@ -121,5 +121,26 @@ public class UoAUtils {
         return memberships;
     }
 
-
+    public static void deleteMembership (Group group, Subject subject) {
+        if (!group.hasMember(subject)){
+            LOG.debug(subject.getId() + " is not a member in " + group.getName());
+        }else {
+            if (group.hasImmediateMember(subject)) {
+                LOG.debug("Subject " + subject + " is direct member of " + group);
+                group.deleteMember(subject);
+            }
+            if (group.hasEffectiveMember(subject)) {
+                LOG.debug("Subject " + subject + " is effective member of " + group);
+                Set<Membership> effectiveMemberships = getMemberships(Arrays.asList(group.getId()), getSourceJDBC(), MembershipType.EFFECTIVE, subject.getId(), true);
+                LOG.debug("effective memberships " + effectiveMemberships);
+                if (effectiveMemberships.size() > 0) {
+                    for (Membership membership : effectiveMemberships) {
+                        Group ownerGroup = membership.getViaGroup();
+                        LOG.debug(subject + " direct membership is " + ownerGroup);
+                        ownerGroup.deleteMember(subject);
+                    }
+                }
+            }
+        }
+    }
 }
