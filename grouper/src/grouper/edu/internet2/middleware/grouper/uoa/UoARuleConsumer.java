@@ -17,12 +17,14 @@ public class UoARuleConsumer extends ChangeLogConsumerBase {
     private static final Log LOG = GrouperUtil.getLog(UoARuleConsumer.class);
     private static final String ATTRIBUTE_WAS_GROUP_REQUIRED = "etc:uoa:was_group_required";
     private static final String USER_MEMBERSHIP_SOURCE = "jdbc";
+    private static final String ATTRIBUTE_COPY_MEMBER_REQUIRED ="etc:uoa:copy_member_to";
 
-    private static String wasGroupAttributeNameId ;
+    private static String wasGroupAttributeNameId;
     private static Map<String, String> wasGroupMap;
-    private static Field memberField;
     private static Set<GrouperDeprovisioningAffiliation> allAffiliations;
     private static Map<String, Group> deprovisionGroups;
+    private static String copyMemberAttributeNameId;
+    private static Map<String, List<String>> copyMemberGroupMap;
 
     private String groupName;
     private String sourceId;
@@ -36,6 +38,7 @@ public class UoARuleConsumer extends ChangeLogConsumerBase {
         try{
             for (ChangeLogEntry changeLogEntry : changeLogEntryList) {
                 currentId = changeLogEntry.getSequenceNumber();
+                LOG.debug("currentId " + currentId);
                 if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
                     groupName = getLabelValue(changeLogEntry, ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
                     sourceId = getLabelValue(changeLogEntry, ChangeLogLabels.MEMBERSHIP_DELETE.sourceId);
@@ -48,7 +51,17 @@ public class UoARuleConsumer extends ChangeLogConsumerBase {
                     if (isAffilationGroup(groupName)){
                         handleDeprovisioningMembership(changeLogEntry);
                     }
+                }else if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)){
+                    groupName = getLabelValue(changeLogEntry, ChangeLogLabels.MEMBERSHIP_ADD.groupName);
+                    sourceId = getLabelValue(changeLogEntry, ChangeLogLabels.MEMBERSHIP_ADD.sourceId);
+                    subjectId = getLabelValue(changeLogEntry, ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
+                    String groupId = getLabelValue(changeLogEntry, ChangeLogLabels.MEMBERSHIP_ADD.groupId);
+                    LOG.debug("groupName " + groupName +", sourceId " + sourceId + ", subjectId " + subjectId + ", groupId " + groupId);
+//                    if (sourceId != null && sourceId.equals(USER_MEMBERSHIP_SOURCE) && getCopyMemberGroupMap().containsKey(groupId)) {
+                        handleCopyMembershipRule(changeLogEntry);
+//                    }
                 }
+
             }
         }catch (Exception e) {
             LOG.error("Error happened", e);
@@ -88,7 +101,7 @@ public class UoARuleConsumer extends ChangeLogConsumerBase {
             Group wasGroup = GroupFinder.findByUuid(GrouperSession.staticGrouperSession(), getWasGroupMap().get(groupId), false);
             if (wasGroup != null) {
                 wasGroup.addMember(subject, false);
-                LOG.debug("Added subject [" + subjectId + ", " + subjectIdentifier + "] to group " + wasGroup.getName());
+                LOG.debug("Added subject " + logSubject + " to group " + wasGroup.getName());
             }else {
                 LOG.warn("was-group for " + groupName + " does not exist");
             }
@@ -208,5 +221,43 @@ public class UoARuleConsumer extends ChangeLogConsumerBase {
             }
         }
         return deprovisionGroups;
+    }
+
+    private static Map<String, List<String>> getCopyMemberGroupMap() {
+        if (copyMemberGroupMap == null) {
+            copyMemberGroupMap = UoAUtils.getGroupMap(getCopyMemberAttributeNameId());
+            LOG.debug("copyMemberGroupMap " + copyMemberGroupMap);
+        }
+        return copyMemberGroupMap;
+    }
+
+    private static String getCopyMemberAttributeNameId() {
+        if (copyMemberAttributeNameId == null) {
+            copyMemberAttributeNameId = UoAUtils.getAttributeNameId(ATTRIBUTE_COPY_MEMBER_REQUIRED);
+        }
+        return copyMemberAttributeNameId;
+    }
+
+    private void handleCopyMembershipRule(ChangeLogEntry changeLogEntry) throws Exception {
+        String groupId = getLabelValue(changeLogEntry, ChangeLogLabels.MEMBERSHIP_ADD.groupId);
+        boolean processRequired = sourceId != null && sourceId.equals(USER_MEMBERSHIP_SOURCE) && getCopyMemberGroupMap().containsKey(groupId) ;
+        if (processRequired) {
+            Subject subject = getSubject(subjectId, sourceId);
+            LOG.debug("subject is " + subjectId);
+            if (subject != null) {
+                List<String> copyToGroupIds = getCopyMemberGroupMap().get(groupId);
+                LOG.debug("copyToGroupIds " + copyToGroupIds);
+                for (String copyToGroupId : copyToGroupIds) {
+                    Group copyToGroup = GroupFinder.findByUuid(GrouperSession.staticGrouperSession(), copyToGroupId, false);
+                    LOG.debug("copyToGroup " + copyToGroup);
+                    if (copyToGroup != null) {
+                        copyToGroup.addMember(subject, false);
+                        LOG.debug("Added subject [" + subject.getDescription() + "] to group " + copyToGroup.getName());
+                    }
+                }
+            } else {
+                LOG.warn("Subject " + subjectId + " doesn't exist");
+            }
+        }
     }
 }
