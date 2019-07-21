@@ -133,9 +133,12 @@ public class GrouperInstallerUtils  {
    * @param args
    */
   public static void main(String[] args) {
-    tar(new File("C:\\app\\grouperInstallerTarballDir\\grouper_v2_2_1_ui_patch_17"),
-        new File("C:\\app\\grouperInstallerTarballDir\\grouper_v2_2_1_ui_patch_17.tar"));
+//    tar(new File("C:\\app\\grouperInstallerTarballDir\\grouper_v2_2_1_ui_patch_17"),
+//        new File("C:\\app\\grouperInstallerTarballDir\\grouper_v2_2_1_ui_patch_17.tar"));
     //gzip(new File("c:\\temp\\test.tar"), new File("c:\\temp\\test.tar.gz"));
+
+    System.out.println(toStringForLog(GrouperInstallerUtils.jarFileBaseNames("aws-java-sdk-core-1.11.529.jar")));
+  
   }
   
   /**
@@ -2702,8 +2705,8 @@ public class GrouperInstallerUtils  {
     if (objectOrArrayOrCollection instanceof Collection) {
       Collection collection = (Collection) objectOrArrayOrCollection;
       Object first = collection.iterator().next();
-      return toArray(collection, first == null ? Object.class : first
-          .getClass());
+      return toArray(collection, (Class<?>)(first == null ? Object.class : first
+          .getClass()));
     }
     // make an array of the type of object passed in, size one
     Object array = Array.newInstance(objectOrArrayOrCollection.getClass(),
@@ -7633,7 +7636,7 @@ public class GrouperInstallerUtils  {
     
     result.add(baseName.toLowerCase());
 
-    if (baseName.endsWith("-core")) {
+    if (baseName.endsWith("-core") && !baseName.toLowerCase().contains("aws")) {
       baseName = baseName.substring(0, baseName.length() - "-core".length());
       result.add(baseName.toLowerCase());
     }

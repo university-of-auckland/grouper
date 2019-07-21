@@ -49,6 +49,13 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>grouper</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>grouperClient</artifactId>
             <version>${project.version}</version>
             <exclusions>
@@ -161,7 +168,6 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!-- database drivers, using profiles proved too cumbersome for tests - this is not ideal -->

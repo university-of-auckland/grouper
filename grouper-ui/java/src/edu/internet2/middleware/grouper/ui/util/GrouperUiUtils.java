@@ -530,18 +530,6 @@ public class GrouperUiUtils {
   /** class file dir cached */
   public static File classFileDir = null;
 
-  /** array for converting HTML to string */
-  public static final String[] HTML_REPLACE = new String[] { "&amp;", "&lt;", "&gt;", "&#39;", "&quot;" };
-
-  /** array for converting HTML to string */
-  public static final String[] HTML_REPLACE_NO_SINGLE = new String[] { "&amp;", "&lt;", "&gt;", "&quot;" };
-
-  /** array for converting HTML to string */
-  private static final String[] HTML_SEARCH = new String[] { "&", "<", ">", "'", "\"" };
-
-  /** array for converting HTML to string */
-  public static final String[] HTML_SEARCH_NO_SINGLE = new String[] { "&", "<", ">", "\"" };
-
   /** array for converting javascript to string */
   private static final String[] JAVASCRIPT_REPLACE = new String[] { "&amp;", "&lt;", "&gt;", "\\'", "&quot;" };
 
@@ -770,25 +758,25 @@ public class GrouperUiUtils {
       int i = 0;
       Iterator<Member> firstIterator = first.iterator();
       while (firstIterator.hasNext()) {
-        Member next = firstIterator.next();
-        MultiKey hash = (MultiKey) firstHashes.get(i);
-        if (secondHashes.contains(hash)) {
+        Member nextFirst = firstIterator.next();
+        MultiKey firstHash = (MultiKey)firstHashes.get(i);
+        if (secondHashes.contains(firstHash)) {
           firstIterator.remove();
-          overlaps.add(next);
-
-          // lets add the subject to the Member if not already there, so we dont have to
-          // look it up again
-//          Subject memberSubject = (Subject) GrouperUtil.fieldValue(next, "subj");
-//          if (memberSubject == null) {
-//            int subjectIndex = secondHashes.indexOf(hash);
-//            Subject realSubject = second.get(subjectIndex);
-//            // a little sanity here
-//            if (!StringUtils.equals(realSubject.getId(), next.getSubjectId())
-//                || !StringUtils.equals(realSubject.getSource().getId(), next.getSubjectSourceId())) {
-//              throw new RuntimeException("These should be equal!!!");
-//            }
-//            GrouperUtil.assignField(next, "subj", realSubject);
-//          }
+          overlaps.add(nextFirst);
+          
+          //lets add the subject to the Member if not already there, so we dont have to look it up again
+          // dont do this anymore since member doesnt have subj in it!  :)
+          //Subject memberSubjectFirst = (Subject)GrouperUtil.fieldValue(nextFirst, "subj");
+          //if (memberSubjectFirst == null ) {
+          //  int subjectIndex = secondHashes.indexOf(firstHash);
+          //  Subject realSubject = second.get(subjectIndex);
+          //  //a little sanity here
+          //  if (!StringUtils.equals(realSubject.getId(), nextFirst.getSubjectId()) 
+          //      || !StringUtils.equals(realSubject.getSource().getId(), nextFirst.getSubjectSourceId())) {
+          //    throw new RuntimeException("These should be equal!!!");
+          //  }
+          //  GrouperUtil.assignField(nextFirst, "subj", realSubject);
+          //}
         }
         i++;
       }
@@ -1889,17 +1877,7 @@ public class GrouperUiUtils {
    * @return the HTML converted string
    */
   public static String escapeHtml(String input, boolean isEscape, boolean escapeSingleQuotes) {
-    if (escapeSingleQuotes) {
-      if (isEscape) {
-        return GrouperUtil.replace(input, HTML_SEARCH, HTML_REPLACE);
-      }
-      return GrouperUtil.replace(input, HTML_REPLACE, HTML_SEARCH);
-    }
-    if (isEscape) {
-      return GrouperUtil.replace(input, HTML_SEARCH_NO_SINGLE, HTML_REPLACE_NO_SINGLE);
-    }
-    return GrouperUtil.replace(input, HTML_REPLACE_NO_SINGLE, HTML_SEARCH_NO_SINGLE);
-
+    return GrouperUtil.escapeHtml(input, isEscape, escapeSingleQuotes);
   }
 
   /**

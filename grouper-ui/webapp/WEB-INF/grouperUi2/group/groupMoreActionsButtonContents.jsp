@@ -86,10 +86,13 @@
                           <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2Attestation.groupAttestation&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}'); return false;"
                               >${textContainer.text['attestationButton'] }</a></li>
                         </c:if>                
-                        <c:if test="${grouperRequestContainer.deprovisioningContainer.canReadDeprovisioning}">
-                          <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2Deprovisioning.deprovisioningOnGroupReport&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}'); return false;"
-                            >${textContainer.text['deprovisioningMoreActionsMenuLabel'] }</a></li>
-                        </c:if>         
+
+                        <c:if test="${grouperRequestContainer.provisioningContainer.canReadProvisioning}">
+                            <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2Provisioning.viewProvisioningOnGroup&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}'); return false;"
+                              >${textContainer.text['provisioningMoreActionsMenuLabel'] }</a></li>
+                          </c:if>
+                                
+                        <%-- --%>
                         <c:if test="${grouperRequestContainer.groupContainer.canAdmin}">
                           <li><a href="#" onclick="return guiV2link('operation=UiV2Group.viewAudits&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}&auditType=group'); return false;"
                               >${textContainer.text['groupViewAuditButton'] }</a></li>
@@ -135,6 +138,12 @@
                         <li class="divider"></li>
                         <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2Visualization.groupView&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}'); return false;"
                           >${textContainer.text['visualization.title'] }</a></li>
+                          
+                        <c:if test="${grouperRequestContainer.grouperReportContainer.reportingEnabled}">
+	                        <li class="divider"></li>
+	                        <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2GrouperReport.viewReportConfigsOnGroup&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}'); return false;"
+	                          >${textContainer.text['groupViewReportButton'] }</a></li>
+                        </c:if>
 
                       </ul>
                     </div>
