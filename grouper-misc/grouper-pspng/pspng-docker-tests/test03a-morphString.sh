@@ -7,6 +7,9 @@
 # morphString-protected ldap password
 #
 
+# Does not work as myldapsearch reads password from grouper-loader.conf
+exit 0
+
 set -o errexit
 set -o pipefail
 set -o nounset

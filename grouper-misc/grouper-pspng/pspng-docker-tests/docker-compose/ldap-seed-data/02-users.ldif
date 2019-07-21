@@ -16,6 +16,7 @@ objectClass: organizationalPerson
 objectClass: person
 objectClass: top
 objectClass: inetOrgPerson
+objectClass: eduPerson
 givenName: Joe
 uid: jsmith
 sn: Smith
@@ -27,6 +28,7 @@ objectClass: organizationalPerson
 objectClass: person
 objectClass: top
 objectClass: inetOrgPerson
+objectClass: eduPerson
 givenName: Bob
 uid: banderson
 sn: Anderson

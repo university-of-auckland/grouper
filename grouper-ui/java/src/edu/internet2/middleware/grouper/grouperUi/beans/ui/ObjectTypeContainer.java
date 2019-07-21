@@ -1,5 +1,8 @@
 package edu.internet2.middleware.grouper.grouperUi.beans.ui;
 
+import static edu.internet2.middleware.grouper.app.grouperTypes.GrouperObjectTypesSettings.APP;
+import static edu.internet2.middleware.grouper.app.grouperTypes.GrouperObjectTypesSettings.SERVICE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,9 +17,11 @@ import edu.internet2.middleware.grouper.exception.GrouperSessionException;
 import edu.internet2.middleware.grouper.grouperUi.beans.api.GuiGroup;
 import edu.internet2.middleware.grouper.grouperUi.beans.api.GuiStem;
 import edu.internet2.middleware.grouper.grouperUi.beans.api.objectTypes.GuiGrouperObjectTypesAttributeValue;
+import edu.internet2.middleware.grouper.grouperUi.beans.api.objectTypes.GuiStemObjectType;
 import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
 import edu.internet2.middleware.grouper.privs.PrivilegeHelper;
 import edu.internet2.middleware.grouper.ui.GrouperUiFilter;
+import edu.internet2.middleware.grouper.ui.util.GrouperUiUtils;
 import edu.internet2.middleware.subject.Subject;
 
 public class ObjectTypeContainer {
@@ -55,6 +60,11 @@ public class ObjectTypeContainer {
    * list of service stems
    */
   private List<Stem> serviceStems = new ArrayList<Stem>();
+  
+  /**
+   * gui stem object types to show on auto assign screen
+   */
+  private List<GuiStemObjectType> guiStemObjectTypes = new ArrayList<GuiStemObjectType>();
   
   /**
    * object type name user is currently working on
@@ -171,9 +181,16 @@ public class ObjectTypeContainer {
     for (GuiGrouperObjectTypesAttributeValue guiGrouperObjectTypesAttributeValue: guiConfiguredGrouperObjectTypesAttributeValues) {
       
       final GrouperObjectTypesAttributeValue typesAttributeValue = guiGrouperObjectTypesAttributeValue.getGrouperObjectTypesAttributeValue();
-      types.add(typesAttributeValue.getObjectTypeName());
       
-      if (StringUtils.isNotBlank(typesAttributeValue.getObjectTypeDataOwner())) {        
+      String title = TextContainer.retrieveFromRequest().getTextEscapeXml()
+          .get(guiGrouperObjectTypesAttributeValue.getObjectTypeDescriptionKey());
+      
+      String escapedTooltipText = StringUtils.replace(title, "'", "&#39;");
+      escapedTooltipText = GrouperUiUtils.escapeHtml(escapedTooltipText, true, true);
+      
+      types.add("<span class=\"grouperTooltip\" onmouseover=\"grouperTooltip('"+escapedTooltipText+"')\" onmouseout=\"UnTip()\" >"+typesAttributeValue.getObjectTypeName()+"</span>");
+      
+      if (StringUtils.isNotBlank(typesAttributeValue.getObjectTypeDataOwner())) {    
         dataOwners.add(typesAttributeValue.getObjectTypeDataOwner());
       }
       
@@ -181,7 +198,7 @@ public class ObjectTypeContainer {
         memberDescriptions.add(typesAttributeValue.getObjectTypeMemberDescription());
       }
       
-      if (typesAttributeValue.getObjectTypeName().equals("app") && !typesAttributeValue.isDirectAssignment()) {
+      if (typesAttributeValue.getObjectTypeName().equals(APP) && !typesAttributeValue.isDirectAssignment()) {
         
          GrouperSession.callbackGrouperSession(
             GrouperSession.staticGrouperSession().internal_getRootSession(), new GrouperSessionHandler() {
@@ -202,7 +219,7 @@ public class ObjectTypeContainer {
         
       }
       
-      if (typesAttributeValue.getObjectTypeName().equals("service") && !typesAttributeValue.isDirectAssignment()) {
+      if (typesAttributeValue.getObjectTypeName().equals(SERVICE) && !typesAttributeValue.isDirectAssignment()) {
         
         GrouperSession.callbackGrouperSession(
           GrouperSession.staticGrouperSession().internal_getRootSession(), new GrouperSessionHandler() {
@@ -277,6 +294,23 @@ public class ObjectTypeContainer {
    */
   public void setServiceStems(List<Stem> serviceStems) {
     this.serviceStems = serviceStems;
+  }
+  
+  
+  /**
+   * gui stem object types to show on auto assign screen
+   * @return
+   */
+  public List<GuiStemObjectType> getGuiStemObjectTypes() {
+    return guiStemObjectTypes;
+  }
+
+  /**
+   * gui stem object types to show on auto assign screen
+   * @param guiStemObjectTypes
+   */
+  public void setGuiStemObjectTypes(List<GuiStemObjectType> guiStemObjectTypes) {
+    this.guiStemObjectTypes = guiStemObjectTypes;
   }
 
   /**

@@ -61,6 +61,12 @@
                             onclick="return guiV2link('operation=UiV2Group.newGroup', {optionalFormElementNamesToSend: 'objectStemId'});">${textContainer.text['groupNewCreateNewGroupMenuButton'] }</a></li>
 
                         </c:if>
+                        <c:if test="${grouperRequestContainer.stemContainer.canCreateGroups }">
+
+                          <li><a href="#"
+                            onclick="return guiV2link('operation=UiV2LocalEntity.newLocalEntity', {optionalFormElementNamesToSend: 'objectStemId'});">${textContainer.text['groupNewCreateNewLocalEntityMenuButton'] }</a></li>
+
+                        </c:if>
                         
                         <c:if test="${grouperRequestContainer.stemContainer.canReadAttributes || grouperRequestContainer.stemContainer.canCreateStems}">
                           <li class="divider"></li>
@@ -98,6 +104,10 @@
                             <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2Attestation.stemAttestation&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
                               >${textContainer.text['attestationButton'] }</a></li>
                           </c:if>
+                          <c:if test="${grouperRequestContainer.provisioningContainer.canReadProvisioning}">
+                            <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2Provisioning.viewProvisioningOnFolder&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
+                              >${textContainer.text['provisioningMoreActionsMenuLabel'] }</a></li>
+                          </c:if>
                           <c:if test="${grouperRequestContainer.deprovisioningContainer.canReadDeprovisioning}">
                             <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2Deprovisioning.deprovisioningOnFolderReport&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
                               >${textContainer.text['deprovisioningMoreActionsMenuLabel'] }</a></li>
@@ -123,7 +133,12 @@
                         <li class="divider"></li>
                         <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2Visualization.stemView&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
                           >${textContainer.text['visualization.title'] }</a></li>
-
+                          
+                        <c:if test="${grouperRequestContainer.grouperReportContainer.reportingEnabled}">
+	                        <li class="divider"></li>
+	                        <li><a href="javascript:void(0)" onclick="return guiV2link('operation=UiV2GrouperReport.viewReportConfigsOnFolder&stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}'); return false;"
+	                          >${textContainer.text['stemViewReportButton'] }</a></li>
+                        </c:if>
                       </ul>
                     </div>
 

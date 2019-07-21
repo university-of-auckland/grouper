@@ -20,6 +20,7 @@ package edu.internet2.middleware.grouper.util;
 
 import java.beans.PropertyDescriptor;
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -6638,6 +6639,54 @@ public class GrouperUtil {
   }
 
   /**
+   * remove stems that are children of the top level stem
+   * @param stems
+   */
+  public static void stemRemoveChildStemsOfTopStem(List<Stem> stems) {
+    
+    if (stems == null) {
+      return;
+    }
+    
+    int stemSize = stems.size();
+
+    //go through from smallest to largest
+
+    // root is 0, first level is 1, second level is 2
+    int numberOfStems = -1;
+    int indexOfHighestStem = -1;
+    
+    for (int i=0;i<stemSize;i++) {
+      
+      Stem currentStem = stems.get(i);
+      
+      int currentNumberOfStems = currentStem.isRootStem() ? 0 : (StringUtils.countMatches(currentStem.getName(), ":") + 1);
+      
+      if (numberOfStems == -1 || currentNumberOfStems < numberOfStems) {
+        numberOfStems = currentNumberOfStems;
+        indexOfHighestStem = i;
+      }
+    }
+    
+    Stem highestStem = stems.get(indexOfHighestStem);
+
+    String highestStemPrefix = highestStem.isRootStem() ? ":" : (highestStem.getName() + ":");
+    
+    Iterator<Stem> iterator = stems.iterator();
+    while (iterator.hasNext()) {
+      Stem currentStem = iterator.next();
+      
+      if (currentStem.equals(highestStem)) {
+        continue;
+      }
+      
+      if (highestStem.isRootStem() || currentStem.getName().startsWith(highestStemPrefix)) {
+        iterator.remove();
+      }
+    }
+  }
+  
+  /**
    * get the int value of an object, do not throw an exception if there is an
    * error
    *
@@ -7870,6 +7919,39 @@ public class GrouperUtil {
    */
   public static int stringLength(String string) {
     return string == null ? 0 : string.length();
+  }
+
+  /**
+   * close a writer quietly
+   * @param closeable
+   */
+  public static void closeQuietly(Closeable closeable) {
+    if (closeable != null) {
+      try {
+        closeable.close();
+      } catch (IOException e) {
+        //swallow, its ok
+      }
+    }
+  }
+
+  /**
+   * create a new file
+   * @param file
+   * @return if created
+   */
+  public static boolean fileCreateNewFile(File file) {
+    if (file.exists() && file.isFile()) {
+      return false;
+    }
+    
+    try {
+      file.createNewFile();
+    } catch (IOException ioe) {
+      throw new RuntimeException("Cant create file: " + file.getAbsolutePath());
+    }
+    
+    return true;
   }
 
   /**
@@ -11738,6 +11820,15 @@ public class GrouperUtil {
    * @return the temp dir
    */
   public static String tmpDir() {
+    return tmpDir(false);
+  }
+
+  /**
+   * return the temp dir, either what is in the java env var, or something in the grouper conf
+   * @param appendSlashIfNotThere add a slash to end if not there already
+   * @return the temp dir
+   */
+  public static String tmpDir(boolean appendSlashIfNotThere) {
 
     String tmpDir = null;
 
@@ -11754,6 +11845,12 @@ public class GrouperUtil {
       if (!loggedTempDir) {
         loggedTempDir = true;
         LOG.info("Tmp dir is set to: '" + tmpDir + "'");
+      }
+      if (appendSlashIfNotThere) {
+        tmpDir = StringUtils.trimToEmpty(tmpDir);
+        if (!tmpDir.endsWith("\\") && !tmpDir.endsWith("/")) {
+          tmpDir += File.separator;
+        }
       }
     }
     return tmpDir;
@@ -11985,4 +12082,54 @@ public class GrouperUtil {
     return result;
   }
   
+  /** array for converting HTML to string */
+  public static final String[] HTML_REPLACE = new String[]{"&amp;","&lt;","&gt;","&#39;","&quot;"};
+
+  /** array for converting HTML to string */
+  public static final String[] HTML_REPLACE_NO_SINGLE = new String[]{"&amp;","&lt;","&gt;","&quot;"};
+
+  /** array for converting HTML to string */
+  private static final String[] HTML_SEARCH = new String[]{"&","<",">","'","\""};
+
+  /** array for converting HTML to string */
+  public static final String[] HTML_SEARCH_NO_SINGLE = new String[]{"&","<",">","\""};
+
+  /**
+   * Convert an XML string to HTML to display on the screen
+   * 
+   * @param input
+   *          is the XML to convert
+   * @param isEscape true to escape chars, false to unescape
+   * 
+   * @return the HTML converted string
+   */
+  public static String escapeHtml(String input, boolean isEscape) {
+    return escapeHtml(input, isEscape, true);
+  }
+
+  /**
+   * Convert an XML string to HTML to display on the screen
+   * 
+   * @param input
+   *          is the XML to convert
+   * @param isEscape true to escape chars, false to unescape
+   * @param escapeSingleQuotes true to escape single quotes too
+   * 
+   * @return the HTML converted string
+   */
+  public static String escapeHtml(String input, boolean isEscape, boolean escapeSingleQuotes) {
+    if (escapeSingleQuotes) {
+      if (isEscape) {
+        return GrouperUtil.replace(input, HTML_SEARCH, HTML_REPLACE);
+      }
+      return GrouperUtil.replace(input, HTML_REPLACE, HTML_SEARCH);
+    }
+    if (isEscape) {
+      return GrouperUtil.replace(input, HTML_SEARCH_NO_SINGLE, HTML_REPLACE_NO_SINGLE);
+    }
+    return GrouperUtil.replace(input, HTML_REPLACE_NO_SINGLE, HTML_SEARCH_NO_SINGLE);
+    
+  }
+  
+
 }
