@@ -216,7 +216,7 @@ public class AccessPrivilege implements GrouperPrivilege, Comparable<Object> {
   /** any of these constitutes READ on a group
    * note, keep most common/likely privs toward the front  */
   public static Set<Privilege> READ_PRIVILEGES = Collections.unmodifiableSet(
-      GrouperUtil.toSet(READ, ADMIN));
+      GrouperUtil.toSet(READ, UPDATE, ADMIN));
   
   /** any of these constitutes ADMIN on a group
    * note, keep most common/likely privs toward the front  */
@@ -229,7 +229,7 @@ public class AccessPrivilege implements GrouperPrivilege, Comparable<Object> {
   
   /** these privileges are implied by UPDATE  */
   public static Set<Privilege> UPDATE_IMPLIED_PRIVILEGES = Collections.unmodifiableSet(
-      GrouperUtil.toSet(UPDATE, OPTIN, OPTOUT, VIEW));
+      GrouperUtil.toSet(UPDATE, READ, OPTIN, OPTOUT, VIEW));
 
   /** these privileges are implied by READ  */
   public static Set<Privilege> READ_IMPLIED_PRIVILEGES = Collections.unmodifiableSet(

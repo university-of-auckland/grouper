@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>grouper-parent</artifactId>
+        <groupId>edu.internet2.middleware.grouper</groupId>
+        <version>2.4.0-SNAPSHOT</version>
+        <relativePath>../grouper-parent/pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <properties>
+        <grouper.version>2.4.0-SNAPSHOT</grouper.version>
+    </properties>
+
+    <name>Grouper Distribute</name>
+    <description>Internet2 Groups Management distribute package</description>
+    <artifactId>grouper-distribute</artifactId>
+    <packaging>pom</packaging>
+    <version>2.4.0-a45-u23-w5-p6.6</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>edu.internet2.middleware.grouper</groupId>
+            <artifactId>grouper-ui</artifactId>
+            <version>${grouper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.internet2.middleware.grouper</groupId>
+            <artifactId>grouper</artifactId>
+            <version>${grouper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.internet2.middleware.grouper</groupId>
+            <artifactId>grouper-ws</artifactId>
+            <version>${grouper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.internet2.middleware.grouper</groupId>
+            <artifactId>grouper-pspng</artifactId>
+            <version>${grouper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.internet2.middleware.grouper</groupId>
+            <artifactId>grouperClient</artifactId>
+            <version>${grouper.version}</version>
+        </dependency>
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>uoa-releases</id>
+            <name>UOA Release Repository</name>
+            <url>https://nexus.auckland.ac.nz/nexus/content/repositories/releases</url>
+        </repository>
+    </distributionManagement>
+
+    <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+        <plugins>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-bundles</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>deployEssential</id>
+                        <goals>
+                            <goal>deploy-file</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                        <configuration>
+                            <file>target/${project.build.finalName}-dist.tar</file>
+                            <pomFile>pom.xml</pomFile>
+                            <url>https://nexus.auckland.ac.nz/nexus/content/repositories/releases</url>
+                            <repositoryId>uoa-releases</repositoryId>
+                            <packaging>tar</packaging>
+                        </configuration>
+
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>

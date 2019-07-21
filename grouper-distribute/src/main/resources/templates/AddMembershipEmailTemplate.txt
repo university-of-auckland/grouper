@@ -1,0 +1,1 @@
+${safeSubject.name} has been added to group ${groupName}

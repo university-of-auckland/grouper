@@ -1,18 +1,23 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
 
+                <c:set var="isGroupEditable" value="${grouperRequestContainer.groupContainer.editable}"/>
+                <div class="data-table-bottom gradient-background">
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.groupContainer.guiPaging}" formName="groupPagingForm" ajaxFormIds="groupFilterFormId"
+                    refreshOperation="../app/UiV2Group.filter?groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}" />
+                </div>
                 <form id="membersToDeleteFormId">
                   <table class="table table-hover table-bordered table-striped table-condensed data-table table-bulk-update footable">
                     <thead>
                       <tr>
                         <td colspan="${grouperRequestContainer.groupContainer.showEnabledStatus ? 7 : 4}" class="table-toolbar gradient-background">
-                          <c:if test="${grouperRequestContainer.groupContainer.canUpdate && !grouperRequestContainer.groupContainer.showPointInTimeAudit}">
+                          <c:if test="${isGroupEditable && grouperRequestContainer.groupContainer.canUpdate && !grouperRequestContainer.groupContainer.showPointInTimeAudit}">
                             <a href="#" onclick="ajax('../app/UiV2Group.removeMembers?groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}', {formIds: 'groupFilterFormId,groupPagingFormId,membersToDeleteFormId'}); return false;" class="btn" role="button">${textContainer.text['groupRemoveSelectedMembersButton'] }</a>
                           </c:if>
                         </td>
                       </tr>
                       <tr>
                         <th>
-                          <c:if test="${grouperRequestContainer.groupContainer.canUpdate && !grouperRequestContainer.groupContainer.showPointInTimeAudit}">
+                          <c:if test="${isGroupEditable && grouperRequestContainer.groupContainer.canUpdate && !grouperRequestContainer.groupContainer.showPointInTimeAudit}">
                             <label class="checkbox checkbox-no-padding">
                               <input type="checkbox" name="notImportantXyzName" id="notImportantXyzId" onchange="$('.membershipCheckbox').prop('checked', $('#notImportantXyzId').prop('checked'));" />
                             </label>
@@ -58,14 +63,9 @@
                             <td>
                               <c:if test="${grouperRequestContainer.groupContainer.canUpdate}">
                                 <label class="checkbox checkbox-no-padding">
-                                  <c:choose>
-                                    <c:when test="${guiMembershipContainer.membershipContainer.membershipAssignType.immediate}">
-                                      <input type="checkbox" aria-label="${textContainer.text['groupViewDetailsMembershipCheckboxAriaLabel']}" name="membershipRow_${i}" value="${guiMembershipContainer.membershipContainer.immediateMembership.uuid}" class="membershipCheckbox" />
-                                    </c:when>
-                                    <c:otherwise>
-                                      <input type="checkbox" disabled="disabled"/>
-                                    </c:otherwise>
-                                  </c:choose>
+                                  <c:if test="${isGroupEditable && guiMembershipContainer.membershipContainer.membershipAssignType.immediate}">
+                                    <input type="checkbox" aria-label="${textContainer.text['groupViewDetailsMembershipCheckboxAriaLabel']}" name="membershipRow_${i}" value="${guiMembershipContainer.membershipContainer.immediateMembership.uuid}" class="membershipCheckbox" />
+                                  </c:if>
                                 </label>
                               </c:if>
                             </td>
@@ -93,7 +93,7 @@
                                     <c:if test="${grouperRequestContainer.groupContainer.canRead}">
                                       <li><a href="#" onclick="return guiV2link('operation=UiV2Membership.editMembership&groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}&memberId=${guiMembershipSubjectContainer.guiMember.member.uuid}&field=members');" class="actions-revoke-membership">${textContainer.text['groupViewEditMembershipsAndPrivilegesButton'] }</a></li>
                                     </c:if>
-                                    <c:if test="${guiMembershipContainer.membershipContainer.membershipAssignType.immediate && grouperRequestContainer.groupContainer.canUpdate}">
+                                    <c:if test="${isGroupEditable && guiMembershipContainer.membershipContainer.membershipAssignType.immediate && grouperRequestContainer.groupContainer.canUpdate}">
                                       <li><a href="#" onclick="ajax('../app/UiV2Group.removeMember?groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}&memberId=${guiMembershipSubjectContainer.guiMember.member.uuid}', {formIds: 'groupFilterFormId,groupPagingFormId'}); return false;" class="actions-revoke-membership">${textContainer.text['groupViewRevokeMembershipButton'] }</a></li>
                                     </c:if>
                                     <c:if test="${guiMembershipContainer.membershipContainer.membershipAssignType.nonImmediate}">
@@ -114,7 +114,7 @@
                   </table>
                 </form>
                 <div class="data-table-bottom gradient-background">
-                  <grouper:paging2 guiPaging="${grouperRequestContainer.groupContainer.guiPaging}" formName="groupPagingForm" ajaxFormIds="groupFilterFormId"
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.groupContainer.guiPaging}" formName="groupPagingForm2" ajaxFormIds="groupFilterFormId"
                     refreshOperation="../app/UiV2Group.filter?groupId=${grouperRequestContainer.groupContainer.guiGroup.group.id}" />
                 </div>
                 

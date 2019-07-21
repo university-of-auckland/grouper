@@ -1,9 +1,11 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
+<%@page import="edu.internet2.middleware.grouper.misc.GrouperStartup"%>
 
 <!DOCTYPE html>
 <html>
   <!-- start index.jsp -->
   <head><title>${textContainer.text['guiTitle']}</title>
+  <meta name="version" content="<%= GrouperStartup.versionTimestamp() %>">
   <%@ include file="../assetsJsp/commonHead.jsp"%>
   </head>
   <body class="full claro">
@@ -80,23 +82,24 @@
                     <li><a href="#" 
                       onclick="return guiV2link('operation=UiV2Main.miscellaneous');">${textContainer.text['indexMiscellaneousButton'] }</a></li>
                   </c:if>
+                    <li><a href="#" onclick="return guiV2link('operation=UiV2Stem.viewStem&stemId=root');">Browse Folders</a> </li>
                   </ul>
                 </div>
               </div>
-              <div class="btn btn-block btn-grouper last" style="cursor: default;">${textContainer.text['indexBrowseFolders'] }
-              <i class="fa fa-exchange" style="cursor: pointer;" aria-label="${textContainer.text['ariaLabelGuiRefreshFolderBrowse'] }"
-                onclick="dojoInitMenu(true)"
-              ></i></div>
-              <div class="accordion-inner">
-                <script>
-                  $(document).ready(function(){
-                    dojoInitMenu();
-                  });
-                </script>
-                <div id="folderTreeContainerId">
-                  <div id="folderTree"></div>
-                </div>
-              </div>
+              <%--<div class="btn btn-block btn-grouper last" style="cursor: default;">${textContainer.text['indexBrowseFolders'] }--%>
+              <%--<i class="fa fa-refresh" style="cursor: pointer;" aria-label="${textContainer.text['ariaLabelGuiRefreshFolderBrowse'] }"--%>
+                <%--onclick="dojoInitMenu()"--%>
+              <%--></i></div>--%>
+              <%--<div class="accordion-inner">--%>
+                <%--<script>--%>
+                  <%--$(document).ready(function(){--%>
+                    <%--dojoInitMenu();--%>
+                  <%--});--%>
+                <%--</script>--%>
+                <%--<div id="folderTreeContainerId">--%>
+                  <%--<div id="folderTree"></div>--%>
+                <%--</div>--%>
+              <%--</div>--%>
             </div>
           </div>
           
@@ -109,8 +112,8 @@
           
         </div>
         <hr>
-        <footer>
-          <p>&copy; ${textContainer.text['institutionName'] }</p>
+        <footer style="text-align: center;">
+          <p style="text-align: center;">&copy; ${textContainer.text['institutionName'] }</p>
         </footer>
       </div>
     </div>

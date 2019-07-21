@@ -57,48 +57,48 @@ public class UiV2MyGroups {
    * @param response
    */
   public void joinGroup(HttpServletRequest request, HttpServletResponse response) {
-
-    final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
-
-    GrouperSession grouperSession = null;
-  
-    GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
-  
-    try {
-      grouperSession = GrouperSession.start(loggedInSubject);
-  
-      final String groupId = request.getParameter("groupId");
-      
-      Group group = GroupFinder.findByUuid(grouperSession, groupId, false);
-      if (!group.canHavePrivilege(loggedInSubject, AccessPrivilege.OPTIN.getName(), false)) {
-        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error, 
-            TextContainer.retrieveFromRequest().getText().get("myGroupsJoinGroupCantFindGroup")));
-      } else {
-        boolean madeChanges = group.addMember(loggedInSubject, false);
-        
-        if (madeChanges) {
-          
-          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success, 
-              TextContainer.retrieveFromRequest().getText().get("myGroupsJoinGroupSuccess")));
-              
-        } else {
-          
-          //not sure why this would happen (race condition?)
-          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.info, 
-              TextContainer.retrieveFromRequest().getText().get("myGroupsJoinGroupNoChangesSuccess")));
-    
-        }
-      }
-          
-      
-      myGroupsJoinHelper(request, response);
-  
-      GrouperUserDataApi.recentlyUsedGroupAdd(GrouperUiUserData.grouperUiGroupNameForUserData(), 
-          loggedInSubject, group);
-
-    } finally {
-      GrouperSession.stopQuietly(grouperSession);
-    }
+    System.out.println("NOT SUPPORT OPTIN");
+//    final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
+//
+//    GrouperSession grouperSession = null;
+//
+//    GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
+//
+//    try {
+//      grouperSession = GrouperSession.start(loggedInSubject);
+//
+//      final String groupId = request.getParameter("groupId");
+//
+//      Group group = GroupFinder.findByUuid(grouperSession, groupId, false);
+//      if (!group.canHavePrivilege(loggedInSubject, AccessPrivilege.OPTIN.getName(), false)) {
+//        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error,
+//            TextContainer.retrieveFromRequest().getText().get("myGroupsJoinGroupCantFindGroup")));
+//      } else {
+//        boolean madeChanges = group.addMember(loggedInSubject, false);
+//
+//        if (madeChanges) {
+//
+//          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success,
+//              TextContainer.retrieveFromRequest().getText().get("myGroupsJoinGroupSuccess")));
+//
+//        } else {
+//
+//          //not sure why this would happen (race condition?)
+//          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.info,
+//              TextContainer.retrieveFromRequest().getText().get("myGroupsJoinGroupNoChangesSuccess")));
+//
+//        }
+//      }
+//
+//
+//      myGroupsJoinHelper(request, response);
+//
+//      GrouperUserDataApi.recentlyUsedGroupAdd(GrouperUiUserData.grouperUiGroupNameForUserData(),
+//          loggedInSubject, group);
+//
+//    } finally {
+//      GrouperSession.stopQuietly(grouperSession);
+//    }
 
   }
   
@@ -388,48 +388,48 @@ public class UiV2MyGroups {
    * @param response
    */
   public void leaveGroup(HttpServletRequest request, HttpServletResponse response) {
-  
-    final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
-  
-    GrouperSession grouperSession = null;
-  
-    GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
-  
-    try {
-      grouperSession = GrouperSession.start(loggedInSubject);
-  
-      final String groupId = request.getParameter("groupId");
-      
-      Group group = GroupFinder.findByUuid(grouperSession, groupId, false);
-      if (!group.canHavePrivilege(loggedInSubject, AccessPrivilege.OPTOUT.getName(), false)) {
-        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error, 
-            TextContainer.retrieveFromRequest().getText().get("myGroupsMembershipsCantFindGroup")));
-      } else {
-        boolean madeChanges = group.deleteMember(loggedInSubject, false);
-        
-        if (madeChanges) {
-          
-          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success, 
-              TextContainer.retrieveFromRequest().getText().get("myGroupsMembershipsLeftSuccess")));
-              
-        } else {
-          
-          //not sure why this would happen (race condition?)
-          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.info, 
-              TextContainer.retrieveFromRequest().getText().get("myGroupsMembershipsLeftNoChangesSuccess")));
-    
-        }
-      }
-      
-      myGroupsMembershipsHelper(request, response);
-  
-      GrouperUserDataApi.recentlyUsedGroupAdd(GrouperUiUserData.grouperUiGroupNameForUserData(), 
-          loggedInSubject, group);
-      
-    } finally {
-      GrouperSession.stopQuietly(grouperSession);
-    }
-  
+    System.out.println("NOT SUPPORT OPTOUT");
+//    final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
+//
+//    GrouperSession grouperSession = null;
+//
+//    GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
+//
+//    try {
+//      grouperSession = GrouperSession.start(loggedInSubject);
+//
+//      final String groupId = request.getParameter("groupId");
+//
+//      Group group = GroupFinder.findByUuid(grouperSession, groupId, false);
+//      if (!group.canHavePrivilege(loggedInSubject, AccessPrivilege.OPTOUT.getName(), false)) {
+//        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error,
+//            TextContainer.retrieveFromRequest().getText().get("myGroupsMembershipsCantFindGroup")));
+//      } else {
+//        boolean madeChanges = group.deleteMember(loggedInSubject, false);
+//
+//        if (madeChanges) {
+//
+//          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success,
+//              TextContainer.retrieveFromRequest().getText().get("myGroupsMembershipsLeftSuccess")));
+//
+//        } else {
+//
+//          //not sure why this would happen (race condition?)
+//          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.info,
+//              TextContainer.retrieveFromRequest().getText().get("myGroupsMembershipsLeftNoChangesSuccess")));
+//
+//        }
+//      }
+//
+//      myGroupsMembershipsHelper(request, response);
+//
+//      GrouperUserDataApi.recentlyUsedGroupAdd(GrouperUiUserData.grouperUiGroupNameForUserData(),
+//          loggedInSubject, group);
+//
+//    } finally {
+//      GrouperSession.stopQuietly(grouperSession);
+//    }
+//
   }
 
   /**

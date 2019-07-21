@@ -1,0 +1,97 @@
+<!-- Source distribution -->
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+    <id>dist</id>
+    <formats>
+        <format>tar</format>
+    </formats>
+
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <dependencySets>
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <outputDirectory>grouper.apiBinary-2.4.0/lib/grouper/</outputDirectory>
+            <unpack>false</unpack>
+            <includes>
+                <include>org.mortbay.jetty:jetty*</include>
+                <include>org.apache.kafka:kafka-clients</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+
+    <fileSets>
+        <fileSet>
+            <directory>src/main/resources/templates</directory>
+            <outputDirectory>grouper.templates-2.4.0</outputDirectory>
+        </fileSet>
+    </fileSets>
+
+    <moduleSets>
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>edu.internet2.middleware.grouper:grouper-ui</include>
+            </includes>
+
+            <sources>
+                <includeModuleDirectory>false</includeModuleDirectory>
+                <excludes>
+                    <exclude>**</exclude>
+                </excludes>
+
+                <fileSets>
+                    <fileSet>
+                        <directory>${project.basedir}/webapp</directory>
+                        <useDefaultExcludes>true</useDefaultExcludes>
+                        <outputDirectory>grouper.ui-2.4.0/dist/grouper</outputDirectory>
+                    </fileSet>
+                </fileSets>
+            </sources>
+        </moduleSet>
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>edu.internet2.middleware.grouper:grouper-ws</include>
+            </includes>
+
+            <sources>
+                <includeModuleDirectory>false</includeModuleDirectory>
+                <excludes>
+                    <exclude>**</exclude>
+                </excludes>
+
+                <fileSets>
+                    <fileSet>
+                        <directory>${project.basedir}/webapp/WEB-INF</directory>
+                        <useDefaultExcludes>true</useDefaultExcludes>
+                        <outputDirectory>grouper.ws-2.4.0/grouper-ws/build/dist/grouper-ws/WEB-INF</outputDirectory>
+                    </fileSet>
+                </fileSets>
+            </sources>
+        </moduleSet>
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>edu.internet2.middleware.grouper:grouper</include>
+                <include>edu.internet2.middleware.grouper:grouper-ws</include>
+                <include>edu.internet2.middleware.grouper:grouper-ui</include>
+                <include>edu.internet2.middleware.grouper:grouper-pspng</include>
+                <include>edu.internet2.middleware.grouper:grouperClient</include>
+            </includes>
+
+            <binaries>
+                <outputDirectory>modules</outputDirectory>
+                <excludes>
+                    <exclude>*:*impl*</exclude>
+                    <exclude>*:*jdk15*</exclude>
+                </excludes>
+                <unpack>false</unpack>
+            </binaries>
+        </moduleSet>
+
+    </moduleSets>
+
+
+</assembly>

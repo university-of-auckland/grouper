@@ -5,7 +5,7 @@
                     <tr>
                       <th>${textContainer.text['myGroupsFolderHeader'] }</th>
                       <th>${textContainer.text['myGroupsGroupHeader'] }</th>
-                      <th></th>
+                      <%--<th></th>--%>
                     </tr>
                   </thead>
                   <tbody>
@@ -21,11 +21,11 @@
                       <tr>
                         <td>${guiMembershipSubjectContainer.guiGroup.parentGuiStem.linkWithIcon}</td>
                         <td>${guiMembershipSubjectContainer.guiGroup.shortLinkWithIcon}</td>
-                        <td>
-                          <c:if test="${guiMembershipContainer.membershipContainer.membershipAssignType.immediate && guiMembershipSubjectContainer.membershipSubjectContainer.hasOptout }">
-                            <a href="#" onclick="ajax('../app/UiV2MyGroups.leaveGroup?groupId=${guiMembershipSubjectContainer.guiGroup.group.id}'); return false;" class="btn btn-mini" role="button">${textContainer.text['myGroupsMembershipsLeaveButton']}</a>
-                          </c:if>
-                        </td>
+                        <%--<td>--%>
+                          <%--<c:if test="${guiMembershipContainer.membershipContainer.membershipAssignType.immediate && guiMembershipSubjectContainer.membershipSubjectContainer.hasOptout }">--%>
+                            <%--<a href="#" onclick="ajax('../app/UiV2MyGroups.leaveGroup?groupId=${guiMembershipSubjectContainer.guiGroup.group.id}'); return false;" class="btn btn-mini" role="button">${textContainer.text['myGroupsMembershipsLeaveButton']}</a>--%>
+                          <%--</c:if>--%>
+                        <%--</td>--%>
                       </tr>
 
                     </c:forEach>

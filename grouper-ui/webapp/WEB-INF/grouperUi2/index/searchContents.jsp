@@ -1,5 +1,9 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
 
+                <div class="data-table-bottom gradient-background">
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.indexContainer.searchGuiPaging}" formName="searchPagingForm" ajaxFormIds="searchPageForm"
+                    refreshOperation="../app/UiV2Main.searchFormSubmit" />
+                </div>
                 <table class="table table-hover table-bordered table-striped table-condensed data-table">
                   <thead>
                     <tr>
@@ -29,7 +33,7 @@
                   </tbody>
                 </table>
                 <div class="data-table-bottom gradient-background">
-                  <grouper:paging2 guiPaging="${grouperRequestContainer.indexContainer.searchGuiPaging}" formName="searchPagingForm" ajaxFormIds="searchPageForm"
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.indexContainer.searchGuiPaging}" formName="searchPagingForm2" ajaxFormIds="searchPageForm"
                     refreshOperation="../app/UiV2Main.searchFormSubmit" />
                 </div>
 <%-- ?searchFormQuery=${grouper:escapeUrl(grouperRequestContainer.indexContainer.searchQuery)} --%>

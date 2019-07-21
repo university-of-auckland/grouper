@@ -3,7 +3,7 @@
                 <%-- tell add member to refresh audits --%>
                 <form id="groupRefreshPartFormId">
                   <input type="hidden" name="groupRefreshPart" value="thisGroupsMemberships" /> 
-                </form> 
+                </form>
 
                 <form id="groupsToDeleteFormId">
                 <table class="table table-hover table-bordered table-striped table-condensed data-table table-bulk-update footable">
@@ -25,14 +25,16 @@
                   </thead>
                   <tbody>
                       <c:set var="i" value="0" />
+
                       <c:forEach items="${grouperRequestContainer.groupContainer.guiMembershipSubjectContainers}" 
                         var="guiMembershipSubjectContainer" >
                         <c:set var="guiMembershipContainer" value="${guiMembershipSubjectContainer.guiMembershipContainers['members']}" />
+                        <c:set var="isGroupEditable" value="${guiMembershipContainer.guiGroupOwner.editable}"/>
                         <tr>
                           <td>
                             <label class="checkbox checkbox-no-padding">
                               <c:choose>
-                                <c:when test="${guiMembershipContainer.membershipContainer.membershipAssignType.immediate
+                                <c:when test="${isGroupEditable && guiMembershipContainer.membershipContainer.membershipAssignType.immediate
                                     && grouper:canHavePrivilege(guiMembershipSubjectContainer.membershipSubjectContainer.groupOwner, 'update') }">
                                   <input type="checkbox" name="membershipRow_${i}" aria-label="${textContainer.text['groupMembershipsInOtherGropusCheckboxAriaLabel'] }"
                                   value="${guiMembershipContainer.membershipContainer.immediateMembership.uuid}" class="membershipCheckbox" />
@@ -49,10 +51,10 @@
                             ${textContainer.text[grouper:concat2('groupMembershipAssignType_',guiMembershipContainer.membershipContainer.membershipAssignType)] }
                           </td>
                           <td>
-                            <c:if test="${guiMembershipContainer.guiGroupOwner.canUpdate
+                            <c:if test="${isGroupEditable && (guiMembershipContainer.guiGroupOwner.canUpdate
                                 || (guiMembershipContainer.membershipContainer.membershipAssignType.immediate 
                                     && guiMembershipContainer.guiGroupOwner.canUpdate)
-                                || guiMembershipSubjectContainer.guiSubject.group}">
+                                || guiMembershipSubjectContainer.guiSubject.group)}">
                               <div class="btn-group">
                               	<a data-toggle="dropdown" href="#" aria-label="${textContainer.text['ariaLabelGuiMoreOptions']}" class="btn btn-mini dropdown-toggle"
                               		aria-haspopup="true" aria-expanded="false" role="menu" onclick="$('#more-options${i}').is(':visible') === true ? $(this).attr('aria-expanded','false') : $(this).attr('aria-expanded',function(index, currentValue) { $('#more-options${i} li').first().focus();return true;});">

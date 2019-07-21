@@ -31,6 +31,7 @@ import edu.internet2.middleware.grouper.grouperUi.beans.json.GuiSorting;
 import edu.internet2.middleware.grouper.grouperUi.serviceLogic.UiV2Stem.StemSearchType;
 import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
 import edu.internet2.middleware.grouper.privs.NamingPrivilege;
+import edu.internet2.middleware.grouper.privs.PrivilegeHelper;
 import edu.internet2.middleware.grouper.ui.GrouperUiFilter;
 import edu.internet2.middleware.grouper.ui.util.GrouperUiUserData;
 import edu.internet2.middleware.grouper.ui.util.GrouperUiUtils;
@@ -71,6 +72,11 @@ public class StemContainer {
     }
     
     return GrouperRequestContainer.retrieveFromRequestOrCreate().getRulesContainer().isCanUpdatePrivilegeInheritance();
+  }
+
+  public boolean isWheelGroupMember(){
+    Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();
+    return PrivilegeHelper.isWheelOrRoot(loggedInSubject);
   }
   
   /**
@@ -266,7 +272,8 @@ public class StemContainer {
             
             @Override
             public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
-              return StemContainer.this.getGuiStem().getStem().canHavePrivilege(loggedInSubject, NamingPrivilege.CREATE.getName(), false);
+              // customize for uoa - requires STEM_ADMIN instead of CREATE
+              return StemContainer.this.getGuiStem().getStem().canHavePrivilege(loggedInSubject, NamingPrivilege.STEM_ADMIN.getName(), false);
             }
           });
       
@@ -521,7 +528,7 @@ public class StemContainer {
    * @return if favorite
    */
   public boolean isFavorite() {
-    
+
     if (this.favorite == null) {
       
       final Subject loggedInSubject = GrouperUiFilter.retrieveSubjectLoggedIn();

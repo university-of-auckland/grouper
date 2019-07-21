@@ -55,6 +55,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.jstl.fmt.LocalizationContext;
 
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssign;
+import edu.internet2.middleware.grouper.attr.value.AttributeValueDelegate;
 import net.sf.json.JSONArray;
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.collections.set.ListOrderedSet;
@@ -69,6 +71,8 @@ import edu.internet2.middleware.grouper.Member;
 import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.SubjectFinder;
+import edu.internet2.middleware.grouper.attr.AttributeDefName;
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssignGroupDelegate;
 import edu.internet2.middleware.grouper.exception.StemNotFoundException;
 import edu.internet2.middleware.grouper.misc.GrouperObject;
 import edu.internet2.middleware.grouper.cache.GrouperCache;
@@ -95,9 +99,6 @@ import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;
 
-
-
-
 /**
  * utility methods for grouper
  * 
@@ -108,45 +109,53 @@ public class GrouperUiUtils {
 
   /**
    * convert seconds to string
+   * 
    * @param seconds
    * @return seconds in string (e.g. 4 hours, 32 minutes, 56 seconds
    */
   public static String convertSecondsToString(int seconds) {
-    
+
     if (seconds < 0) {
       return "";
     }
 
     if (seconds < 60) {
-      return seconds + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalSeconds");
+      return seconds + " "
+          + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalSeconds");
     }
-    
+
     // http://stackoverflow.com/questions/11357945/java-convert-seconds-into-day-hour-minute-and-seconds-using-timeunit
-    int days = (int)TimeUnit.SECONDS.toDays(seconds);
-    int hours = (int)(TimeUnit.SECONDS.toHours(seconds) - (TimeUnit.SECONDS.toDays(seconds) *24));
-    int minutes = (int)(TimeUnit.SECONDS.toMinutes(seconds) - (TimeUnit.SECONDS.toHours(seconds)* 60));
-    int secondsRemainder = (int)(TimeUnit.SECONDS.toSeconds(seconds) - (TimeUnit.SECONDS.toMinutes(seconds) *60));
-    
+    int days = (int) TimeUnit.SECONDS.toDays(seconds);
+    int hours = (int) (TimeUnit.SECONDS.toHours(seconds) - (TimeUnit.SECONDS.toDays(seconds) * 24));
+    int minutes = (int) (TimeUnit.SECONDS.toMinutes(seconds) - (TimeUnit.SECONDS.toHours(seconds) * 60));
+    int secondsRemainder = (int) (TimeUnit.SECONDS.toSeconds(seconds) - (TimeUnit.SECONDS.toMinutes(seconds) * 60));
+
     if (seconds < 3600) {
-      return minutes + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalMinutes")
-          + " " + secondsRemainder + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalSeconds");
+      return minutes + " "
+          + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalMinutes") + " "
+          + secondsRemainder + " "
+          + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalSeconds");
     }
-    
+
     if (seconds < 86400) {
       return hours + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalHours")
-          + " " + minutes + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalMinutes")
-          + " " + secondsRemainder + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalSeconds");
+          + " " + minutes + " "
+          + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalMinutes") + " "
+          + secondsRemainder + " "
+          + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalSeconds");
     }
-    
-    return days + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalDays")
-        + " " + hours + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalHours")
-        + " " + minutes + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalMinutes")
-        + " " + secondsRemainder + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalSeconds");
-    
+
+    return days + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalDays") + " "
+        + hours + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalHours") + " "
+        + minutes + " " + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalMinutes")
+        + " " + secondsRemainder + " "
+        + TextContainer.retrieveFromRequest().getText().get("grouperLoaderSqlScheduleIntervalSeconds");
+
   }
-  
+
   /**
    * handle a veto, maybe put a message on screen if this is a veto
+   * 
    * @param guiResponseJs
    * @param cause
    * @return true if handling veto
@@ -157,25 +166,24 @@ public class GrouperUiUtils {
 
     Throwable causeCauseCause = causeCause == null ? null : causeCause.getCause();
 
-    HookVeto hookVeto = (cause instanceof HookVeto) ? (HookVeto)cause : null;
+    HookVeto hookVeto = (cause instanceof HookVeto) ? (HookVeto) cause : null;
 
-    hookVeto = ((hookVeto == null) && (causeCause instanceof HookVeto)) ? (HookVeto)causeCause : hookVeto;
+    hookVeto = ((hookVeto == null) && (causeCause instanceof HookVeto)) ? (HookVeto) causeCause : hookVeto;
 
-    hookVeto = ((hookVeto == null) && (causeCauseCause instanceof HookVeto)) ? (HookVeto)causeCauseCause : hookVeto;
+    hookVeto = ((hookVeto == null) && (causeCauseCause instanceof HookVeto)) ? (HookVeto) causeCauseCause : hookVeto;
 
     if (hookVeto != null) {
 
       String messageToScreen = TextContainer.textOrNull(hookVeto.getReasonKey());
 
-      //make sure the key is in there
+      // make sure the key is in there
       if (StringUtils.isEmpty(messageToScreen)) {
         messageToScreen = hookVeto.getReason();
       }
 
       if (!StringUtils.isBlank(messageToScreen)) {
 
-        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error, 
-            messageToScreen));
+        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error, messageToScreen));
 
         return true;
       }
@@ -183,14 +191,15 @@ public class GrouperUiUtils {
     }
     return false;
   }
-  
+
   /**
    * if search string valid
+   * 
    * @param searchString
    * @return true if the search string is valid
    */
   public static boolean searchStringValid(String searchString) {
-    //check by splitting and trimming
+    // check by splitting and trimming
     boolean searchOk = false;
     if (searchString != null && searchString.length() >= 2) {
       boolean hasOneToken = false;
@@ -209,16 +218,17 @@ public class GrouperUiUtils {
     }
     return searchOk;
   }
-  
+
   /**
    * compute a url of a resource
+   * 
    * @param resourceName
-   * @param canBeNull if cant be null, throw runtime
+   * @param canBeNull    if cant be null, throw runtime
    * @return the URL
    */
   public static URL computeUrl(String resourceName, boolean canBeNull) {
-    //get the url of the navigation file
-    //TODO move this to grouperutil
+    // get the url of the navigation file
+    // TODO move this to grouperutil
     ClassLoader cl = classLoader();
 
     URL url = null;
@@ -237,26 +247,27 @@ public class GrouperUiUtils {
     return url;
   }
 
-
   /**
    * fast class loader
+   * 
    * @return the class loader
    */
   public static ClassLoader classLoader() {
     return GrouperUiUtils.class.getClassLoader();
   }
-  
+
   /**
    * Field lastId.
    */
-  private static char[] lastId = convertLongToStringSmall(new Date().getTime())
-      .toCharArray();
+  private static char[] lastId = convertLongToStringSmall(new Date().getTime()).toCharArray();
 
   /** cache the properties read from resource */
   private static Map<String, Properties> resourcePropertiesCache = new HashMap<String, Properties>();
-  
+
   /**
-   * read properties from a resource, dont modify the properties returned since they are cached
+   * read properties from a resource, dont modify the properties returned since
+   * they are cached
+   * 
    * @param resourceName
    * @return the properties
    */
@@ -265,7 +276,7 @@ public class GrouperUiUtils {
     if (properties == null) {
 
       properties = new Properties();
-      //TODO move this to grouperutil
+      // TODO move this to grouperutil
       URL url = computeUrl(resourceName, true);
       InputStream inputStream = null;
       try {
@@ -280,16 +291,15 @@ public class GrouperUiUtils {
     }
     return properties;
   }
-  
+
   /**
-   * get a unique string identifier based on the current time,
-   * this is not globally unique, just unique for as long as this
-   * server is running...
+   * get a unique string identifier based on the current time, this is not
+   * globally unique, just unique for as long as this server is running...
    * 
    * @return String
    */
   public static String uniqueId() {
-    //this needs to be threadsafe since we are using a static field
+    // this needs to be threadsafe since we are using a static field
     synchronized (GrouperUiUtils.class) {
       lastId = incrementStringInt(lastId);
     }
@@ -301,15 +311,13 @@ public class GrouperUiUtils {
    * this method takes a long (less than 62) and converts it to a 1 character
    * string (a-z, A-Z, 0-9)
    * 
-   * @param theLong
-   *          is the long (less than 62) to convert to a 1 character string
+   * @param theLong is the long (less than 62) to convert to a 1 character string
    * 
    * @return a one character string
    */
   public static String convertLongToChar(long theLong) {
     if ((theLong < 0) || (theLong >= 62)) {
-      throw new RuntimeException("StringUtils.convertLongToChar() "
-          + " invalid input (not >=0 && <62: " + theLong);
+      throw new RuntimeException("StringUtils.convertLongToChar() " + " invalid input (not >=0 && <62: " + theLong);
     } else if (theLong < 26) {
       return "" + (char) ('a' + theLong);
     } else if (theLong < 52) {
@@ -323,15 +331,14 @@ public class GrouperUiUtils {
    * this method takes a long (less than 36) and converts it to a 1 character
    * string (A-Z, 0-9)
    * 
-   * @param theLong
-   *          is the long (less than 36) to convert to a 1 character string
+   * @param theLong is the long (less than 36) to convert to a 1 character string
    * 
    * @return a one character string
    */
   public static String convertLongToCharSmall(long theLong) {
     if ((theLong < 0) || (theLong >= 36)) {
-      throw new RuntimeException("StringUtils.convertLongToCharSmall() "
-          + " invalid input (not >=0 && <36: " + theLong);
+      throw new RuntimeException(
+          "StringUtils.convertLongToCharSmall() " + " invalid input (not >=0 && <36: " + theLong);
     } else if (theLong < 26) {
       return "" + (char) ('A' + theLong);
     } else {
@@ -343,45 +350,42 @@ public class GrouperUiUtils {
    * convert a long to a string by converting it to base 62 (26 lower, 26 upper,
    * 10 digits)
    * 
-   * @param theLong
-   *          is the long to convert
+   * @param theLong is the long to convert
    * 
    * @return the String conversion of this
    */
   public static String convertLongToString(long theLong) {
     long quotient = theLong / 62;
     long remainder = theLong % 62;
-  
+
     if (quotient == 0) {
       return convertLongToChar(remainder);
     }
     StringBuffer result = new StringBuffer();
     result.append(convertLongToString(quotient));
     result.append(convertLongToChar(remainder));
-  
+
     return result.toString();
   }
 
   /**
-   * convert a long to a string by converting it to base 36 (26 upper, 10
-   * digits)
+   * convert a long to a string by converting it to base 36 (26 upper, 10 digits)
    * 
-   * @param theLong
-   *          is the long to convert
+   * @param theLong is the long to convert
    * 
    * @return the String conversion of this
    */
   public static String convertLongToStringSmall(long theLong) {
     long quotient = theLong / 36;
     long remainder = theLong % 36;
-  
+
     if (quotient == 0) {
       return convertLongToCharSmall(remainder);
     }
     StringBuffer result = new StringBuffer();
     result.append(convertLongToStringSmall(quotient));
     result.append(convertLongToCharSmall(remainder));
-  
+
     return result.toString();
   }
 
@@ -396,11 +400,11 @@ public class GrouperUiUtils {
     if (theChar == 'Z') {
       return '0';
     }
-  
+
     if (theChar == '9') {
       return 'A';
     }
-  
+
     return ++theChar;
   }
 
@@ -416,32 +420,33 @@ public class GrouperUiUtils {
     if (string == null) {
       return string;
     }
-  
-    //loop through the string backwards
+
+    // loop through the string backwards
     int i = 0;
-  
+
     for (i = string.length - 1; i >= 0; i--) {
       char inc = string[i];
       inc = incrementChar(inc);
       string[i] = inc;
-  
+
       if (inc != 'A') {
         break;
       }
     }
-  
-    //if we are at 0, then it means we hit AAAAAAA (or more)
+
+    // if we are at 0, then it means we hit AAAAAAA (or more)
     if (i < 0) {
       return ("A" + new String(string)).toCharArray();
     }
-  
+
     return string;
   }
 
   /**
    * get a cookie based on name or null if not there
+   * 
    * @param cookieName
-   * @param cookies (from httprequest)
+   * @param cookies    (from httprequest)
    * @return the cookie
    */
   public static Cookie retrieveCookie(String cookieName, Cookie[] cookies) {
@@ -454,22 +459,24 @@ public class GrouperUiUtils {
     }
     return null;
   }
-  
+
   /**
    * get a cookie value (null if not there)
+   * 
    * @param cookieName
-   * @param cookies (from httprequest)
+   * @param cookies    (from httprequest)
    * @return the cookie value
    */
   public static String cookieValue(String cookieName, Cookie[] cookies) {
     Cookie cookie = retrieveCookie(cookieName, cookies);
     return cookie == null ? null : cookie.getName();
   }
-  
+
   /**
    * kill a cookie if it is there
+   * 
    * @param cookieName
-   * @param cookies (from httprequest)
+   * @param cookies             (from httprequest)
    * @param httpServletResponse is response for adding cookies
    */
   public static void killCookie(String cookieName, Cookie[] cookies, HttpServletResponse httpServletResponse) {
@@ -481,7 +488,7 @@ public class GrouperUiUtils {
     }
   }
 
-  /** pattern of a subject: sourceId||||subjectId  (slashes escape the pipes) */
+  /** pattern of a subject: sourceId||||subjectId (slashes escape the pipes) */
   public static Pattern subjectPattern = Pattern.compile("^(.*)\\|\\|\\|\\|(.*)$");
 
   /**
@@ -490,13 +497,13 @@ public class GrouperUiUtils {
   public static final String DHTMLX_OPTIONS_END = "</complete>";
 
   /**
-   * dhtmlx option start of xml 
+   * dhtmlx option start of xml
    */
-  public static final String DHTMLX_OPTIONS_START = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<complete>\n"; 
+  public static final String DHTMLX_OPTIONS_START = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<complete>\n";
 //utf-8, iso-8859-1
 
   /**
-   * logger 
+   * logger
    */
   private static final Log LOG = LogFactory.getLog(GrouperUiUtils.class);
 
@@ -524,25 +531,26 @@ public class GrouperUiUtils {
   public static File classFileDir = null;
 
   /** array for converting HTML to string */
-  public static final String[] HTML_REPLACE = new String[]{"&amp;","&lt;","&gt;","&#39;","&quot;"};
+  public static final String[] HTML_REPLACE = new String[] { "&amp;", "&lt;", "&gt;", "&#39;", "&quot;" };
 
   /** array for converting HTML to string */
-  public static final String[] HTML_REPLACE_NO_SINGLE = new String[]{"&amp;","&lt;","&gt;","&quot;"};
+  public static final String[] HTML_REPLACE_NO_SINGLE = new String[] { "&amp;", "&lt;", "&gt;", "&quot;" };
 
   /** array for converting HTML to string */
-  private static final String[] HTML_SEARCH = new String[]{"&","<",">","'","\""};
+  private static final String[] HTML_SEARCH = new String[] { "&", "<", ">", "'", "\"" };
 
   /** array for converting HTML to string */
-  public static final String[] HTML_SEARCH_NO_SINGLE = new String[]{"&","<",">","\""};
+  public static final String[] HTML_SEARCH_NO_SINGLE = new String[] { "&", "<", ">", "\"" };
 
   /** array for converting javascript to string */
-  private static final String[] JAVASCRIPT_REPLACE = new String[]{"&amp;","&lt;","&gt;","\\'","&quot;"};
+  private static final String[] JAVASCRIPT_REPLACE = new String[] { "&amp;", "&lt;", "&gt;", "\\'", "&quot;" };
 
   /** array for converting javascript to string */
-  private static final String[] JAVASCRIPT_SEARCH = new String[]{"&","<",">","'","\""};
+  private static final String[] JAVASCRIPT_SEARCH = new String[] { "&", "<", ">", "'", "\"" };
 
   /**
    * get request params (e.g. for logging), in one string, abbreviated
+   * 
    * @return request params
    */
   @SuppressWarnings("unchecked")
@@ -551,14 +559,14 @@ public class GrouperUiUtils {
     StringBuilder requestParams = new StringBuilder();
     Map parameterMap = GrouperUtil.nonNull(httpServletRequest.getParameterMap());
     for (Object nameObject : parameterMap.keySet()) {
-      String name = (String)nameObject;
+      String name = (String) nameObject;
       Object object = parameterMap.get(name);
       requestParams.append(name).append(" : ");
       if (object == null) {
         requestParams.append("null");
       } else if (object instanceof String[]) {
-        String[] values = (String[])object;
-        for (int i=0;i<50;i++) {
+        String[] values = (String[]) object;
+        for (int i = 0; i < 50; i++) {
           if (i >= values.length) {
             break;
           }
@@ -573,117 +581,114 @@ public class GrouperUiUtils {
     return requestParams.toString();
   }
 
-
   /**
    * append an error to the request, will be logged and maybe emailed to admins
+   * 
    * @param error
    */
   public static void appendErrorToRequest(String error) {
     HttpServletRequest httpServletRequest = GrouperUiFilter.retrieveHttpServletRequest();
-    String existingError = (String)httpServletRequest.getAttribute("error");
+    String existingError = (String) httpServletRequest.getAttribute("error");
     String newError = error;
     if (!StringUtils.isBlank(existingError)) {
       newError = existingError + "\n\n" + error;
     }
     httpServletRequest.setAttribute("error", newError);
-  
+
   }
 
-
   /**
-     * find subjects which are members of a group, and return those members.  Do this in few queries
-     * since we might run out of bind variables
-     * 
-     * NOTE, I DONT THINK IMMEDIATE ONLY AS FALSE WILL WORK, WILL ONLY WORK WITH IMMEDIATE ONLY
-     * 
-     * @param grouperSession
-     * @param group
-     * @param subjects
-     * @param immediateOnly true for only immediate, false for immediate and effective
-     * @return the members or none if not allowed
-     */
-    public static Set<Member> convertSubjectsToMembers(GrouperSession grouperSession, 
-        Group group, Set<Subject> subjects, boolean immediateOnly) {
-  
-      if (!PrivilegeHelper.canViewMembers(grouperSession, group, Group.getDefaultList())) {
-        return new LinkedHashSet<Member>();
-      }
-      
-      //lets do this in batches
-      List<Subject> subjectsList = GrouperUtil.listFromCollection(subjects);
-      
-      int numberOfBatches = GrouperUtil.batchNumberOfBatches(subjectsList, 100);
-      
-      Set<Member> result = new LinkedHashSet<Member>();
-      
-      for (int i=0;i<numberOfBatches;i++) {
-        List<Subject> subjectBatch = GrouperUtil.batchList(subjectsList, 100, i);
-        
-        //      select distinct gm.* 
-        //      from grouper_members gm, grouper_memberships gms
-        //      where gm.id = gms.member_id
-        //      and gms.field_id = 'abc' and gms.owner_id = '123'
-        //      and gm.subject_id in ('123','234')
-        //      and mship_type = 'immediate'
-        
-        //lets turn the subjects into subjectIds
-        Set<String> subjectIds = new LinkedHashSet<String>();
-        for (Subject currentSubject : subjectBatch) {
-          subjectIds.add(currentSubject.getId());
-        }
-        
-        if (subjectIds.size() == 0) {
-          continue;
-        }
-        
-        ByHqlStatic byHqlStatic = HibernateSession.byHqlStatic();
-        StringBuilder query = new StringBuilder("select gm " +
-            "from Member gm, ImmediateMembershipEntry gms " +
-            "where gm.uuid = gms.memberUuid " +
-            "and gms.fieldId = :fieldId " +
-            "and gms.ownerGroupId = :ownerId " +
-            (immediateOnly ? "and gms.type = 'immediate' " : "") + 
-            "and gm.subjectIdDb in (");
-        
-        //add all the uuids
-        byHqlStatic.setString("fieldId", Group.getDefaultList().getUuid());
-        byHqlStatic.setString("ownerId", group.getUuid());
-        byHqlStatic.setCollectionInClause(query, subjectIds);
-        query.append(")");
-        List<Member> currentListPerhapsWithExtra = byHqlStatic.createQuery(query.toString())
-          .list(Member.class);
-        //could have two subjects with different sources with same subject id... weed those out
-        Set<Member> currentMembers = removeOverlappingSubjects(currentListPerhapsWithExtra, subjectBatch);
-        result.addAll(currentMembers);
-        
-      }
-      return result;
+   * find subjects which are members of a group, and return those members. Do this
+   * in few queries since we might run out of bind variables
+   * 
+   * NOTE, I DONT THINK IMMEDIATE ONLY AS FALSE WILL WORK, WILL ONLY WORK WITH
+   * IMMEDIATE ONLY
+   * 
+   * @param grouperSession
+   * @param group
+   * @param subjects
+   * @param immediateOnly  true for only immediate, false for immediate and
+   *                       effective
+   * @return the members or none if not allowed
+   */
+  public static Set<Member> convertSubjectsToMembers(GrouperSession grouperSession, Group group, Set<Subject> subjects,
+      boolean immediateOnly) {
+
+    if (!PrivilegeHelper.canViewMembers(grouperSession, group, Group.getDefaultList())) {
+      return new LinkedHashSet<Member>();
     }
 
+    // lets do this in batches
+    List<Subject> subjectsList = GrouperUtil.listFromCollection(subjects);
+
+    int numberOfBatches = GrouperUtil.batchNumberOfBatches(subjectsList, 100);
+
+    Set<Member> result = new LinkedHashSet<Member>();
+
+    for (int i = 0; i < numberOfBatches; i++) {
+      List<Subject> subjectBatch = GrouperUtil.batchList(subjectsList, 100, i);
+
+      // select distinct gm.*
+      // from grouper_members gm, grouper_memberships gms
+      // where gm.id = gms.member_id
+      // and gms.field_id = 'abc' and gms.owner_id = '123'
+      // and gm.subject_id in ('123','234')
+      // and mship_type = 'immediate'
+
+      // lets turn the subjects into subjectIds
+      Set<String> subjectIds = new LinkedHashSet<String>();
+      for (Subject currentSubject : subjectBatch) {
+        subjectIds.add(currentSubject.getId());
+      }
+
+      if (subjectIds.size() == 0) {
+        continue;
+      }
+
+      ByHqlStatic byHqlStatic = HibernateSession.byHqlStatic();
+      StringBuilder query = new StringBuilder("select gm " + "from Member gm, ImmediateMembershipEntry gms "
+          + "where gm.uuid = gms.memberUuid " + "and gms.fieldId = :fieldId " + "and gms.ownerGroupId = :ownerId "
+          + (immediateOnly ? "and gms.type = 'immediate' " : "") + "and gm.subjectIdDb in (");
+
+      // add all the uuids
+      byHqlStatic.setString("fieldId", Group.getDefaultList().getUuid());
+      byHqlStatic.setString("ownerId", group.getUuid());
+      byHqlStatic.setCollectionInClause(query, subjectIds);
+      query.append(")");
+      List<Member> currentListPerhapsWithExtra = byHqlStatic.createQuery(query.toString()).list(Member.class);
+      // could have two subjects with different sources with same subject id... weed
+      // those out
+      Set<Member> currentMembers = removeOverlappingSubjects(currentListPerhapsWithExtra, subjectBatch);
+      result.addAll(currentMembers);
+
+    }
+    return result;
+  }
 
   /**
    * remove duplicates
+   * 
    * @param members
    */
   public static void memberRemoveDuplicates(List<Member> members) {
     if (members == null) {
       return;
     }
-    
+
     Iterator<Member> iterator = members.iterator();
-    //keep track of ones we have seen
+    // keep track of ones we have seen
     Set<MultiKey> uniqueSubjects = new LinkedHashSet<MultiKey>();
-    
-    //loop through all items
-    while(iterator.hasNext()) {
+
+    // loop through all items
+    while (iterator.hasNext()) {
       Member member = iterator.next();
-      
-      //get the key
+
+      // get the key
       MultiKey subjectKey = new MultiKey(member.getSubjectSourceId(), member.getSubjectId());
-      
-      //see if already seen
+
+      // see if already seen
       if (uniqueSubjects.contains(subjectKey)) {
-        //remove if so
+        // remove if so
         iterator.remove();
       } else {
         uniqueSubjects.add(subjectKey);
@@ -691,30 +696,30 @@ public class GrouperUiUtils {
     }
   }
 
-
   /**
    * remove duplicates
+   * 
    * @param subjects
    */
   public static void subjectRemoveDuplicates(List<Subject> subjects) {
     if (subjects == null) {
       return;
     }
-    
+
     Iterator<Subject> iterator = subjects.iterator();
-    //keep track of ones we have seen
+    // keep track of ones we have seen
     Set<MultiKey> uniqueSubjects = new LinkedHashSet<MultiKey>();
-    
-    //loop through all items
-    while(iterator.hasNext()) {
+
+    // loop through all items
+    while (iterator.hasNext()) {
       Subject subject = iterator.next();
-      
-      //get the key
+
+      // get the key
       MultiKey subjectKey = new MultiKey(subject.getId(), subject.getSource().getId());
-      
-      //see if already seen
+
+      // see if already seen
       if (uniqueSubjects.contains(subjectKey)) {
-        //remove if so
+        // remove if so
         iterator.remove();
       } else {
         uniqueSubjects.add(subjectKey);
@@ -722,73 +727,75 @@ public class GrouperUiUtils {
     }
   }
 
-
   /**
-   * remove overlapping subjects from two lists.  i.e. if first is existing, and
-   * second is new, then if we are replacing all members of the group, then the first would
-   * end up being the ones to remove, and the second is the one to add.
-   * this will also remove dupes
+   * remove overlapping subjects from two lists. i.e. if first is existing, and
+   * second is new, then if we are replacing all members of the group, then the
+   * first would end up being the ones to remove, and the second is the one to
+   * add. this will also remove dupes
+   * 
    * @param first
    * @param second
    * @return the overlap, never null
    */
   public static Set<Member> removeOverlappingSubjects(List<Member> first, List<Subject> second) {
-    
+
     Set<Member> overlaps = new LinkedHashSet<Member>();
-    
-    //lets add them to hashes (multikeys)
-    //multikey is the sourceId and subjectId
-    //we use a listordered set so it is a set and a list all in one, unfortunately no generics
+
+    // lets add them to hashes (multikeys)
+    // multikey is the sourceId and subjectId
+    // we use a listordered set so it is a set and a list all in one, unfortunately
+    // no generics
     ListOrderedSet firstHashes = new ListOrderedSet();
     ListOrderedSet secondHashes = new ListOrderedSet();
-    
+
     memberRemoveDuplicates(first);
     subjectRemoveDuplicates(second);
-    
-    //if null no overlap
+
+    // if null no overlap
     if (GrouperUtil.length(first) == 0 || GrouperUtil.length(second) == 0) {
       return overlaps;
     }
-    
-    //put these both in hashes, keep track of hashes
+
+    // put these both in hashes, keep track of hashes
     for (Member member : first) {
       firstHashes.add(new MultiKey(member.getSubjectSourceId(), member.getSubjectId()));
-      
+
     }
     for (Subject subject : second) {
       secondHashes.add(new MultiKey(subject.getSource().getId(), subject.getId()));
     }
-    
-    //now lets go through, and remove if it is (or was) in the other
+
+    // now lets go through, and remove if it is (or was) in the other
     {
-      int i=0;
+      int i = 0;
       Iterator<Member> firstIterator = first.iterator();
       while (firstIterator.hasNext()) {
         Member next = firstIterator.next();
-        MultiKey hash = (MultiKey)firstHashes.get(i);
+        MultiKey hash = (MultiKey) firstHashes.get(i);
         if (secondHashes.contains(hash)) {
           firstIterator.remove();
           overlaps.add(next);
-          
-          //lets add the subject to the Member if not already there, so we dont have to look it up again
-          Subject memberSubject = (Subject)GrouperUtil.fieldValue(next, "subj");
-          if (memberSubject == null ) {
-            int subjectIndex = secondHashes.indexOf(hash);
-            Subject realSubject = second.get(subjectIndex);
-            //a little sanity here
-            if (!StringUtils.equals(realSubject.getId(), next.getSubjectId()) 
-                || !StringUtils.equals(realSubject.getSource().getId(), next.getSubjectSourceId())) {
-              throw new RuntimeException("These should be equal!!!");
-            }
-            GrouperUtil.assignField(next, "subj", realSubject);
-          }
+
+          // lets add the subject to the Member if not already there, so we dont have to
+          // look it up again
+//          Subject memberSubject = (Subject) GrouperUtil.fieldValue(next, "subj");
+//          if (memberSubject == null) {
+//            int subjectIndex = secondHashes.indexOf(hash);
+//            Subject realSubject = second.get(subjectIndex);
+//            // a little sanity here
+//            if (!StringUtils.equals(realSubject.getId(), next.getSubjectId())
+//                || !StringUtils.equals(realSubject.getSource().getId(), next.getSubjectSourceId())) {
+//              throw new RuntimeException("These should be equal!!!");
+//            }
+//            GrouperUtil.assignField(next, "subj", realSubject);
+//          }
         }
         i++;
       }
     }
-      
+
     {
-      int i=0;
+      int i = 0;
       Iterator<Subject> secondIterator = second.iterator();
       while (secondIterator.hasNext()) {
         secondIterator.next();
@@ -800,7 +807,6 @@ public class GrouperUiUtils {
     }
     return overlaps;
   }
-
 
   /**
    * 
@@ -820,9 +826,8 @@ public class GrouperUiUtils {
       }
     }
     return subjects;
-    
-  }
 
+  }
 
   /**
    * 
@@ -832,7 +837,7 @@ public class GrouperUiUtils {
    * @return 0, 1,-1
    */
   public static int compare(String a, String b, boolean ignoreCase) {
-    if (a==b) {
+    if (a == b) {
       return 0;
     }
     if (a == null) {
@@ -847,9 +852,9 @@ public class GrouperUiUtils {
     return a.compareTo(b);
   }
 
-
   /**
    * keep a-z, A-Z, 0-9, underscore, dash
+   * 
    * @param string
    * @return the string (or empty if nothing left
    */
@@ -858,61 +863,62 @@ public class GrouperUiUtils {
       return "";
     }
     StringBuilder result = new StringBuilder();
-    
-    //strip non filename chars
-    for (int i=0;i<string.length();i++) {
+
+    // strip non filename chars
+    for (int i = 0; i < string.length(); i++) {
       char theChar = string.charAt(i);
-      if ((theChar >= 'a' && theChar <= 'z') || (theChar >= 'A' && theChar <= 'Z')
-          || (theChar >= '0' && theChar <= '9') || theChar == '_' || theChar == '-') {
+      if ((theChar >= 'a' && theChar <= 'z') || (theChar >= 'A' && theChar <= 'Z') || (theChar >= '0' && theChar <= '9')
+          || theChar == '_' || theChar == '-') {
         result.append(theChar);
       }
     }
     return result.toString();
   }
 
-
   /**
    * lookup something in nav.properties (localized), substitute args
+   * 
    * @param key
-   * @param blankIfNotFound true if null or blank if not found, else it will return ???key???
-   * @param escapeHtmlArgs if html should be escaped from args
+   * @param blankIfNotFound true if null or blank if not found, else it will
+   *                        return ???key???
+   * @param escapeHtmlArgs  if html should be escaped from args
    * @param args
    * @return the message
    */
   public static String message(String key, boolean blankIfNotFound, boolean escapeHtmlArgs, Object... args) {
     String message = message(key, true);
-    
-    //handle blank
+
+    // handle blank
     if (StringUtils.isBlank(message)) {
       return message(key, blankIfNotFound);
     }
-    
+
     if (GrouperUtil.length(args) == 0) {
       return message;
     }
-  
-    for (int i=0;i<args.length;i++) {
+
+    for (int i = 0; i < args.length; i++) {
       if (args[i] instanceof String) {
-        args[i] = GrouperUiUtils.escapeHtml((String)args[i], true, false);
+        args[i] = GrouperUiUtils.escapeHtml((String) args[i], true, false);
       }
     }
-    
+
     MessageFormat formatter = new MessageFormat("");
-    //note, is this correct?
+    // note, is this correct?
     HttpServletRequest request = GrouperUiFilter.retrieveHttpServletRequest();
     if (request != null) {
       formatter.setLocale(request.getLocale());
     }
-    
+
     formatter.applyPattern(message);
     message = formatter.format(args);
     return message;
-    
-  }
 
+  }
 
   /**
    * lookup something in nav.properties (localized)
+   * 
    * @param key
    * @return the message
    */
@@ -920,164 +926,162 @@ public class GrouperUiUtils {
     return message(key, false);
   }
 
-
   /**
    * lookup something in nav.properties (localized)
+   * 
    * @param key
-   * @param blankIfNotFound true if null or blank if not found, else it will return ???key???
+   * @param blankIfNotFound true if null or blank if not found, else it will
+   *                        return ???key???
    * @return the message
    */
   public static String message(String key, boolean blankIfNotFound) {
-    
+
     HttpServletRequest httpServletRequest = GrouperUiFilter.retrieveHttpServletRequest();
-  
+
     if (blankIfNotFound) {
-      MapBundleWrapper mapBundleWrapper = (MapBundleWrapper)httpServletRequest.getSession().getAttribute("navNullMap");
-      return (String)mapBundleWrapper.get(key);
-      
+      MapBundleWrapper mapBundleWrapper = (MapBundleWrapper) httpServletRequest.getSession().getAttribute("navNullMap");
+      return (String) mapBundleWrapper.get(key);
+
     }
-        
-    LocalizationContext localizationContext = (LocalizationContext)httpServletRequest
-        .getSession().getAttribute("nav");
+
+    LocalizationContext localizationContext = (LocalizationContext) httpServletRequest.getSession().getAttribute("nav");
     ResourceBundle nav = localizationContext.getResourceBundle();
     return nav.getString(key);
   }
 
-
   /**
    * Convenience method to retrieve nav ResourceBundle
-   * @param session 
+   * 
+   * @param session
    * @return the bundle
    */
   public static ResourceBundle getNavResourcesStatic(HttpSession session) {
-    LocalizationContext localizationContext = (LocalizationContext)session.getAttribute("nav");
+    LocalizationContext localizationContext = (LocalizationContext) session.getAttribute("nav");
     ResourceBundle nav = localizationContext.getResourceBundle();
     return nav;
   }
 
-
   /**
    * 
-   * @param subjects to sort and page
+   * @param subjects    to sort and page
    * @param queryPaging
-   * @param searchTerm 
+   * @param searchTerm
    * @return the set of subject, or empty set (never null)
    */
   @SuppressWarnings("unchecked")
   public static Set<Subject> subjectsSortedPaged(Set<Subject> subjects, QueryPaging queryPaging, String searchTerm) {
-    
+
     subjects = GrouperUtil.nonNull(subjects);
-    
-    //if we are getting size, set it
+
+    // if we are getting size, set it
     if (queryPaging.isDoTotalCount()) {
       queryPaging.setTotalRecordCount(subjects.size());
       queryPaging.calculateIndexes();
     }
-  
+
     if (subjects.size() == 0) {
       return subjects;
     }
-    
+
     int maxSubjectSortSize = GrouperUiConfig.retrieveConfig().propertyValueInt("comparator.sort.limit", 400);
-    
-    //see if we should sort
+
+    // see if we should sort
     if (subjects.size() < maxSubjectSortSize) {
-      
-      //lets convert to a wrapper which has a sort field
+
+      // lets convert to a wrapper which has a sort field
       List<SubjectSortWrapper> subjectsSorted = new ArrayList<SubjectSortWrapper>();
       for (Subject subject : subjects) {
         subjectsSorted.add(new SubjectSortWrapper(subject));
       }
-      
-      //sort it
+
+      // sort it
       Collections.sort(subjectsSorted);
-      
-      //convert back to set
+
+      // convert back to set
       subjects = new LinkedHashSet<Subject>(subjectsSorted);
-      
-      //lets bring more important things to the top
+
+      // lets bring more important things to the top
       subjects = SubjectHelper.sortSetForSearch(subjects, searchTerm);
-      
+
     }
-    
-    //get the page
-    
+
+    // get the page
+
     int numberOfPages = GrouperUtil.batchNumberOfBatches(subjects.size(), queryPaging.getPageSize());
-    
-    //dont let a dynamic query let the page number go off the screen
+
+    // dont let a dynamic query let the page number go off the screen
     int pageNumber = numberOfPages >= queryPaging.getPageNumber() ? queryPaging.getPageNumber() : numberOfPages;
-    
-    List<Subject> subjectsList = GrouperUtil.batchList(GrouperUtil.listFromCollection(subjects), 
-        queryPaging.getPageSize(), pageNumber-1);
-    
-    //convert yet again back to set
+
+    List<Subject> subjectsList = GrouperUtil.batchList(GrouperUtil.listFromCollection(subjects),
+        queryPaging.getPageSize(), pageNumber - 1);
+
+    // convert yet again back to set
     subjects = new LinkedHashSet<Subject>(subjectsList);
-    
+
     return subjects;
   }
 
-
   /**
    * 
-   * @param members to sort and page
+   * @param members     to sort and page
    * @param queryPaging
    * @return the set of subject, or empty set (never null)
    */
   @SuppressWarnings("unchecked")
   public static Set<Member> membersSortedPaged(Set<Member> members, QueryPaging queryPaging) {
-    
+
     members = GrouperUtil.nonNull(members);
-    
-    //if we are getting size, set it
+
+    // if we are getting size, set it
     if (queryPaging.isDoTotalCount()) {
       queryPaging.setTotalRecordCount(members.size());
       queryPaging.calculateIndexes();
     }
-  
+
     if (members.size() == 0) {
       return members;
     }
-    
+
     int maxSubjectSortSize = GrouperUiConfig.retrieveConfig().propertyValueInt("comparator.sort.limit", 200);
-    
-    //see if we should sort
+
+    // see if we should sort
     if (members.size() < maxSubjectSortSize) {
-  
+
       List<MemberSortWrapper> membersSorted = new ArrayList<MemberSortWrapper>();
-  
-      //lets convert to a wrapper which has a sort field
+
+      // lets convert to a wrapper which has a sort field
       for (Member member : members) {
         membersSorted.add(new MemberSortWrapper(member));
       }
-      
-      //sort it
+
+      // sort it
       Collections.sort(membersSorted);
-      
-      //convert back to set
+
+      // convert back to set
       members = new LinkedHashSet<Member>();
       for (MemberSortWrapper memberSortWrapper : membersSorted) {
         members.add(memberSortWrapper.getWrappedMember());
       }
     }
-    
-    //get the page
-    
+
+    // get the page
+
     int numberOfPages = GrouperUtil.batchNumberOfBatches(members.size(), queryPaging.getPageSize());
-    
-    //dont let a dynamic query let the page number go off the screen
+
+    // dont let a dynamic query let the page number go off the screen
     int pageNumber = numberOfPages >= queryPaging.getPageNumber() ? queryPaging.getPageNumber() : numberOfPages;
-    
-    List<Member> membersList = GrouperUtil.batchList(new ArrayList<Member>(members), queryPaging.getPageSize(), pageNumber-1);
-    //convert yet again back to set
+
+    List<Member> membersList = GrouperUtil.batchList(new ArrayList<Member>(members), queryPaging.getPageSize(),
+        pageNumber - 1);
+    // convert yet again back to set
     members = new LinkedHashSet<Member>(membersList);
-    
+
     return members;
   }
 
-
-
   /**
    * convert a subject to string for screen
+   * 
    * @param subject
    * @return the string
    */
@@ -1086,9 +1090,9 @@ public class GrouperUiUtils {
     return value;
   }
 
-
   /**
    * convert a subject to string for screen
+   * 
    * @param subject
    * @return the string
    */
@@ -1098,6 +1102,7 @@ public class GrouperUiUtils {
 
   /**
    * convert a subject to string for screen e.g. for tooltip
+   * 
    * @param subject
    * @return the string
    */
@@ -1105,39 +1110,39 @@ public class GrouperUiUtils {
     return convertSubjectToLabelConfigured(subject, true);
   }
 
-
   /**
-   * find a subject based on search string.  must be sourceId||||subjectId 
-   * or a subjectId or subjectIdentifier which is unique
+   * find a subject based on search string. must be sourceId||||subjectId or a
+   * subjectId or subjectIdentifier which is unique
+   * 
    * @param searchString
    * @param exceptionIfNotFound
    * @return the subject
-   * @throws SubjectNotFoundException 
-   * @throws SubjectNotUniqueException 
-   * @throws SourceUnavailableException 
+   * @throws SubjectNotFoundException
+   * @throws SubjectNotUniqueException
+   * @throws SourceUnavailableException
    */
-  public static Subject findSubject(String searchString, boolean exceptionIfNotFound) 
+  public static Subject findSubject(String searchString, boolean exceptionIfNotFound)
       throws SubjectNotFoundException, SubjectNotUniqueException, SourceUnavailableException {
     if (searchString == null) {
       throw new SubjectNotFoundException("Cant find null string");
     }
     Matcher matcher = subjectPattern.matcher(searchString);
-  
-    //if it matches sourceId||||subjectId then we know exactly which subject
+
+    // if it matches sourceId||||subjectId then we know exactly which subject
     if (matcher.matches()) {
       String sourceId = matcher.group(1);
       String subjectId = matcher.group(2);
       return SubjectFinder.findByIdAndSource(subjectId, sourceId, exceptionIfNotFound);
     }
-    
-    //if not, then try to get by subjectId or identifier
+
+    // if not, then try to get by subjectId or identifier
     try {
       return SubjectFinder.findByIdOrIdentifier(searchString, exceptionIfNotFound);
     } catch (SubjectNotUniqueException snue) {
       if (exceptionIfNotFound) {
         throw snue;
       }
-      //ignore
+      // ignore
     }
     if (exceptionIfNotFound) {
       throw new RuntimeException("Cant find subject: '" + searchString + "'");
@@ -1145,67 +1150,64 @@ public class GrouperUiUtils {
     return null;
   }
 
-
   /**
    * make one dhtmlx option
-   * @param result to append to
+   * 
+   * @param result   to append to
    * @param value
    * @param label
    * @param imageUrl
    */
   public static void dhtmlxOptionAppend(StringBuilder result, String value, String label, String imageUrl) {
-    
-    //<option value="1">one</option>
-    result.append("   <option value=\"").append(escapeHtml(StringUtils.defaultString(value), true, false))
-      .append("\"");
-    
-    //only append image if there is one
+
+    // <option value="1">one</option>
+    result.append("   <option value=\"").append(escapeHtml(StringUtils.defaultString(value), true, false)).append("\"");
+
+    // only append image if there is one
     if (!StringUtils.isBlank(imageUrl)) {
       if (!imageUrl.contains("/")) {
         imageUrl = "../../grouperExternal/public/assets/images/" + imageUrl;
       }
-  
+
       result.append(" img_src=\"" + escapeHtml(imageUrl, true) + "\"");
     }
     result.append(">").append(escapeHtml(label, true, false)).append("</option>\n");
   }
 
-
   /**
    * Print some text to the screen
-   * @param string 
+   * 
+   * @param string
    * @param httpContentType e.g. "text/html", "text/xml"
-   * @param includeXmlTag 
-   * @param includeHtmlTag 
+   * @param includeXmlTag
+   * @param includeHtmlTag
    * 
    */
-  public static void printToScreen(String string, HttpContentType httpContentType, 
-      boolean includeXmlTag, boolean includeHtmlTag) {
-  
-    HttpServletResponse response = GrouperUiFilter.retrieveHttpServletResponse(); 
-  
-    //say it is HTML, if not too late
+  public static void printToScreen(String string, HttpContentType httpContentType, boolean includeXmlTag,
+      boolean includeHtmlTag) {
+
+    HttpServletResponse response = GrouperUiFilter.retrieveHttpServletResponse();
+
+    // say it is HTML, if not too late
     if (httpContentType != null && !response.isCommitted()) {
       response.setContentType(httpContentType.getContentType());
     }
-  
-    //just write some stuff
+
+    // just write some stuff
     PrintWriter out = null;
-  
+
     try {
       out = response.getWriter();
     } catch (Exception e) {
       throw new RuntimeException("Cant get response.getWriter: ", e);
     }
-  
+
     if (includeXmlTag) {
-      out.println("<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n"
-        + "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 "
-              + "Transitional//EN\" " +
-                  "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
+      out.println("<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n" + "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 "
+          + "Transitional//EN\" " + "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
     }
-  
-    //see if we should add <html> etc
+
+    // see if we should add <html> etc
     if (includeHtmlTag) {
       out.println("<html><head></head><body>");
       out.println(string);
@@ -1213,14 +1215,14 @@ public class GrouperUiUtils {
     } else {
       out.println(string);
     }
-  
-    out.close();
-  
-  }
 
+    out.close();
+
+  }
 
   /**
    * escape single quotes for javascript
+   * 
    * @param input
    * @return the escaped string
    */
@@ -1228,49 +1230,50 @@ public class GrouperUiUtils {
     return StringUtils.replace(input, "'", "\\'");
   }
 
-
   /**
    * get a cookie value by name, null if not there
+   * 
    * @param prefix
    */
   public static void removeCookiesByPrefix(String prefix) {
     HttpServletResponse httpServletResponse = GrouperUiFilter.retrieveHttpServletResponse();
-    
+
     List<Cookie> cookies = findCookiesByPrefix(prefix);
     for (Cookie cookie : cookies) {
       cookie.setMaxAge(0);
-      //note: this is needed for websec cookies... is it for all cookies?
+      // note: this is needed for websec cookies... is it for all cookies?
       cookie.setPath("/");
       cookie.setValue("");
       httpServletResponse.addCookie(cookie);
-      
+
       if (httpServletResponse.isCommitted()) {
-        LOG.error("Trying to kill cookie: " + cookie.getName() + ", but the response is committed!", new RuntimeException("stack"));
+        LOG.error("Trying to kill cookie: " + cookie.getName() + ", but the response is committed!",
+            new RuntimeException("stack"));
       }
-      
+
     }
   }
 
-
   /**
    * find a cookie or empty list if cant find
+   * 
    * @param name
    * @return the cookies or empty list if not found
    */
   public static List<Cookie> findCookiesByPrefix(String name) {
-    
+
     HttpServletRequest httpServletRequest = GrouperUiFilter.retrieveHttpServletRequest();
     StringBuilder allCookies = null;
     boolean isDebug = LOG.isDebugEnabled();
     if (isDebug) {
       allCookies = new StringBuilder("Looking for cookie with prefix: '" + name + "'");
     }
-  
+
     List<Cookie> cookieList = new ArrayList<Cookie>();
     Cookie[] cookies = httpServletRequest.getCookies();
-    //go through all cookies and find the cookie by name
+    // go through all cookies and find the cookie by name
     int cookiesLength = GrouperUtil.length(cookies);
-    for (int i=0;i<cookiesLength;i++) {
+    for (int i = 0; i < cookiesLength; i++) {
       if (StringUtils.indexOf(cookies[i].getName(), name) == 0) {
         cookieList.add(cookies[i]);
         if (isDebug) {
@@ -1281,7 +1284,7 @@ public class GrouperUiUtils {
           allCookies.append(", Didnt find cookie: " + cookies[i].getName());
         }
       }
-      
+
     }
     if (isDebug) {
       LOG.debug(allCookies.toString());
@@ -1289,9 +1292,9 @@ public class GrouperUiUtils {
     return cookieList;
   }
 
-
   /**
    * get the image name from subject source
+   * 
    * @param sourceId
    * @return the relative path to image path
    */
@@ -1299,21 +1302,19 @@ public class GrouperUiUtils {
     if (subjectImageMap == null) {
       Map<String, String> theSubjectImageMap = new HashMap<String, String>();
       Properties propertiesSettings = GrouperUiConfig.retrieveConfig().properties();
-      
+
       int index = 0;
       while (true) {
-        
-        String sourceName = GrouperUtil.propertiesValue(propertiesSettings, 
-            "grouperUi.subjectImg.sourceId." + index);
-        String imageName = GrouperUtil.propertiesValue(propertiesSettings, 
-            "grouperUi.subjectImg.image." + index);
-        
+
+        String sourceName = GrouperUtil.propertiesValue(propertiesSettings, "grouperUi.subjectImg.sourceId." + index);
+        String imageName = GrouperUtil.propertiesValue(propertiesSettings, "grouperUi.subjectImg.image." + index);
+
         if (StringUtils.isBlank(imageName)) {
           break;
         }
-        
+
         theSubjectImageMap.put(sourceName, imageName);
-        
+
         index++;
       }
       subjectImageMap = theSubjectImageMap;
@@ -1327,6 +1328,7 @@ public class GrouperUiUtils {
 
   /**
    * get a label from a subject based on media.properties
+   * 
    * @param subject
    * @return the relative path to image path
    */
@@ -1345,29 +1347,32 @@ public class GrouperUiUtils {
     Map<String, Object> variableMap = new HashMap<String, Object>();
     variableMap.put("subject", subject);
     variableMap.put("grouperUiUtils", new GrouperUiUtils());
-    String result = GrouperUtil.substituteExpressionLanguage("${subject.getAttributeValue('displayName')}", variableMap);
+    String result = GrouperUtil.substituteExpressionLanguage("${subject.getAttributeValue('displayName')}",
+        variableMap);
     System.out.println(result);
     GrouperSession.stopQuietly(grouperSession);
   }
 
   /**
-   * source id to an id to use to look up thing in the text file for the source (if special chars in source id)
+   * source id to an id to use to look up thing in the text file for the source
+   * (if special chars in source id)
    */
   private static GrouperCache<String, String> sourceIdToSourceTextIdCache = null;
 
   /**
-   * source id to an id to use to look up thing in the text file for the source (if special chars in source id)
-   * (use the source id if not configured to be different)
-   * lazy load
+   * source id to an id to use to look up thing in the text file for the source
+   * (if special chars in source id) (use the source id if not configured to be
+   * different) lazy load
+   * 
    * @return sourceId cache
    */
   private static GrouperCache<String, String> sourceIdToSourceTextIdCache() {
     if (sourceIdToSourceTextIdCache == null) {
-      synchronized(GrouperStartup.class) {
+      synchronized (GrouperStartup.class) {
         if (sourceIdToSourceTextIdCache == null) {
           sourceIdToSourceTextIdCache = new GrouperCache<String, String>(
-              "edu.internet2.middleware.grouper.ui.util.GrouperUiUtils.sourceIdToSourceTextIdCache",
-              2000, false, 60, 60, false);
+              "edu.internet2.middleware.grouper.ui.util.GrouperUiUtils.sourceIdToSourceTextIdCache", 2000, false, 60,
+              60, false);
         }
       }
     }
@@ -1375,23 +1380,26 @@ public class GrouperUiUtils {
   }
 
   /**
-   * convert a source id to a text id (use the source id if not configured to be different)
+   * convert a source id to a text id (use the source id if not configured to be
+   * different)
+   * 
    * @param sourceId
    * @return the text id
    */
   public static String convertSourceIdToTextId(String sourceId) {
     GrouperCache<String, String> theSourceIdToTextIdCache = sourceIdToSourceTextIdCache();
     String textId = theSourceIdToTextIdCache.get(sourceId);
-    
-    //this is optional, if not configured, then just use the sourceId
+
+    // this is optional, if not configured, then just use the sourceId
     if (!StringUtils.isBlank(textId)) {
       return textId;
     }
     return sourceId;
   }
-  
+
   /**
    * get a label from a subject based on media.properties
+   * 
    * @param subject
    * @param tryLong if should see if there is a long version first
    * @return the relative path to image path
@@ -1400,31 +1408,29 @@ public class GrouperUiUtils {
     if (subject == null) {
       return "";
     }
-    //see if it is already computed
+    // see if it is already computed
     if (subject instanceof SubjectSortWrapper) {
-      return ((SubjectSortWrapper)subject).getScreenLabelLong();
+      return ((SubjectSortWrapper) subject).getScreenLabelLong();
     }
-  
+
     if (subjectToScreenEl == null) {
       {
         Map<String, String> theSubjectToScreenEl = new HashMap<String, String>();
         Properties propertiesSettings = GrouperUiConfig.retrieveConfig().properties();
-        
+
         int index = 0;
         while (true) {
-        
-          String sourceName = GrouperUtil.propertiesValue(propertiesSettings, 
-              "grouperUi.subjectImg.sourceId." + index);
-          String screenEl = GrouperUtil.propertiesValue(propertiesSettings, 
-              "grouperUi.subjectImg.screenEl." + index);
-          
+
+          String sourceName = GrouperUtil.propertiesValue(propertiesSettings, "grouperUi.subjectImg.sourceId." + index);
+          String screenEl = GrouperUtil.propertiesValue(propertiesSettings, "grouperUi.subjectImg.screenEl." + index);
+
           if (StringUtils.isBlank(sourceName)) {
             break;
           }
           if (!StringUtils.isBlank(screenEl)) {
             theSubjectToScreenEl.put(sourceName, screenEl);
           }
-          
+
           index++;
         }
         subjectToScreenEl = theSubjectToScreenEl;
@@ -1433,23 +1439,23 @@ public class GrouperUiUtils {
         Map<String, String> theSubjectToScreenElLong = new HashMap<String, String>();
 
         Properties propertiesSettings = GrouperUiConfig.retrieveConfig().properties();
-        
+
         int index = 0;
         while (true) {
-        
-          String sourceName = GrouperUtil.propertiesValue(propertiesSettings, 
+
+          String sourceName = GrouperUtil.propertiesValue(propertiesSettings,
               "grouperUi.subjectImgLong.sourceId." + index);
-          String screenElLong = GrouperUtil.propertiesValue(propertiesSettings, 
+          String screenElLong = GrouperUtil.propertiesValue(propertiesSettings,
               "grouperUi.subjectImgLong.screenEl." + index);
-          
+
           if (StringUtils.isBlank(sourceName)) {
             break;
           }
-          
+
           if (!StringUtils.isBlank(screenElLong)) {
             theSubjectToScreenElLong.put(sourceName, screenElLong);
           }
-          
+
           index++;
         }
         subjectToScreenElLong = theSubjectToScreenElLong;
@@ -1473,7 +1479,7 @@ public class GrouperUiUtils {
       return label;
 
     }
-    //run the screen EL
+    // run the screen EL
     Map<String, Object> variableMap = new HashMap<String, Object>();
     variableMap.put("subject", subject);
     variableMap.put("grouperUiUtils", new GrouperUiUtils());
@@ -1483,6 +1489,7 @@ public class GrouperUiUtils {
 
   /**
    * get a v2 label from a subject based on grouper-ui.properties
+   * 
    * @param subject
    * @return the subject html string
    */
@@ -1490,27 +1497,26 @@ public class GrouperUiUtils {
     if (subject == null) {
       return "";
     }
-  
+
     if (subjectToScreenEl2 == null) {
       {
         Map<String, String> theSubjectToScreenEl = new HashMap<String, String>();
         Properties propertiesSettings = GrouperUiConfig.retrieveConfig().properties();
-        
+
         int index = 0;
         while (true) {
-        
-          String sourceName = GrouperUtil.propertiesValue(propertiesSettings, 
+
+          String sourceName = GrouperUtil.propertiesValue(propertiesSettings,
               "grouperUi.screenLabel2.sourceId." + index);
-          String screenEl = GrouperUtil.propertiesValue(propertiesSettings, 
-              "grouperUi.screenLabel2.screenEl." + index);
-          
+          String screenEl = GrouperUtil.propertiesValue(propertiesSettings, "grouperUi.screenLabel2.screenEl." + index);
+
           if (StringUtils.isBlank(sourceName)) {
             break;
           }
           if (!StringUtils.isBlank(screenEl)) {
             theSubjectToScreenEl.put(sourceName, screenEl);
           }
-          
+
           index++;
         }
         subjectToScreenEl2 = theSubjectToScreenEl;
@@ -1529,7 +1535,7 @@ public class GrouperUiUtils {
       return label;
 
     }
-    //run the screen EL
+    // run the screen EL
     Map<String, Object> variableMap = new HashMap<String, Object>();
     variableMap.put("subject", subject);
     variableMap.put("grouperUiUtils", new GrouperUiUtils());
@@ -1539,6 +1545,7 @@ public class GrouperUiUtils {
 
   /**
    * get a v2 label from a subject based on grouper-ui.properties
+   * 
    * @param subject
    * @return the subject html string
    */
@@ -1554,22 +1561,24 @@ public class GrouperUiUtils {
         Properties propertiesSettings = GrouperUiConfig.retrieveConfig().properties();
 
         String defaultIconEl = GrouperUtil.propertiesValue(propertiesSettings,
-                "grouperUi.screenSubjectIcon2.screenHtmlEl.default");
+            "grouperUi.screenSubjectIcon2.screenHtmlEl.default");
 
         if (StringUtils.isBlank(defaultIconEl)) {
-          defaultIconEl = "${'<i class=\"fa fa-user\"></i> '}";  // fallback in case grouper-ui.base.properties wasn't upgraded
+          defaultIconEl = "${'<i class=\"fa fa-user\"></i> '}"; // fallback in case grouper-ui.base.properties wasn't
+                                                                // upgraded
         }
 
-        String defaultIconHtml = GrouperUtil.substituteExpressionLanguage(defaultIconEl, new HashMap<String, Object>(), false, true, true);
+        String defaultIconHtml = GrouperUtil.substituteExpressionLanguage(defaultIconEl, new HashMap<String, Object>(),
+            false, true, true);
         theSubjectToIconEl.put("", defaultIconHtml); // the default icon will be keyed under subject ID ""
 
         int index = 0;
         while (true) {
 
           String sourceName = GrouperUtil.propertiesValue(propertiesSettings,
-                  "grouperUi.screenSubjectIcon2.sourceId." + index);
+              "grouperUi.screenSubjectIcon2.sourceId." + index);
           String screenEl = GrouperUtil.propertiesValue(propertiesSettings,
-                  "grouperUi.screenSubjectIcon2.screenHtmlEl." + index);
+              "grouperUi.screenSubjectIcon2.screenHtmlEl." + index);
 
           if (StringUtils.isBlank(sourceName)) {
             break;
@@ -1588,9 +1597,9 @@ public class GrouperUiUtils {
     String iconEl = subjectToIconEl2.get(subject.getSource().getId());
 
     if (StringUtils.isBlank(iconEl)) {
-      return subjectToIconEl2.get(""); //default icon
+      return subjectToIconEl2.get(""); // default icon
     }
-    //run the screen EL
+    // run the screen EL
     Map<String, Object> variableMap = new HashMap<String, Object>();
     variableMap.put("subject", subject);
     variableMap.put("grouperUiUtils", new GrouperUiUtils());
@@ -1598,9 +1607,9 @@ public class GrouperUiUtils {
     return result;
   }
 
-
   /**
    * get the class file dir
+   * 
    * @return the class file dir
    */
   public static File classFileDir() {
@@ -1610,10 +1619,10 @@ public class GrouperUiUtils {
     return classFileDir;
   }
 
-
-  /** 
-   * list files with a certain extension.  Note, there cannot be more than 10000
+  /**
+   * list files with a certain extension. Note, there cannot be more than 10000
    * files or exception will be throws
+   * 
    * @param dir
    * @param extension if this is the empty string it should list all
    * @return the array of files
@@ -1624,125 +1633,122 @@ public class GrouperUiUtils {
     return theList;
   }
 
-
-  /** 
-   * list files with a certain extension 
+  /**
+   * list files with a certain extension
+   * 
    * @param dir
    * @param extension if this is the empty string it should list all
-   * @param theList is the current list to append to
+   * @param theList   is the current list to append to
    */
-  public static void listFilesByExtensionRecursiveHelper(File dir, String extension,
-      List<File> theList) {
-    //see if its a directory
+  public static void listFilesByExtensionRecursiveHelper(File dir, String extension, List<File> theList) {
+    // see if its a directory
     if (!dir.exists()) {
       throw new RuntimeException("The directory: " + dir + " does not exist");
     }
     if (!dir.isDirectory()) {
       throw new RuntimeException("The directory: " + dir + " is not a directory");
     }
-  
-    //get the files into a list
+
+    // get the files into a list
     File[] allFiles = listFilesByExtension(dir, extension);
-  
-    //loop through the array
+
+    // loop through the array
     for (int i = 0; i < allFiles.length; i++) {
       if (StringUtils.contains(allFiles[i].getName(), "..")) {
-        continue; //dont go to the parent directory
+        continue; // dont go to the parent directory
       }
-  
+
       if (allFiles[i].isFile()) {
-  
-        //make sure not too big
+
+        // make sure not too big
         if (theList.size() > 10000) {
-          throw new RuntimeException("File list too large: " + dir.getAbsolutePath()
-              + ", " + extension);
+          throw new RuntimeException("File list too large: " + dir.getAbsolutePath() + ", " + extension);
         }
-  
-        //add to list
+
+        // add to list
         theList.add(allFiles[i]);
       } else {
-        //ignore, we will do all dirs in good time
+        // ignore, we will do all dirs in good time
       }
     }
-  
-    //do all the subdirs
+
+    // do all the subdirs
     File[] allSubdirs = listSubdirs(dir);
     int allSubdirsLength = allSubdirs == null ? 0 : allSubdirs.length;
     for (int i = 0; i < allSubdirsLength; i++) {
       listFilesByExtensionRecursiveHelper(allSubdirs[i], extension, theList);
     }
-  
-  }
 
+  }
 
   /**
    * get the subdirs of a dir (not ..)
+   * 
    * @param dir
    * @return the dirs
    */
   public static File[] listSubdirs(File dir) {
-    //see if its a directory
+    // see if its a directory
     if (!dir.exists()) {
       throw new RuntimeException("The directory: " + dir + " does not exist");
     }
     if (!dir.isDirectory()) {
       throw new RuntimeException("The directory: " + dir + " is not a directory");
     }
-  
+
     File[] subdirs = dir.listFiles(new FileFilter() {
-  
+
       public boolean accept(File pathname) {
         if (StringUtils.contains(pathname.getName(), "..")) {
-          return false; //dont go to the parent directory
+          return false; // dont go to the parent directory
         }
-        //allow dirs
+        // allow dirs
         if (pathname.isDirectory()) {
           return true;
         }
-        //must not be a dir
+        // must not be a dir
         return false;
       }
-  
+
     });
-  
+
     return subdirs;
   }
 
-
-  /** 
-   * list files with a certain extension 
+  /**
+   * list files with a certain extension
+   * 
    * @param dir
    * @param extension if this is the empty string it should list all
    * @return the array of files
    */
   public static File[] listFilesByExtension(File dir, String extension) {
     final String finalExtension = extension;
-  
+
     FilenameFilter fileFilter = new FilenameFilter() {
-  
+
       /*
        * @see java.io.FilenameFilter#accept(java.io.File, java.lang.String)
        */
       public boolean accept(File theDir, String name) {
         if ((name != null) && name.endsWith(finalExtension)) {
-          //doubt we would ever look for .., but in case
+          // doubt we would ever look for .., but in case
           if (StringUtils.contains(finalExtension, "..")) {
             return true;
           }
-          //if the file is .., then its not what we are looking for
+          // if the file is .., then its not what we are looking for
           if (StringUtils.contains(name, "..")) {
             return false;
           }
           return true;
         }
-  
+
         return false;
       }
     };
-  
+
     return dir.listFiles(fileFilter);
   }
-
 
   /**
    * convert a boolean to a T or F
@@ -1757,10 +1763,9 @@ public class GrouperUiUtils {
     return theBoolean ? "T" : "F";
   }
 
-
   /**
-   * convert a date to a string using the standard web service pattern
-   * yyyy/MM/dd HH:mm:ss.SSS Note that HH is 0-23
+   * convert a date to a string using the standard web service pattern yyyy/MM/dd
+   * HH:mm:ss.SSS Note that HH is 0-23
    * 
    * @param date
    * @return the string, or null if the date is null
@@ -1774,19 +1779,19 @@ public class GrouperUiUtils {
   }
 
   /**
-   * convert a date to a string using the standard web service pattern
-   * yyyy/MM/dd HH:mm:ss.SSS Note that HH is 0-23
+   * convert a date to a string using the standard web service pattern yyyy/MM/dd
+   * HH:mm:ss.SSS Note that HH is 0-23
    * 
    * @param locale
    * @param date
    * @return the string, or null if the date is null
    */
   public static String dateToString(Locale locale, Date date) {
-    
+
     if (locale == null) {
       return dateToString(date);
     }
-    
+
     if (date == null) {
       return null;
     }
@@ -1794,81 +1799,78 @@ public class GrouperUiUtils {
     return simpleDateFormat.format(date);
   }
 
-
   /**
-   * convert a jsp to string.  This doesnt work from unit tests, but will work from web requests or daemons
+   * convert a jsp to string. This doesnt work from unit tests, but will work from
+   * web requests or daemons
+   * 
    * @param jspName e.g. whatever.jsp, or /somePath/something.jsp
    * @return the eval version of the jsp
    */
   public static String convertJspToString(String jspName) {
-    
-    //default is in the jsp dir
+
+    // default is in the jsp dir
     if (!jspName.contains("/")) {
       jspName = "/jsp/" + jspName;
     }
-    
+
     HttpServlet servlet = GrouperUiFilter.retrieveHttpServlet();
     ServletContext servletContext = servlet.getServletContext();
-    
-    //get this from context not request, since could be in daemon
+
+    // get this from context not request, since could be in daemon
     RequestDispatcher dispatcher = servletContext.getRequestDispatcher(jspName);
-  
+
     HttpServletRequest request = GrouperUiFilter.retrieveHttpServletRequest();
     HttpServletResponse response = GrouperUiFilter.retrieveHttpServletResponse();
-    
-    //RequestDispatcher dispatcher = request.getRequestDispatcher(jspName);
-    //wrap the response so that the output goes to a string
+
+    // RequestDispatcher dispatcher = request.getRequestDispatcher(jspName);
+    // wrap the response so that the output goes to a string
     GenericServletResponseWrapper responseWrapper = new GenericServletResponseWrapper(response);
-      
+
     try {
       dispatcher.include(request, responseWrapper);
     } catch (Exception e) {
       throw new RuntimeException("Problem converting JSP to string: " + jspName, e);
     }
-  
+
     String result = responseWrapper.resultString();
-    
-    //see if we are logging
+
+    // see if we are logging
     if (GrouperUiConfig.retrieveConfig().propertyValueBoolean("grouperUi.logHtml", false)) {
       String logDir = GrouperUiConfig.retrieveConfig().propertyValueString("grouperUi.logHtmlDir");
-      
+
       if (StringUtils.isBlank(logDir)) {
         throw new RuntimeException("Cant log html to file with dir to put files in: grouperUi.logHtmlDir");
       }
-      
+
       File htmlFile = null;
-      
+
       String jspNameforLog = GrouperUtil.suffixAfterChar(jspName, '/');
       jspNameforLog = GrouperUtil.suffixAfterChar(jspNameforLog, '\\');
-      
+
       logDir = GrouperUtil.stripEnd(logDir, "/");
       logDir = GrouperUtil.stripEnd(logDir, "\\");
       Date date = new Date();
-      String logName = logDir  + File.separator + "htmlLog_" 
-        + new SimpleDateFormat("yyyy_MM").format(date)
-        + File.separator + "day_" 
-        + new SimpleDateFormat("dd" + File.separator + "HH_mm_ss_SSS").format(date)
-        + "_" + ((int)(1000 * Math.random())) + "_" + jspNameforLog + ".html";
-        
-      htmlFile = new File(logName);
-      
-      //make parents
-      GrouperUtil.mkdirs(htmlFile.getParentFile());
-      
-      GrouperUtil.saveStringIntoFile(htmlFile, result);
-      
-    }
-  
-    return result;
-    
-  }
+      String logName = logDir + File.separator + "htmlLog_" + new SimpleDateFormat("yyyy_MM").format(date)
+          + File.separator + "day_" + new SimpleDateFormat("dd" + File.separator + "HH_mm_ss_SSS").format(date) + "_"
+          + ((int) (1000 * Math.random())) + "_" + jspNameforLog + ".html";
 
+      htmlFile = new File(logName);
+
+      // make parents
+      GrouperUtil.mkdirs(htmlFile.getParentFile());
+
+      GrouperUtil.saveStringIntoFile(htmlFile, result);
+
+    }
+
+    return result;
+
+  }
 
   /**
    * Convert an XML string to HTML to display on the screen
    * 
-   * @param input
-   *          is the XML to convert
+   * @param input    is the XML to convert
    * @param isEscape true to escape chars, false to unescape
    * 
    * @return the HTML converted string
@@ -1877,13 +1879,11 @@ public class GrouperUiUtils {
     return escapeHtml(input, isEscape, true);
   }
 
-
   /**
    * Convert an XML string to HTML to display on the screen
    * 
-   * @param input
-   *          is the XML to convert
-   * @param isEscape true to escape chars, false to unescape
+   * @param input              is the XML to convert
+   * @param isEscape           true to escape chars, false to unescape
    * @param escapeSingleQuotes true to escape single quotes too
    * 
    * @return the HTML converted string
@@ -1899,14 +1899,14 @@ public class GrouperUiUtils {
       return GrouperUtil.replace(input, HTML_SEARCH_NO_SINGLE, HTML_REPLACE_NO_SINGLE);
     }
     return GrouperUtil.replace(input, HTML_REPLACE_NO_SINGLE, HTML_SEARCH_NO_SINGLE);
-    
+
   }
 
   /**
-   * Escapes XML ( ampersand, lessthan, greater than, double quote), and single quote with slash
+   * Escapes XML ( ampersand, lessthan, greater than, double quote), and single
+   * quote with slash
    * 
-   * @param input
-   *          is the XML to convert
+   * @param input    is the XML to convert
    * @param isEscape true to escape chars, false to unescape
    * 
    * @return the Javascript converted string
@@ -1916,13 +1916,13 @@ public class GrouperUiUtils {
       return GrouperUtil.replace(input, JAVASCRIPT_SEARCH, JAVASCRIPT_REPLACE);
     }
     return GrouperUtil.replace(input, JAVASCRIPT_REPLACE, JAVASCRIPT_SEARCH);
-    
-  }
 
+  }
 
   /**
    * clone a collection, shallow, do not clone all objects inside
-   * @param <T> 
+   * 
+   * @param        <T>
    * @param object
    * @return the cloned collection
    */
@@ -1932,28 +1932,118 @@ public class GrouperUiUtils {
       return null;
     }
     if (object instanceof ArrayList) {
-      return (T)((ArrayList)object).clone();
+      return (T) ((ArrayList) object).clone();
     }
     if (object instanceof LinkedList) {
-      return (T)((LinkedList)object).clone();
+      return (T) ((LinkedList) object).clone();
     }
     if (object instanceof HashSet) {
-      return (T)((HashSet)object).clone();
+      return (T) ((HashSet) object).clone();
     }
     if (object instanceof LinkedHashSet) {
-      return (T)((LinkedHashSet)object).clone();
+      return (T) ((LinkedHashSet) object).clone();
     }
     if (object instanceof HashMap) {
-      return (T)((HashMap)object).clone();
+      return (T) ((HashMap) object).clone();
     }
     if (object instanceof LinkedHashMap) {
-      return (T)((LinkedHashMap)object).clone();
+      return (T) ((LinkedHashMap) object).clone();
     }
     if (object instanceof TreeMap) {
-      return (T)((TreeMap)object).clone();
+      return (T) ((TreeMap) object).clone();
     }
-    //cant clone
+    // cant clone
     throw new RuntimeException("Unsupported object type: " + GrouperUtil.className(object));
+  }
+
+  // UoA customization
+  private static final String NOT_EDITABLE_ATTRIBUTE = "etc:uoa:not_editable_def";
+  private static final String PSPNG_PROVISION_TO_ATTRIBUTE = "etc:pspng:provision_to";
+  private static final String PSPNG_ACTIVEDIRECTORY = "pspng_activedirectory";
+
+  public static boolean isGroupEditable(Group group) {
+    if (group != null) {
+      Set<AttributeAssign> attrs = group.getAttributeDelegate().retrieveAssignmentsByAttributeDef(NOT_EDITABLE_ATTRIBUTE);
+      if (attrs != null && attrs.size() > 0) {
+        return false;
+      }else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  public static Set<Group> filterEditableGroups(Set<Group> groups) {
+    Set<Group> editableGroups = new LinkedHashSet<Group>();
+    if (groups != null && groups.size() > 0) {
+      Iterator<Group> ite = groups.iterator();
+      while (ite.hasNext()) {
+        Group thisGroup = ite.next();
+        if (isGroupEditable(thisGroup)) {
+          editableGroups.add(thisGroup);
+        }
+      }
+    }
+    return editableGroups;
+  }
+
+  public static boolean isInternalGroup(Group group){
+    return group != null && group.getName().startsWith("etc:");
+  }
+
+  public static boolean isGroupSyncAd(Group group) {
+    if (group != null) {
+      String value = group.getAttributeValueDelegate().retrieveValueString(PSPNG_PROVISION_TO_ATTRIBUTE);
+      if (value != null && value.equals(PSPNG_ACTIVEDIRECTORY)) {
+        return true;
+      }else {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * UOA Set attributes on group save
+   * 
+   * @param group
+   * @param syncToActiveDirectory
+   * @return true if change happens
+   */
+  public static boolean setGroupAttributesOnGroupSave(Group group, boolean syncToActiveDirectory) {
+    boolean change = false;
+    if (!isInternalGroup(group)) {
+      boolean isGroupSyncAd = isGroupSyncAd(group);
+      AttributeValueDelegate delegate = group.getAttributeValueDelegate();
+      if (syncToActiveDirectory) {
+        if (!isGroupSyncAd) {
+          delegate.assignValue(PSPNG_PROVISION_TO_ATTRIBUTE, PSPNG_ACTIVEDIRECTORY);
+          change = true;
+        }
+      } else {
+        if (isGroupSyncAd) {
+          delegate.deleteValue(PSPNG_PROVISION_TO_ATTRIBUTE, PSPNG_ACTIVEDIRECTORY);
+          change = true;
+        }
+      }
+
+      // publish_to always set
+      setGroupAttributesOnMembershipChange(group);
+    }
+    return change;
+  }
+
+  /**
+   * UOA Set attributes on membership change
+   *
+   * @param group
+   *
+   */
+  public static void setGroupAttributesOnMembershipChange(Group group) {
+    if (!isInternalGroup(group)) {
+      group.getAttributeDelegate().assignAttributeByName("etc:esb:publish_to");
+    }
   }
 
   /**

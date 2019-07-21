@@ -3,7 +3,7 @@
             <!-- start subject/thisSubjectsStemPrivileges.jsp -->
 
             <%-- show the add member button for privileges --%>
-            <c:set target="${grouperRequestContainer.stemContainer}" property="showAddMember" value="true" />
+            <%--<c:set target="${grouperRequestContainer.stemContainer}" property="showAddMember" value="true" />--%>
             
             <%@ include file="subjectHeader.jsp" %>
 

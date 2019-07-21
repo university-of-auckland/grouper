@@ -367,6 +367,7 @@ public class GrouperStartup {
         re.printStackTrace();
         LOG.error(error, re);
       }
+
       throw re;
     }
   }

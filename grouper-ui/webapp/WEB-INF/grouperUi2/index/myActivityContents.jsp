@@ -1,5 +1,10 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
 
+                <div class="data-table-bottom gradient-background">
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.indexContainer.myActivityGuiPaging}" 
+                    formName="myActivityPagingForm" ajaxFormIds="myActivityForm"
+                    refreshOperation="../app/UiV2Main.myActivitySubmit" />
+                </div>
                 <table class="table table-hover table-bordered table-striped table-condensed data-table table-paths">
                   <thead>
                     <tr>
@@ -21,6 +26,6 @@
                 </table>
                 <div class="data-table-bottom gradient-background">
                   <grouper:paging2 guiPaging="${grouperRequestContainer.indexContainer.myActivityGuiPaging}" 
-                    formName="myActivityPagingForm" ajaxFormIds="myActivityForm"
+                    formName="myActivityPagingForm2" ajaxFormIds="myActivityForm"
                     refreshOperation="../app/UiV2Main.myActivitySubmit" />
                 </div>
