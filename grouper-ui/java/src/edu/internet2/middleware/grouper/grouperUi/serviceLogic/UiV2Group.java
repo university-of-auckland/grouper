@@ -3978,7 +3978,8 @@ public class UiV2Group {
           return theGroup;
         }
 
-        return groupFinder.findGroup();
+        return null;
+
       }
 
       /**
@@ -4002,7 +4003,8 @@ public class UiV2Group {
           groupFinder.assignTypeOfGroups(typesOfGroup);
         }
 
-        return groupFinder.findGroups();
+        // UOA update - only return groups that are editable
+        return GrouperUiUtils.filterEditableGroups(groupFinder.findGroups());
 
       }
 
