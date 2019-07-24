@@ -8,8 +8,14 @@ import edu.internet2.middleware.grouper.attr.finder.AttributeDefNameFinder;
 import edu.internet2.middleware.grouper.exception.GrouperSessionException;
 import edu.internet2.middleware.grouper.internal.dao.QueryOptions;
 import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
+import edu.internet2.middleware.grouper.util.GrouperUtil;
+import org.apache.commons.logging.Log;
 
 public class GrouperObjectTypesAttributeNames {
+  /**
+   * logger
+   */
+  private static final Log LOG = GrouperUtil.getLog(GrouperObjectTypesAttributeNames.class);
   
   /**
    * main attribute definition assigned to groups, folders
@@ -55,31 +61,34 @@ public class GrouperObjectTypesAttributeNames {
    * if this is not a direct assignment, then this is the stem id where it is inherited from
    */
   public static final String GROUPER_OBJECT_TYPE_OWNER_STEM_ID = "grouperObjectTypeOwnerStemId";
-  
-  
+
+  //uoa customise
+  private static AttributeDefName grouperObjectTypeMarkerAttName ;
   /**
    * marker attribute def assigned to stem or group
    * @return the attribute def name
    */
   public static AttributeDefName retrieveAttributeDefNameBase() {
-    
-    AttributeDefName attributeDefName = (AttributeDefName)GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
-      
-      @Override
-      public Object callback(GrouperSession grouperSession)
-          throws GrouperSessionException {
-        
-        return AttributeDefNameFinder.findByName(GrouperObjectTypesSettings.objectTypesStemName()+":"+GROUPER_OBJECT_TYPE_ATTRIBUTE_NAME, false, new QueryOptions().secondLevelCache(false));
-        
+    if (grouperObjectTypeMarkerAttName == null) {
+      AttributeDefName attributeDefName = (AttributeDefName) GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
+
+        @Override
+        public Object callback(GrouperSession grouperSession)
+                throws GrouperSessionException {
+
+          return AttributeDefNameFinder.findByName(GrouperObjectTypesSettings.objectTypesStemName() + ":" + GROUPER_OBJECT_TYPE_ATTRIBUTE_NAME, false, new QueryOptions().secondLevelCache(false));
+
+        }
+
+      });
+
+      if (attributeDefName == null) {
+        throw new RuntimeException("Why cant grouperObjectTypeMarker attribute def name be found?");
       }
-      
-    });
-  
-    if (attributeDefName == null) {
-      throw new RuntimeException("Why cant grouperObjectTypeMarker attribute def name be found?");
+      grouperObjectTypeMarkerAttName = attributeDefName;
     }
     
-    return attributeDefName;
+    return grouperObjectTypeMarkerAttName;
   }
   
   
