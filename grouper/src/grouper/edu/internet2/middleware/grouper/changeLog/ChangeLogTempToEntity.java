@@ -61,6 +61,7 @@ import edu.internet2.middleware.grouper.pit.PITMembership;
 import edu.internet2.middleware.grouper.pit.PITRoleSet;
 import edu.internet2.middleware.grouper.pit.PITStem;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
+import org.hibernate.HibernateException;
 
 /**
  * convert the temp objects to regular objects
@@ -1086,30 +1087,40 @@ public class ChangeLogTempToEntity {
       Long time = changeLogEntry.getCreatedOnDb();
   
       PITMembership pitMembership = pitMembershipsActiveMap.get(id);
-      if (pitMembership == null) {
-        continue;
+      //UOA: Start
+      try {
+        if (pitMembership == null) {
+          continue;
+        }
+
+        pitMembership.setEndTimeDb(time);
+        pitMembership.setActiveDb("F");
+        pitMembership.setMember(pitMembersMap.get(pitMembership.getMemberId()));
+
+        if (!GrouperUtil.isEmpty(changeLogEntry.getContextId())) {
+          pitMembership.setContextId(changeLogEntry.getContextId());
+        }
+
+        boolean includeFlattenedMemberships = GrouperLoaderConfig.retrieveConfig().propertyValueBoolean("changeLog.includeFlattenedMemberships", true);
+        boolean includeFlattenedPrivileges = GrouperLoaderConfig.retrieveConfig().propertyValueBoolean("changeLog.includeFlattenedPrivileges", true);
+        boolean includeRolesWithPermissionChanges = GrouperLoaderConfig.retrieveConfig().propertyValueBoolean("changeLog.includeRolesWithPermissionChanges", false);
+        pitMembership.setNotificationsForRolesWithPermissionChangesOnSaveOrUpdate(includeRolesWithPermissionChanges);
+        pitMembership.setFlatMembershipNotificationsOnSaveOrUpdate(includeFlattenedMemberships);
+        pitMembership.setFlatPrivilegeNotificationsOnSaveOrUpdate(includeFlattenedPrivileges);
+
+        pitMembership.setSaveChangeLogUpdates(false);
+
+        pitMembership.update();
+        changeLogEntriesToSave.addAll(pitMembership.getChangeLogUpdates());
+        pitMembership.clearChangeLogUpdates();
+      } catch(HibernateException e) {
+        LOG.error("Error occurred processMembershipDelete in ChangeLogTempToEntity for subject "+
+                pitMembership.getMember().getSubjectIdentifier0()
+                +" owner Id "+pitMembership.getOwnerId()
+                +" member Id " + pitMembership.getMemberId()
+                +" with exception ", e );
       }
-      
-      pitMembership.setEndTimeDb(time);
-      pitMembership.setActiveDb("F");
-      pitMembership.setMember(pitMembersMap.get(pitMembership.getMemberId()));
-  
-      if (!GrouperUtil.isEmpty(changeLogEntry.getContextId())) {
-        pitMembership.setContextId(changeLogEntry.getContextId());
-      }
-      
-      boolean includeFlattenedMemberships = GrouperLoaderConfig.retrieveConfig().propertyValueBoolean("changeLog.includeFlattenedMemberships", true);
-      boolean includeFlattenedPrivileges = GrouperLoaderConfig.retrieveConfig().propertyValueBoolean("changeLog.includeFlattenedPrivileges", true);
-      boolean includeRolesWithPermissionChanges = GrouperLoaderConfig.retrieveConfig().propertyValueBoolean("changeLog.includeRolesWithPermissionChanges", false);
-      pitMembership.setNotificationsForRolesWithPermissionChangesOnSaveOrUpdate(includeRolesWithPermissionChanges);
-      pitMembership.setFlatMembershipNotificationsOnSaveOrUpdate(includeFlattenedMemberships);
-      pitMembership.setFlatPrivilegeNotificationsOnSaveOrUpdate(includeFlattenedPrivileges);
-      
-      pitMembership.setSaveChangeLogUpdates(false);
-      pitMembership.update();
-      changeLogEntriesToSave.addAll(pitMembership.getChangeLogUpdates());
-      pitMembership.clearChangeLogUpdates();
-      
+      //UOA: End
       if (changeLogEntriesToSave.size() > tooManyChangeLogUpdatesSize) {
         return count;
       }
