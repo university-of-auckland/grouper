@@ -52,33 +52,34 @@ public class UoALdapGroupProvisioner extends LdapGroupProvisioner {
 
     @Override
     protected boolean shouldWorkItemBeProcessed(ProvisioningWorkItem workItem){
-        // Check if we're configured to ignore changes to internal (g:gsa) subjects
-        // (default is that we do ignore such changes)
-        if ( getConfig().areChangesToInternalGrouperSubjectsIgnored() ) {
-            Subject subject = workItem.getSubject(this);
-            if ( subject != null && subject.getSourceId().equalsIgnoreCase("g:gsa") ) {
-                workItem.markAsSkipped("Ignoring event about a g:gsa subject");
-                return false;
+        boolean shouldProcess = super.shouldWorkItemBeProcessed(workItem);
+        if (shouldProcess) {
+            // UoA customised code
+            if (!workItem.matchesChangelogType(uoaAllRelevantChangelogTypes)) {
+                LOG.info(workItem.getChangelogEntry().getChangeLogType() + " is not a type in " + uoaAllRelevantChangelogTypes + ", skip it");
+                workItem.markAsSkipped("Changelog type is not relevant to PSPNG provisioning - uoaAllRelevantChangelogTypes {}", uoaAllRelevantChangelogTypes);
+                shouldProcess = false;
+            } else if (workItem.matchesChangelogType(ChangeLogTypeBuiltin.ATTRIBUTE_ASSIGN_VALUE_ADD)) {
+                if (!isPspAttributeAdd(workItem)) {
+                    LOG.info(workItem.getChangelogEntry().getChangeLogType() + " is not attribute adding for pspng, skip it");
+                    workItem.markAsSkipped("Changelog type is not relevant to PSPNG attribute update {}", PSPNG_PROVISION_TO);
+                    shouldProcess = false;
+                }
+            }else {
+                LOG.info("changeLog " + workItem.getChangelogEntry().getChangeLogType() + " will be processed !!!");
             }
         }
-
-        // UoA customised code
-        if ( !workItem.matchesChangelogType(uoaAllRelevantChangelogTypes) ) {
-            LOG.debug("not a type in " + uoaAllRelevantChangelogTypes);
-            workItem.markAsSkipped("Changelog type is not relevant to PSPNG provisioning - uoaAllRelevantChangelogTypes {}", uoaAllRelevantChangelogTypes);
-            return false;
-        } else {
-            return true;
-        }
+        return shouldProcess;
     }
 
     @Override
     protected GrouperGroupInfo getGroupInfo(ProvisioningWorkItem workItem) {
-        GrouperGroupInfo result = super.getGroupInfo(workItem);
-        if (result == null && isPspAttributeAdd(workItem)){
-            result = getGroupInfoOfAttributeValueAdd(workItem);
+        GrouperGroupInfo groupInfo = super.getGroupInfo(workItem);
+        if (groupInfo == null && isPspAttributeAdd(workItem)){
+            setGroupNameOfAttributeValueAdd(workItem);
+            groupInfo = super.getGroupInfo(workItem);
         }
-        return result;
+        return groupInfo;
     }
 
     private boolean isPspAttributeAdd(ProvisioningWorkItem workItem) {
@@ -87,64 +88,102 @@ public class UoALdapGroupProvisioner extends LdapGroupProvisioner {
                 && workItem.getChangelogEntry().retrieveValueForLabel(ChangeLogLabels.ATTRIBUTE_ASSIGN_VALUE_ADD.value).equals(PSPNG_ACTIVEDIRECTORY);
     }
 
-    private GrouperGroupInfo getGroupInfoOfAttributeValueAdd(ProvisioningWorkItem workItem){
+    private void setGroupNameOfAttributeValueAdd(ProvisioningWorkItem workItem){
         ChangeLogEntry entry = workItem.getChangelogEntry();
         String attributeAssignId = entry.retrieveValueForLabel(ChangeLogLabels.ATTRIBUTE_ASSIGN_VALUE_ADD.attributeAssignId);
-        LOG.debug("attributeAssignId {}", attributeAssignId);
-        GrouperGroupInfo result = null;
         if (attributeAssignId != null) {
             AttributeAssign attributeAssign = GrouperDAOFactory.getFactory().getAttributeAssign()
                     .findById(attributeAssignId, true);
             if (attributeAssign != null) {
                 Group group = attributeAssign.getOwnerGroup();
                 if (group != null) {
-                    result = getGroupInfoOfExistingGroup(group.getName());
                     workItem.groupName = group.getName();
                 }
             }
         }
-        return result;
-    }
-
-    @Override
-    protected void flushCachesIfNecessary(List<ProvisioningWorkItem> allWorkItems)  throws PspException{
-        for (ProvisioningWorkItem workItem : allWorkItems ) {
-            // Skip irrelevant changelog entries
-            if (!workItem.matchesChangelogType(uoaAllRelevantChangelogTypes)) {
-                LOG.debug("{} not in uoaAllRelevantChangelogTypes {}", workItem, uoaAllRelevantChangelogTypes);
-                continue;
-            }
-
-            // Skip changelog entries that don't need cache flushing
-            if (!workItem.matchesChangelogType(uoaRelevantChangesThatNeedGroupCacheFlushing)) {
-                LOG.debug("{} not in uoaRelevantChangesThatNeedGroupCacheFlushing {}", workItem, uoaRelevantChangesThatNeedGroupCacheFlushing);
-                continue;
-            }
-
-            LOG.debug("flushCachesIfNecessary get group information");
-            // We know we need to flush something from the cache. If the entry is group-specific,
-            // we'll only flush that group
-            GrouperGroupInfo groupInfo = getGroupInfo(workItem);
-            LOG.debug("groupInfo for {} is {}",workItem.getChangelogEntry().getChangeLogType().getActionName(), groupInfo);
-            if (workItem.matchesChangelogType(ChangeLogTypeBuiltin.ATTRIBUTE_ASSIGN_VALUE_ADD)) {
-                LOG.debug("attributeName {}", workItem.getAttributeName());
-                LOG.debug("changeLog {}", workItem.getChangelogEntry().toStringReport(true));
-            }
-
-            if (groupInfo != null) {
-                uncacheGroup(groupInfo, null);
-            } else {
-                // Flush everything and return
-                uncacheAllGroups();
-                return;
-            }
-        }
+        LOG.info("workItem group name " + workItem.groupName);
     }
 
     // we don't want that happen in any changes
     @Override
     public boolean workItemShouldBeHandledByFullSyncOfEverything(ProvisioningWorkItem workItem) {
         return false;
+    }
+
+    @Override
+    protected void processIncrementalSyncEvent(ProvisioningWorkItem workItem) throws PspException {
+        ChangeLogEntry entry = workItem.getChangelogEntry();
+
+        if ( entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD))
+        {
+            GrouperGroupInfo grouperGroupInfo = workItem.getGroupInfo(this);
+
+            if ( grouperGroupInfo == null || grouperGroupInfo.hasGroupBeenDeleted() ) {
+                workItem.markAsSkipped("Ignoring membership-add event for group that was deleted");
+                return;
+            }
+
+            if ( !shouldGroupBeProvisioned(grouperGroupInfo) ) {
+                workItem.markAsSkipped("Group %s is not selected to be provisioned", grouperGroupInfo);
+                return;
+            }
+
+            LdapGroup tsGroup = tsGroupCache_shortTerm.get(grouperGroupInfo);
+            Subject subject = workItem.getSubject(this);
+
+            if ( subject == null ) {
+                workItem.markAsSkippedAndWarn("Ignoring membership-add event because subject is no longer in grouper");
+                return;
+            }
+
+            if ( subject.getTypeName().equalsIgnoreCase("group") ) {
+                workItem.markAsSkipped("Nested-group membership skipped");
+                return;
+            }
+
+            LdapUser tsUser = tsUserCache_shortTerm.get(subject);
+
+            if ( config.needsTargetSystemUsers() && tsUser==null ) {
+                workItem.markAsSkippedAndWarn("Skipped: subject doesn't exist in target system");
+                return;
+            }
+
+            addMembership(grouperGroupInfo, tsGroup, subject, tsUser);
+        }
+        else if ( entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE))
+        {
+            GrouperGroupInfo grouperGroupInfo = workItem.getGroupInfo(this);
+
+            if ( grouperGroupInfo==null || grouperGroupInfo.hasGroupBeenDeleted() ) {
+                workItem.markAsSkipped("Ignoring membership-delete event for group that was deleted");
+                return;
+            }
+
+            if ( !shouldGroupBeProvisioned(grouperGroupInfo) ) {
+                workItem.markAsSkipped("Group %s is not selected to be provisioned", grouperGroupInfo);
+                return;
+            }
+
+            LdapGroup tsGroup = tsGroupCache_shortTerm.get(grouperGroupInfo);
+            Subject subject = workItem.getSubject(this);
+
+            if ( subject == null ) {
+                workItem.markAsSkippedAndWarn("Ignoring membership-delete event because subject is no longer in grouper");
+                LOG.warn("Work item ignored: {}", workItem);
+                return;
+            }
+
+            LdapUser tsUser = tsUserCache_shortTerm.get(subject);
+
+            if ( config.needsTargetSystemUsers() && tsUser==null ) {
+                workItem.markAsSkippedAndWarn("Skipped: subject doesn't exist in target system");
+                return;
+            }
+            deleteMembership(grouperGroupInfo, tsGroup, subject, tsUser);
+        } else {
+            LOG.info(workItem.getChangelogEntry().getChangeLogType() + " not uoa incremental sync event");
+            workItem.markAsSkipped("Skipped: " + workItem.getChangelogEntry().getChangeLogType() + " is not relevant to uoa incremental sync events");
+        }
     }
 
 }

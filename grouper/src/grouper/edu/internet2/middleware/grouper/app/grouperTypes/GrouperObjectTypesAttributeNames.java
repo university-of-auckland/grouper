@@ -62,21 +62,18 @@ public class GrouperObjectTypesAttributeNames {
    */
   public static final String GROUPER_OBJECT_TYPE_OWNER_STEM_ID = "grouperObjectTypeOwnerStemId";
 
-  //uoa customise
-  private static AttributeDefName grouperObjectTypeMarkerAttName ;
   /**
    * marker attribute def assigned to stem or group
    * @return the attribute def name
    */
   public static AttributeDefName retrieveAttributeDefNameBase() {
-    if (grouperObjectTypeMarkerAttName == null) {
       AttributeDefName attributeDefName = (AttributeDefName) GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
 
         @Override
         public Object callback(GrouperSession grouperSession)
                 throws GrouperSessionException {
-
-          return AttributeDefNameFinder.findByName(GrouperObjectTypesSettings.objectTypesStemName() + ":" + GROUPER_OBJECT_TYPE_ATTRIBUTE_NAME, false, new QueryOptions().secondLevelCache(false));
+          //uoa customise enable second cache
+          return AttributeDefNameFinder.findByName(GrouperObjectTypesSettings.objectTypesStemName() + ":" + GROUPER_OBJECT_TYPE_ATTRIBUTE_NAME, false, new QueryOptions().secondLevelCache(true));
 
         }
 
@@ -85,10 +82,8 @@ public class GrouperObjectTypesAttributeNames {
       if (attributeDefName == null) {
         throw new RuntimeException("Why cant grouperObjectTypeMarker attribute def name be found?");
       }
-      grouperObjectTypeMarkerAttName = attributeDefName;
-    }
-    
-    return grouperObjectTypeMarkerAttName;
+
+      return attributeDefName;
   }
   
   
@@ -104,7 +99,7 @@ public class GrouperObjectTypesAttributeNames {
         public Object callback(GrouperSession grouperSession)
             throws GrouperSessionException {
           
-          return AttributeDefFinder.findByName(GrouperObjectTypesSettings.objectTypesStemName()+":"+GROUPER_OBJECT_TYPE_DEF, false, new QueryOptions().secondLevelCache(false));
+          return AttributeDefFinder.findByName(GrouperObjectTypesSettings.objectTypesStemName()+":"+GROUPER_OBJECT_TYPE_DEF, false, new QueryOptions().secondLevelCache(true));
           
         }
         

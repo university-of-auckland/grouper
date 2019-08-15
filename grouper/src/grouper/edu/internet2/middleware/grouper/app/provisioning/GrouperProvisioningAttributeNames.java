@@ -83,7 +83,7 @@ public class GrouperProvisioningAttributeNames {
       public Object callback(GrouperSession grouperSession)
           throws GrouperSessionException {
         
-        return AttributeDefNameFinder.findByName(GrouperProvisioningSettings.provisioningConfigStemName()+":"+PROVISIONING_ATTRIBUTE_NAME, false, new QueryOptions().secondLevelCache(false));
+        return AttributeDefNameFinder.findByName(GrouperProvisioningSettings.provisioningConfigStemName()+":"+PROVISIONING_ATTRIBUTE_NAME, false, new QueryOptions().secondLevelCache(true));
         
       }
       
@@ -109,7 +109,7 @@ public class GrouperProvisioningAttributeNames {
       public Object callback(GrouperSession grouperSession)
           throws GrouperSessionException {
         
-        return AttributeDefFinder.findByName(GrouperProvisioningSettings.provisioningConfigStemName()+":"+PROVISIONING_DEF, false, new QueryOptions().secondLevelCache(false));
+        return AttributeDefFinder.findByName(GrouperProvisioningSettings.provisioningConfigStemName()+":"+PROVISIONING_DEF, false, new QueryOptions().secondLevelCache(true));
         
       }
       

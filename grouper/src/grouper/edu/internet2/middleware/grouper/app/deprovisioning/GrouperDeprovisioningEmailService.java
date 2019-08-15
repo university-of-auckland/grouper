@@ -201,6 +201,7 @@ public class GrouperDeprovisioningEmailService {
       String deprovisioningInheritedFromFolderId = attributeValue.getInheritedFromFolderIdString();
       if (deprovisioningInheritedFromFolderId != null) {
         try {
+          // uoa fixed
           Stem configurationStem = StemFinder.findByUuid(GrouperSession.staticGrouperSession(),deprovisioningInheritedFromFolderId, true);
           attributeValue = getDeprovisioningAttributeValue(configurationStem, affiliation.getLabel());
           if (attributeValue != null) {
