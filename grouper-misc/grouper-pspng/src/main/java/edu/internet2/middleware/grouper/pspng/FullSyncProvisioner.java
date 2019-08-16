@@ -19,6 +19,8 @@ package edu.internet2.middleware.grouper.pspng;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import edu.internet2.middleware.grouper.GroupFinder;
+import edu.internet2.middleware.grouper.MembershipFinder;
 import edu.internet2.middleware.grouper.app.loader.db.Hib3GrouperLoaderLog;
 import edu.internet2.middleware.grouper.audit.GrouperEngineBuiltin;
 import edu.internet2.middleware.grouper.hibernate.GrouperContext;
@@ -430,6 +432,16 @@ public class FullSyncProvisioner  {
         }
 
         if ( provisioner.shouldGroupBeProvisioned(grouperGroupInfo) ) {
+            // uoa customise
+            if (grouperGroupInfo.getGrouperGroup() != null) {
+                boolean hasMemberships = new MembershipFinder().assignGroupIds(Arrays.asList(grouperGroupInfo.getGrouperGroup().getId()))
+                        .hasMembership();
+                if (!hasMemberships) {
+                    LOG.info("{} {}: Group has no memberships, skip full-sync", getConfigName(), queueItem.groupName);
+                    return;
+                }
+            }
+
           boolean changesWereMade=false;
 
           for(int i=0; i<provisioner.getConfig().getMaxNumberOfTimesToRepeatedlyFullSyncGroup(); i++) {
@@ -598,6 +610,7 @@ public class FullSyncProvisioner  {
   protected List<FullSyncQueueItem> queueAllGroupsForFullSync(QUEUE_TYPE queue,
                                                               String externalReference,
                                                               String reasonFormat, Object... reasonArgs) throws PspException {
+
     String reason = String.format(reasonFormat, reasonArgs);
     LOG.info("{}: Queuing ({}) all groups for full sync. ({})", getName(), queue.queueName_short, reason);
     List<FullSyncQueueItem> result = new ArrayList<>();
