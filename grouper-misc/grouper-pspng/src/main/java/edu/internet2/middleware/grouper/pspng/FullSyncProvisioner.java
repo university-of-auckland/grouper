@@ -438,6 +438,7 @@ public class FullSyncProvisioner  {
                         .hasMembership();
                 if (!hasMemberships) {
                     LOG.info("{} {}: Group has no memberships, skip full-sync", getConfigName(), queueItem.groupName);
+                    queueItem.processingCompletedSuccessfully("Skipping empty group full-sync, mark as success");
                     return;
                 }
             }
