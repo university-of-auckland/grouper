@@ -429,6 +429,7 @@ public class GuiGroup extends GuiObjectBase implements Serializable {
   }
 
   // uoa customise
+
   public boolean isEditable() {
       return GrouperUiUtils.isGroupEditable(this.group);
   }
@@ -440,6 +441,12 @@ public class GuiGroup extends GuiObjectBase implements Serializable {
   public boolean isInternalGroup() {
     return GrouperUiUtils.isInternalGroup(this.group);
   }
+
+  public boolean isPublishMsg() {
+    return GrouperUiUtils.isGroupPublishMsg(this.group);
+  }
+
+  // end of uoa customise
 
   /**
    * 

@@ -361,9 +361,6 @@ public class UiV2Group {
         return;
       }
 
-      // UOA if we change group membership
-      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
-
       String ownerGroupId = request.getParameter("ownerGroupId");
 
       Group ownerGroup = GroupFinder.findByUuid(grouperSession, ownerGroupId, false);
@@ -435,9 +432,6 @@ public class UiV2Group {
         LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
-
-      // UOA if we change group membership
-      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
       Set<String> membershipsIds = new HashSet<String>();
 
@@ -523,9 +517,6 @@ public class UiV2Group {
         LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
-
-      // UOA if we change group membership
-      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
       String memberId = request.getParameter("memberId");
 
@@ -993,9 +984,6 @@ public class UiV2Group {
         LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
-
-      // UOA if we change group membership
-      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
       String subjectString = request.getParameter("groupAddMemberComboName");
 
@@ -1794,9 +1782,6 @@ public class UiV2Group {
         return;
       }
 
-      // UOA if we change group membership
-      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
-
       String stemId = group.getParentUuid();
 
       GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
@@ -1887,6 +1872,7 @@ public class UiV2Group {
       final boolean attrReadChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrReaders[]"), false);
       final boolean attrUpdateChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrUpdaters[]"), false);
       final boolean syncToActiveDirectory = GrouperUtil.booleanValue(request.getParameter("syncToActiveDirectory[]"), false);
+      final boolean publishMsg = GrouperUtil.booleanValue(request.getParameter("publishMsg"), false);
 
       String groupType = request.getParameter("groupType[]");
 
@@ -1981,7 +1967,8 @@ public class UiV2Group {
                 .save();
 
         // UoA set attributes on group change
-        GrouperUiUtils.setGroupAttributesOnGroupSave(group, syncToActiveDirectory);
+        GrouperUiUtils.setGroupSyncToADOnGroupSave(group, syncToActiveDirectory);
+        GrouperUiUtils.setGroupPublishMsgOnSave(group, publishMsg);
 
       } catch (GrouperValidationException gve) {
         handleGrouperValidationException(guiResponseJs, gve);
@@ -2191,7 +2178,9 @@ public class UiV2Group {
       final boolean attrReadChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrReaders[]"), false);
       final boolean attrUpdateChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrUpdaters[]"), false);
       final boolean cannotAddSelf = GrouperUtil.booleanValue(request.getParameter("groupCreateCannotAddSelfName"), false);
-      final boolean syncToActiveDirectory = GrouperUtil.booleanValue(request.getParameter("syncToActiveDirectory[]"), false);
+      final boolean syncToActiveDirectory = GrouperUtil.booleanValue(request.getParameter("syncToActiveDirectory"), false);
+      final boolean publishMsg = GrouperUtil.booleanValue(request.getParameter("publishMsg"), false);
+
       String groupType = request.getParameter("groupType[]");
 
       final TypeOfGroup typeOfGroup = TypeOfGroup.valueOfIgnoreCase(groupType, true);
@@ -2234,9 +2223,10 @@ public class UiV2Group {
         group = groupSave.save();
 
         // UoA set attributes on group creation
-        boolean synchToAdChanged = GrouperUiUtils.setGroupAttributesOnGroupSave(group, syncToActiveDirectory);
+        boolean synchToAdChanged = GrouperUiUtils.setGroupSyncToADOnGroupSave(group, syncToActiveDirectory);
+        boolean publishMsgChanged = GrouperUiUtils.setGroupPublishMsgOnSave(group, publishMsg);
 
-        boolean madeChange = groupSave.getSaveResultType() != SaveResultType.NO_CHANGE || synchToAdChanged;
+        boolean madeChange = groupSave.getSaveResultType() != SaveResultType.NO_CHANGE || synchToAdChanged || publishMsgChanged;
 
         GroupContainer groupContainer = GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer();
         if (groupContainer.isCannotAddSelfUserCanEdit()) {
@@ -2870,9 +2860,6 @@ public class UiV2Group {
         LOG.warn("Cannot remove members from this group as it is not editable: " + group.getName());
         return;
       }
-
-      // UOA if we change group membership
-      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
       final Set<String> membershipsIds = new HashSet<String>();
 

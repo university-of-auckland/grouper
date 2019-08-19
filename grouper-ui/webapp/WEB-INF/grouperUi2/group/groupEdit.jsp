@@ -51,6 +51,15 @@
                         </label>
                       </div>
                     </div>
+                    <div class="control-group">
+                      <div class="controls">
+                        <label class="checkbox inline">
+                          <input id="publishMsg" name="publishMsg" type="checkbox"
+                            ${grouperRequestContainer.groupContainer.guiGroup.publishMsg ? 'checked="checked"' : '' }/>
+                            ${textContainer.text['publishMsgLabel'] }
+                        </label>
+                      </div>
+                    </div>
                   </c:if>
                   <p class="shownAdvancedProperties"><a href="#" 
                     onclick="$('.hiddenAdvancedProperties').show('slow'); $('.shownAdvancedProperties').hide('slow'); return false;" 

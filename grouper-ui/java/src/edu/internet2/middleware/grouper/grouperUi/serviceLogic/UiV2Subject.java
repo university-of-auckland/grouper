@@ -774,7 +774,6 @@ public class UiV2Subject {
       } else {
 
         boolean madeChanges = group.deleteMember(subject, false);
-        GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
         if (madeChanges) {
     
@@ -845,9 +844,7 @@ public class UiV2Subject {
   
           final Group group = membership.getOwnerGroup();
 
-          GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
-
-          boolean allowed = (Boolean)GrouperSession.callbackGrouperSession(GrouperSession.staticGrouperSession().internal_getRootSession(), 
+          boolean allowed = (Boolean)GrouperSession.callbackGrouperSession(GrouperSession.staticGrouperSession().internal_getRootSession(),
               new GrouperSessionHandler() {
             
             @Override
@@ -1089,9 +1086,6 @@ public class UiV2Subject {
       boolean madeChanges = group.addOrEditMember(subject, defaultPrivs, memberChecked, adminChecked, 
           updateChecked, readChecked, viewChecked, optinChecked, optoutChecked, attrReadChecked, 
           attrUpdateChecked, null, null, false);
-
-      // uoa set publish_to attribute
-      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
       if (madeChanges) {
   
