@@ -79,6 +79,7 @@ public class UoALdapGroupProvisioner extends LdapGroupProvisioner {
             setGroupNameOfAttributeValueAdd(workItem);
             groupInfo = super.getGroupInfo(workItem);
         }
+        LOG.info("workItem group name " + workItem.groupName);
         return groupInfo;
     }
 
@@ -101,7 +102,6 @@ public class UoALdapGroupProvisioner extends LdapGroupProvisioner {
                 }
             }
         }
-        LOG.info("workItem group name " + workItem.groupName);
     }
 
     // we don't want that happen in any changes

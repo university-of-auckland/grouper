@@ -193,7 +193,7 @@ public class ProvisioningWorkItem {
   
   public GrouperGroupInfo getGroupInfo(Provisioner provisioner) {
     // uoa customise
-//	  String groupName = getGroupName();
+	  getGroupName();
 
 //	  if ( groupName == null ) {
 //	    LOG.debug("Group name not found in work item: {}", this);
