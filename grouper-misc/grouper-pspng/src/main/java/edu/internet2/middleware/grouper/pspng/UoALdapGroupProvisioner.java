@@ -186,4 +186,36 @@ public class UoALdapGroupProvisioner extends LdapGroupProvisioner {
         }
     }
 
+    @Override
+    public List<ProvisioningWorkItem> filterWorkItems(List<ProvisioningWorkItem> workItems) throws PspException {
+        List<ProvisioningWorkItem> result = super.filterWorkItems(workItems);
+        LOG.info("super.filterWorkItems returns " + result.size() );
+        List<String> fullSyncGroups = new ArrayList<>();
+        for (ProvisioningWorkItem workItem : result) {
+            // check if pspng attribute change is in the workItems
+            if (isPspAttributeAdd(workItem)) {
+                LOG.info("found full synch process underway for group " + workItem.groupName);
+                fullSyncGroups.add(workItem.groupName);
+            }
+        }
+
+        for (String group : fullSyncGroups) {
+            LOG.info("skipping incremental work items in full synch group");
+
+            workItems.forEach(item -> {
+                if (item.groupName != null && item.groupName.equals(group)
+                        && item.matchesChangelogType(uoaChangelogTypesThatAreHandledIncrementally)){
+                    LOG.info("Ignoring work item " + item + " - group full sync is on the way");
+                    item.markAsSkipped("Ignoring work item because group is on full sync");
+                }
+            });
+
+            // delete incremental workItems for the group
+            result.removeIf(item -> item.groupName != null && item.groupName.equals(group)
+                    && item.matchesChangelogType(uoaChangelogTypesThatAreHandledIncrementally));
+        }
+        LOG.info("Result returned from UoALdapGroupProvisioner " + result.size());
+        return result;
+    }
+
 }
