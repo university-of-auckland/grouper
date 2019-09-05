@@ -306,18 +306,21 @@ public class UiV2Subject {
       }
       
       groups = groupFinder.findGroups();
-      
+
+      // filter out non-editable groups
+      Set<Group> editableGroups = GrouperUiUtils.filterEditableGroups(groups);
+
       guiPaging.setTotalRecordCount(queryOptions.getQueryPaging().getTotalRecordCount());
       
-      if (GrouperUtil.length(groups) == 0) {
+      if (GrouperUtil.length(editableGroups) == 0) {
 
         guiResponseJs.addAction(GuiScreenAction.newInnerHtml("#addGroupResults", 
             TextContainer.retrieveFromRequest().getText().get("subjectViewAddMemberNoSubjectsFound")));
         return;
       }
       
-      Set<GuiGroup> guiGroups = GuiGroup.convertFromGroups(groups);
-      
+      Set<GuiGroup> guiGroups = GuiGroup.convertFromGroups(editableGroups);
+
       subjectContainer.setGuiGroupsAddMember(guiGroups);
   
       guiResponseJs.addAction(GuiScreenAction.newInnerHtmlFromJsp("#addGroupResults", 
@@ -771,6 +774,7 @@ public class UiV2Subject {
       } else {
 
         boolean madeChanges = group.deleteMember(subject, false);
+        GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
         if (madeChanges) {
     
@@ -840,6 +844,8 @@ public class UiV2Subject {
           final Membership membership = new MembershipFinder().addMembershipId(membershipId).findMembership(true);
   
           final Group group = membership.getOwnerGroup();
+
+          GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
           boolean allowed = (Boolean)GrouperSession.callbackGrouperSession(GrouperSession.staticGrouperSession().internal_getRootSession(), 
               new GrouperSessionHandler() {
@@ -1083,7 +1089,10 @@ public class UiV2Subject {
       boolean madeChanges = group.addOrEditMember(subject, defaultPrivs, memberChecked, adminChecked, 
           updateChecked, readChecked, viewChecked, optinChecked, optoutChecked, attrReadChecked, 
           attrUpdateChecked, null, null, false);
-      
+
+      // uoa set publish_to attribute
+      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
+
       if (madeChanges) {
   
         guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success, 

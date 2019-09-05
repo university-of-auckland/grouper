@@ -1,6 +1,10 @@
 <%@ include file="../assetsJsp/commonTaglib.jsp"%>
 
-               <table class="table table-hover table-bordered table-striped table-condensed data-table">
+                <div class="data-table-bottom gradient-background">
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.stemContainer.guiPaging}" formName="stemPagingForm" ajaxFormIds="stemFilterFormId"
+                    refreshOperation="../app/UiV2Stem.filter?stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}" />
+                </div>
+                <table class="table table-hover table-bordered table-striped table-condensed data-table">
                   <thead>
                     <tr>
                       <th class="sorted">${textContainer.text['stemObjectName'] }</th>
@@ -27,6 +31,6 @@
                   </tbody>
                 </table>
                 <div class="data-table-bottom gradient-background">
-                  <grouper:paging2 guiPaging="${grouperRequestContainer.stemContainer.guiPaging}" formName="stemPagingForm" ajaxFormIds="stemFilterFormId"
+                  <grouper:paging2 guiPaging="${grouperRequestContainer.stemContainer.guiPaging}" formName="stemPagingForm2" ajaxFormIds="stemFilterFormId"
                     refreshOperation="../app/UiV2Stem.filter?stemId=${grouperRequestContainer.stemContainer.guiStem.stem.id}" />
                 </div>

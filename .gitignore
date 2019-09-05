@@ -1,3 +1,7 @@
+**/.classpath
+**/.project
+**/.settings
+
 **/target
 **/classes
 **/.idea
@@ -50,3 +54,4 @@ build/
 grouper-misc/googleapps-grouper-provisioner/docker-test/grouper/temp
 
 **/.DS_Store
+grouper-misc/grouperScim/logs/grouper_error.log.2019-06-05

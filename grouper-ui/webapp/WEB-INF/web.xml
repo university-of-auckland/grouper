@@ -47,6 +47,7 @@
   <listener>
     <listener-class>org.owasp.csrfguard.CsrfGuardHttpSessionListener</listener-class>
   </listener>
+
   <servlet>
     <servlet-name>StatusServlet</servlet-name>
     <display-name>Status Servlet</display-name>
@@ -62,6 +63,8 @@
     <servlet-name>OwaspJavaScriptServlet</servlet-name>
     <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
   </servlet>
+
+
   <servlet-mapping>
     <servlet-name>StatusServlet</servlet-name>
     <url-pattern>/status</url-pattern>
@@ -86,7 +89,7 @@
     <servlet-name>OwaspJavaScriptServlet</servlet-name>
     <url-pattern>/grouperExternal/public/OwaspJavaScriptServlet</url-pattern>
   </servlet-mapping>
-  <security-constraint>
+  <!--<security-constraint>
     <web-resource-collection>
       <web-resource-name>UI</web-resource-name>
       <url-pattern>/grouperUi/app/*</url-pattern>
@@ -122,5 +125,5 @@
       The role that is required to log in to the Grouper UI
     </description>
     <role-name>grouper_user</role-name>
-  </security-role>
+  </security-role>-->
 </web-app>

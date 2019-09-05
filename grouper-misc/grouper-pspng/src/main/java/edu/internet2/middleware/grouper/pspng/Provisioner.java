@@ -1226,6 +1226,7 @@ public abstract class Provisioner
 
     try {
       if ( workItem.matchesChangelogType(ChangelogHandlingConfig.changelogTypesThatAreHandledIncrementally) ) {
+        LOG.debug("process incremental change {}", workItem);
         processIncrementalSyncEvent(workItem);
       }
       else if ( workItem.getGroupInfo(this) != null ) {
@@ -1803,6 +1804,8 @@ public abstract class Provisioner
             LOG.error("Problem provisioning {}", workItem, e);
             workItem.markAsFailure(e.getMessage());
           }
+        } else {
+          LOG.debug("workItem already has been provisioned");
         }
       }
 

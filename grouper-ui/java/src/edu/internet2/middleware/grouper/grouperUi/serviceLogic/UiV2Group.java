@@ -362,6 +362,12 @@ public class UiV2Group {
         return;
       }
 
+      // UOA check if group is editable
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Can't remove member from this group as it is not editable: " + group.getName());
+        return;
+      }
+
       String ownerGroupId = request.getParameter("ownerGroupId");
       
       Group ownerGroup = GroupFinder.findByUuid(grouperSession, ownerGroupId, false);
@@ -425,6 +431,12 @@ public class UiV2Group {
       final Group group = retrieveGroupHelper(request, AccessPrivilege.VIEW).getGroup();
   
       if (group == null) {
+        return;
+      }
+
+      // UOA check if group is editable
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
 
@@ -504,6 +516,12 @@ public class UiV2Group {
       final Group group = retrieveGroupHelper(request, AccessPrivilege.UPDATE).getGroup();
   
       if (group == null) {
+        return;
+      }
+
+      // UOA check if group is editable
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
 
@@ -965,6 +983,12 @@ public class UiV2Group {
       final Group group = retrieveGroupHelper(request, AccessPrivilege.UPDATE).getGroup();
   
       if (group == null) {
+        return;
+      }
+
+      // UOA check if group is editable
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Can't remove members from this group as it is not editable: " + group.getName());
         return;
       }
     
@@ -1691,6 +1715,12 @@ public class UiV2Group {
         return;
       }
 
+      // UOA check if group is editable
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Cannot delete group cause it is not editable " + group.getName());
+        return;
+      }
+
       GuiResponseJs guiResponseJs = GuiResponseJs.retrieveGuiResponseJs();
       
       if (GrouperUiConfig.retrieveConfig().propertyValueBoolean("uiV2.group.checkForFactorWhenDeletingGroup", true)) {
@@ -1754,6 +1784,12 @@ public class UiV2Group {
       group = retrieveGroupHelper(request, AccessPrivilege.ADMIN).getGroup();
     
       if (group == null) {
+        return;
+      }
+
+      // UOA check if group is editable
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Cannot delete group cause it is not editable " + group.getName());
         return;
       }
       
@@ -1938,6 +1974,10 @@ public class UiV2Group {
             .assignPrivAllOptout(optoutChecked).assignPrivAllRead(readChecked)
             .assignPrivAllUpdate(updateChecked).assignPrivAllView(viewChecked)
             .save();
+
+        // UoA set attributes on group change
+        GrouperUiUtils.setGroupSyncToADOnGroupSave(group, syncToActiveDirectory);
+        GrouperUiUtils.setGroupPublishMsgOnSave(group, publishMsg);
   
       } catch (GrouperValidationException gve) {
         handleGrouperValidationException(guiResponseJs, gve);
@@ -2187,6 +2227,10 @@ public class UiV2Group {
             .assignPrivAllOptout(optoutChecked).assignPrivAllRead(readChecked)
             .assignPrivAllUpdate(updateChecked).assignPrivAllView(viewChecked);
         group = groupSave.save();
+
+        // UoA set attributes on group creation
+        boolean synchToAdChanged = GrouperUiUtils.setGroupSyncToADOnGroupSave(group, syncToActiveDirectory);
+        boolean publishMsgChanged = GrouperUiUtils.setGroupPublishMsgOnSave(group, publishMsg);
 
         boolean madeChange = groupSave.getSaveResultType() != SaveResultType.NO_CHANGE;
         
@@ -2814,6 +2858,12 @@ public class UiV2Group {
       final Group group = retrieveGroupHelper(request, AccessPrivilege.UPDATE).getGroup();
   
       if (group == null) {
+        return;
+      }
+
+      // UOA check if group is editable
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Cannot remove members from this group as it is not editable: " + group.getName());
         return;
       }
   
@@ -3914,7 +3964,11 @@ public class UiV2Group {
           TypeOfGroup groupType = TypeOfGroup.valueOfIgnoreCase(typeOfGroup, true);
           groupFinder.addTypeOfGroup(groupType);
         }
-        
+        // UOA update - only return group that is editable
+        Group theGroup = groupFinder.findGroup();
+        if (GrouperUiUtils.isGroupEditable(theGroup)) {
+          return theGroup;
+        }
         return groupFinder.findGroup();
       }
   
@@ -3939,7 +3993,8 @@ public class UiV2Group {
           groupFinder.assignTypeOfGroups(typesOfGroup);
         }
         
-        return groupFinder.findGroups();
+        // UOA update - only return groups that are editable
+        return GrouperUiUtils.filterEditableGroups(groupFinder.findGroups());
         
       }
   
@@ -4359,6 +4414,12 @@ public class UiV2Group {
         return;
       }
 
+      // UOA check if group is editable
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Cannot edit this group as it is not editable: " + group.getName());
+        return;
+      }
+
       if (!group.canHavePrivilege(loggedInSubject, AccessPrivilege.READ.getName(), false)) {
         guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error, 
             TextContainer.retrieveFromRequest().getText().get("groupNotAllowedToReadGroup")));
@@ -4555,6 +4616,11 @@ public class UiV2Group {
       group = retrieveGroupHelper(request, AccessPrivilege.UPDATE).getGroup();
       
       if (group == null) {
+        return;
+      }
+      // UOA check if group is editable
+      if (!GrouperUiUtils.isGroupEditable(group)) {
+        LOG.warn("Cannot edit this group as it is not editable: " + group.getName());
         return;
       }
   

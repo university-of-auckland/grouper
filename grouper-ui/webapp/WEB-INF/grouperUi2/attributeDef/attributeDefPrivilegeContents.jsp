@@ -25,8 +25,8 @@
                               <option value="assign_attrViewers">${textContainer.text['attributeDefPrivilegesAssignAttrViewPrivilege'] }</option>
                               <option value="assign_attributeDefAttrReaders">${textContainer.text['attributeDefPrivilegesAssignAttrDefAttributeReadPrivilege'] }</option>
                               <option value="assign_attributeDefAttrUpdaters">${textContainer.text['attributeDefPrivilegesAssignAttrDefAttributeUpdatePrivilege'] }</option>
-                              <option value="assign_attrOptins">${textContainer.text['attributeDefPrivilegesAssignAttrOptinPrivilege'] }</option>
-                              <option value="assign_attrOptouts">${textContainer.text['attributeDefPrivilegesAssignAttrOptoutPrivilege'] }</option>
+                              <%--<option value="assign_attrOptins">${textContainer.text['attributeDefPrivilegesAssignAttrOptinPrivilege'] }</option>--%>
+                              <%--<option value="assign_attrOptouts">${textContainer.text['attributeDefPrivilegesAssignAttrOptoutPrivilege'] }</option>--%>
                               <option value="revoke_attrAdmins">${textContainer.text['attributeDefPrivilegesRevokeAttrAdminPrivilege'] }</option>
                               <option value="revoke_attrUpdaters">${textContainer.text['attributeDefPrivilegesRevokeAttrUpdatePrivilege'] }</option>
                               <option value="revoke_attrReadersAttrUpdaters">${textContainer.text['attributeDefPrivilegesRevokeAttrReadUpdatePrivilege'] }</option>
@@ -34,8 +34,8 @@
                               <option value="revoke_attrViewers">${textContainer.text['attributeDefPrivilegesRevokeAttrViewPrivilege'] }</option>
                               <option value="revoke_attributeDefAttrReaders">${textContainer.text['attributeDefPrivilegesRevokeAttrDefAttributeReadPrivilege'] }</option>
                               <option value="revoke_attributeDefAttrUpdaters">${textContainer.text['attributeDefPrivilegesRevokeAttrDefAttributeUpdatePrivilege'] }</option>
-                              <option value="revoke_attrOptins">${textContainer.text['attributeDefPrivilegesRevokeAttrOptinPrivilege'] }</option>
-                              <option value="revoke_attrOptouts">${textContainer.text['attributeDefPrivilegesRevokeAttrOptoutPrivilege'] }</option>
+                              <%--<option value="revoke_attrOptins">${textContainer.text['attributeDefPrivilegesRevokeAttrOptinPrivilege'] }</option>--%>
+                              <%--<option value="revoke_attrOptouts">${textContainer.text['attributeDefPrivilegesRevokeAttrOptoutPrivilege'] }</option>--%>
                               <option value="revoke_all">${textContainer.text['attributeDefPrivilegesRevokeAttrAllPrivilege'] }</option>
 
                             </select>

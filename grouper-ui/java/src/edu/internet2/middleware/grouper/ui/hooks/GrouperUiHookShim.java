@@ -40,11 +40,11 @@ public class GrouperUiHookShim {
     if (messageTypes.contains(bootstrapAlertType)) {
       throw new RuntimeException("bootstrapAlertType '" + bootstrapAlertType + "' must be one of: " + StringUtils.join(messageTypes, ','));
     }
-    
+
     addScript("$('#messaging').before('<div class=\"messaging row-fluid\""
-        + " style=\"display: block;\"><div role=\"alert\" class=\"alert alert-" + bootstrapAlertType + "\"><button type=\"button\""
-        + " class=\"close\" data-dismiss=\"alert\">x</button>"
-        + GrouperUtil.escapeSingleQuotes(escapedMessage) + "</div></div>');");
+            + " style=\"display: block;\"><div role=\"alert\" class=\"alert alert-" + bootstrapAlertType + "\"><button type=\"button\""
+            + " class=\"close\" data-dismiss=\"alert\">x</button>"
+            + GrouperUtil.escapeSingleQuotes(escapedMessage) + "</div></div>');");
      
   }
 

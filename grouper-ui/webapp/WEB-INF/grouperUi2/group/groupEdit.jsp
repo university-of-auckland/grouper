@@ -41,6 +41,17 @@
                         class="help-block">${textContainer.text['groupCreateDescriptionDescription'] }</span>
                     </div>
                   </div>
+                  <c:if test="${!grouperRequestContainer.groupContainer.guiGroup.internalGroup}">
+                    <div class="control-group">
+                      <div class="controls">
+                        <label class="checkbox inline">
+                          <input id="syncToActiveDirectory" name="syncToActiveDirectory" type="checkbox"
+                            ${grouperRequestContainer.groupContainer.guiGroup.syncAD ? 'checked="checked"' : '' }/>
+                          ${textContainer.text['syncToADLabel'] }
+                        </label>
+                      </div>
+                    </div>
+                  </c:if>
                   <p class="shownAdvancedProperties"><a href="#" 
                     onclick="$('.hiddenAdvancedProperties').show('slow'); $('.shownAdvancedProperties').hide('slow'); return false;" 
                     >${textContainer.text['groupCreateAdvanced'] } <i class="fa fa-angle-down"></i></a></p>
@@ -61,19 +72,19 @@
                             ${grouperRequestContainer.groupContainer.guiGroup.grantAllView ? 'checked="checked"' : '' }                          
                           />${textContainer.text['priv.viewUpper'] }
                         </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_optins" value="true"
-                            ${grouperRequestContainer.groupContainer.guiGroup.grantAllOptin ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.optinUpper'] }
-                        </label>
-                        <label class="checkbox inline">
-                          <input type="checkbox" name="privileges_optouts" value="true"
-                            ${grouperRequestContainer.groupContainer.guiGroup.grantAllOptout ? 'checked="checked"' : '' }                          
-                          />${textContainer.text['priv.optoutUpper'] }
-                        </label>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_optins" value="true"--%>
+                            <%--${grouperRequestContainer.groupContainer.guiGroup.grantAllOptin ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.optinUpper'] }--%>
+                        <%--</label>--%>
+                        <%--<label class="checkbox inline">--%>
+                          <%--<input type="checkbox" name="privileges_optouts" value="true"--%>
+                            <%--${grouperRequestContainer.groupContainer.guiGroup.grantAllOptout ? 'checked="checked"' : '' }                          --%>
+                          <%--/>${textContainer.text['priv.optoutUpper'] }--%>
+                        <%--</label>--%>
                         <label class="checkbox inline">
                           <input type="checkbox" name="privileges_groupAttrReaders" value="true"
-                            ${grouperRequestContainer.groupContainer.guiGroup.grantAllAttrRead ? 'checked="checked"' : '' }                          
+                            ${grouperRequestContainer.groupContainer.guiGroup.grantAllAttrRead ? 'checked="checked"' : '' }
                           />${textContainer.text['priv.groupAttrReadUpper'] }
                         </label>
 

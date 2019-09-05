@@ -37,8 +37,8 @@
                         <option value="viewers">${textContainer.text['groupPrivilegesFilterViewers']}</option>
                         <option value="groupAttrReaders">${textContainer.text['groupPrivilegesFilterAttrReaders']}</option>
                         <option value="groupAttrUpdaters">${textContainer.text['groupPrivilegesFilterAttrUpdaters']}</option>
-                        <option value="optins">${textContainer.text['groupPrivilegesFilterOptins']}</option>
-                        <option value="optouts">${textContainer.text['groupPrivilegesFilterOptouts']}</option>
+                        <%--<option value="optins">${textContainer.text['groupPrivilegesFilterOptins']}</option>--%>
+                        <%--<option value="optouts">${textContainer.text['groupPrivilegesFilterOptouts']}</option>--%>
 
                       </select>
                     </div>

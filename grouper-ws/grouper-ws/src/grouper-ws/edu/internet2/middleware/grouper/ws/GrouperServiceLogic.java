@@ -356,7 +356,7 @@ public class GrouperServiceLogic {
 
                         didntAlreadyExist = group.addMember(subject, FIELD_CALCULATED, false);
 
-                        final boolean dealWithDates = enabledTime != null || disabledTime != null;
+                        final boolean dealWithDates = !didntAlreadyExist || enabledTime != null || disabledTime != null;
                         if (dealWithDates) {
                           //get the membership
                           Membership membership = group.getImmediateMembership(FIELD_CALCULATED, subject, true, true);
