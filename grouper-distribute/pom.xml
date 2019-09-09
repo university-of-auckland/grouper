@@ -89,7 +89,7 @@
                         </goals>
                         <phase>deploy</phase>
                         <configuration>
-                            <file>target/${project.build.finalName}-dist.tar</file>
+                            <file>/opt/jenkins/.m2/repository/edu/internet2/middleware/grouper/grouper-distribute/${version}/${project.build.finalName}-dist.tar</file>
                             <pomFile>pom.xml</pomFile>
                             <url>https://nexus.auckland.ac.nz/nexus/content/repositories/releases</url>
                             <repositoryId>uoa-releases</repositoryId>
