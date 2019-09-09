@@ -33,6 +33,7 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.group.GroupSet;
 import edu.internet2.middleware.grouper.hibernate.HibernateSession;
+import edu.internet2.middleware.grouper.internal.dao.GrouperDAOException;
 import edu.internet2.middleware.grouper.internal.dao.hib3.Hib3GrouperVersioned;
 import edu.internet2.middleware.grouper.internal.util.GrouperUuid;
 import edu.internet2.middleware.grouper.misc.GrouperDAOFactory;
@@ -40,6 +41,7 @@ import edu.internet2.middleware.grouper.privs.AccessPrivilege;
 import edu.internet2.middleware.grouper.privs.AttributeDefPrivilege;
 import edu.internet2.middleware.grouper.privs.NamingPrivilege;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
+import org.apache.commons.logging.Log;
 
 /**
  * @author shilen
@@ -48,6 +50,7 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
 @SuppressWarnings("serial")
 public class PITMembership extends GrouperPIT implements Hib3GrouperVersioned {
 
+  private static final Log LOG = GrouperUtil.getLog(PITMembership.class);
   /** db id for this row */
   public static final String COLUMN_ID = "id";
 
@@ -841,23 +844,48 @@ public class PITMembership extends GrouperPIT implements Hib3GrouperVersioned {
         super.onPostSave(hibernateSession);
         return;
       }
-            
+
       PITField pitMemberField = GrouperDAOFactory.getFactory().getPITField().findBySourceIdActive(immediateGroupSet.getMemberFieldId(), true);
       PITGroupSet pitParent = GrouperDAOFactory.getFactory().getPITGroupSet().findBySourceIdActive(immediateGroupSet.getParentId(), true);
-      
-      pitImmediateGroupSet.setId(GrouperUuid.getUuid());
-      pitImmediateGroupSet.setSourceId(immediateGroupSet.getId());
-      pitImmediateGroupSet.setFieldId(this.getFieldId());
-      pitImmediateGroupSet.setMemberFieldId(pitMemberField.getId());
-      pitImmediateGroupSet.setMemberGroupId(memberGroup.getId());
-      pitImmediateGroupSet.setDepth(1);
-      pitImmediateGroupSet.setParentId(pitParent.getId());
-      pitImmediateGroupSet.setActiveDb("T");
-      pitImmediateGroupSet.setStartTimeDb(this.getStartTimeDb());
-      pitImmediateGroupSet.setContextId(this.getContextId());
-      pitImmediateGroupSet.setFlatMembershipNotificationsOnSaveOrUpdate(this.getFlatMembershipNotificationsOnSaveOrUpdate());
-      pitImmediateGroupSet.setFlatPrivilegeNotificationsOnSaveOrUpdate(this.getFlatPrivilegeNotificationsOnSaveOrUpdate());
-      pitImmediateGroupSet.saveOrUpdate();
+      //UOA: Start
+      boolean pitImmediateGroupSetExists=false;
+
+      LOG.info("Looking up PitGroupSet for existing entry for owner id "+pitParent.getOwnerId()+ "member id" + memberGroup.getId() + " field id "+ this.fieldId);
+      PITGroupSet existingPitImmediateGroupSet = null;
+      try {
+        existingPitImmediateGroupSet=GrouperDAOFactory.getFactory().getPITGroupSet().findActiveImmediateByPITOwnerAndPITMemberAndPITField(
+                pitParent.getOwnerId(), memberGroup.getId(), this.getFieldId());
+        if(existingPitImmediateGroupSet!=null){
+          pitImmediateGroupSetExists=true;
+        }
+        LOG.debug("existingPitImmediateGroupSet is"+ existingPitImmediateGroupSet + " and pitImmediateGroupSetExists "+ pitImmediateGroupSetExists);
+      }catch(GrouperDAOException e){
+        LOG.error("Error occurred onPostSave in PITMembership "
+                +" owner id "+pitParent.getOwnerId()
+                +" member group id "+ memberGroup.getId()
+                +" field id "+ this.getFieldId()
+                +" member group name " + memberGroup.getName()
+                +" member subject identifier "+this.getMember().getSubjectIdentifier0()
+                +" with exception ", e );
+        pitImmediateGroupSetExists=true;
+      }
+
+      if(!pitImmediateGroupSetExists) {
+        pitImmediateGroupSet.setId(GrouperUuid.getUuid());
+        pitImmediateGroupSet.setSourceId(immediateGroupSet.getId());
+        pitImmediateGroupSet.setFieldId(this.getFieldId());
+        pitImmediateGroupSet.setMemberFieldId(pitMemberField.getId());
+        pitImmediateGroupSet.setMemberGroupId(memberGroup.getId());
+        pitImmediateGroupSet.setDepth(1);
+        pitImmediateGroupSet.setParentId(pitParent.getId());
+        pitImmediateGroupSet.setActiveDb("T");
+        pitImmediateGroupSet.setStartTimeDb(this.getStartTimeDb());
+        pitImmediateGroupSet.setContextId(this.getContextId());
+        pitImmediateGroupSet.setFlatMembershipNotificationsOnSaveOrUpdate(this.getFlatMembershipNotificationsOnSaveOrUpdate());
+        pitImmediateGroupSet.setFlatPrivilegeNotificationsOnSaveOrUpdate(this.getFlatPrivilegeNotificationsOnSaveOrUpdate());
+        pitImmediateGroupSet.saveOrUpdate();
+      }
+      //UOA: End
     }
     
     super.onPostSave(hibernateSession);
@@ -868,7 +896,6 @@ public class PITMembership extends GrouperPIT implements Hib3GrouperVersioned {
    */
   @Override
   public void onPostUpdate(HibernateSession hibernateSession) {
-
     // if the member is a group and the membership is ending, add an end time to the PIT immediate group set.
     if (!this.isActive() && this.dbVersion().isActive() && this.getMember().getSubjectTypeId().equals("group")) {
 
@@ -894,8 +921,22 @@ public class PITMembership extends GrouperPIT implements Hib3GrouperVersioned {
       
       // get the PIT immediate group set
       if (pitImmediateGroupSet == null) {
-        pitImmediateGroupSet = GrouperDAOFactory.getFactory().getPITGroupSet().findActiveImmediateByPITOwnerAndPITMemberAndPITField(
-            this.getOwnerId(), memberGroup.getId(), this.getFieldId());
+        //UOA: Start
+        // this may be not required once pit table has no existing duplicates as we are making a check above to prevent duplicates from being added
+        try {
+          pitImmediateGroupSet = GrouperDAOFactory.getFactory().getPITGroupSet().findActiveImmediateByPITOwnerAndPITMemberAndPITField(
+                  this.getOwnerId(), memberGroup.getId(), this.getFieldId());
+        }
+        catch(GrouperDAOException e){
+          LOG.error("Error occurred onPostUpdate in PITMembership for owner id "+ this.getOwnerId()
+                  +" member group id "+ memberGroup.getId()
+                  +" field id "+ this.getFieldId()
+                  + " member group name " + memberGroup.getName()
+                  +" member subject identifier "+this.getMember().getSubjectIdentifier0()
+                  +" with exception ", e );
+          pitImmediateGroupSet=null;
+        }
+        //UOA: End
       }
       
       if (pitImmediateGroupSet == null) {

@@ -77,6 +77,14 @@
                       </label>
                     </div>
                   </div>
+                  <div class="control-group">
+                    <div class="controls">
+                      <label class="checkbox inline">
+                        <input id="publishMsg" name="publishMsg" type="checkbox" />
+                        ${textContainer.text['publishMsgLabel'] }
+                      </label>
+                    </div>
+                  </div>
                   <p class="shownAdvancedProperties"><a href="#" 
                     onclick="$('.hiddenAdvancedProperties').show('slow'); $('.shownAdvancedProperties').hide('slow'); return false;" 
                     >${textContainer.text['groupCreateAdvanced'] } <i class="fa fa-angle-down"></i></a></p>

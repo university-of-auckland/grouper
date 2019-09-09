@@ -324,8 +324,13 @@ public class SyncPITTables {
         if (sendPermissionNotifications) {
           pitMembership.setNotificationsForRolesWithPermissionChangesOnSaveOrUpdate(includeRolesWithPermissionChanges);
         }
-
-        pitMembership.save();
+        try {
+          LOG.info("pitMembership source id " + pitMembership.getSourceId() + ", start time " + pitMembership.getStartTime());
+          pitMembership.save();
+        }catch (Exception e) {
+          LOG.error("Failed to update missing membershipwith ownerId: " + mship.getOwnerId() +
+                  ", memberId: " + mship.getMemberUuid() + ", fieldId: " + mship.getFieldId(),e);
+        }
       }
       
       totalProcessed++;
@@ -865,10 +870,10 @@ public class SyncPITTables {
     for (GroupSet groupSet : groupSets) {
       
       logDetail("Found missing point in time group set with id: " + groupSet.getId());
-            
+
       if (saveUpdates) {
-        
-        // it's possible this was already taken care of... check
+        try{
+          // it's possible this was already taken care of... check
         PITGroupSet check = GrouperDAOFactory.getFactory().getPITGroupSet().findBySourceIdActive(groupSet.getId(), false);
         if (check != null) {
           continue;
@@ -922,8 +927,10 @@ public class SyncPITTables {
           pitGroupSet.setFlatMembershipNotificationsOnSaveOrUpdate(includeFlattenedMemberships);
           pitGroupSet.setFlatPrivilegeNotificationsOnSaveOrUpdate(includeFlattenedPrivileges);
         }
-        
-        pitGroupSet.saveOrUpdate();
+          pitGroupSet.saveOrUpdate();
+        }catch (Exception e){
+          LOG.error("Failed to process pit Group Set ", e);
+        }
       }
       
       totalProcessed++;
@@ -1287,8 +1294,11 @@ public class SyncPITTables {
         if (sendPermissionNotifications) {
           mship.setNotificationsForRolesWithPermissionChangesOnSaveOrUpdate(includeRolesWithPermissionChanges);
         }
-        
-        mship.update();
+        try {
+          mship.update();
+        }catch (Exception e) {
+          LOG.error("Fail to update inactive membership " + mship.getId(), e);
+        }
       }
       
       totalProcessed++;
@@ -1539,8 +1549,11 @@ public class SyncPITTables {
           groupSet.setFlatMembershipNotificationsOnSaveOrUpdate(includeFlattenedMemberships);
           groupSet.setFlatPrivilegeNotificationsOnSaveOrUpdate(includeFlattenedPrivileges);
         }
-        
-        groupSet.saveOrUpdate();     
+        try {
+          groupSet.saveOrUpdate();
+        }catch (Exception e){
+          LOG.error("Fail to update inactive group set " + groupSet.getId(), e);
+        }
       }
       
       totalProcessed++;

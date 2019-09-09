@@ -134,7 +134,7 @@ public abstract class Provisioner
   // have to do extra lookups during the batch).
   // If our config has needsTargetSystemUsers=true, this map is populated by 
   // startProvisioningBatch and emptied by finishProvisioningBatch
-  private Map<Subject, TSUserClass> tsUserCache_shortTerm = new HashMap<Subject, TSUserClass>();
+  protected Map<Subject, TSUserClass> tsUserCache_shortTerm = new HashMap<Subject, TSUserClass>();
   
   
   // Cache TargetSystemGroups by Group. This is a long-lived cache, typically used across
@@ -152,7 +152,7 @@ public abstract class Provisioner
   //
   // This map is populated by startProvisioningBatch and emptied by finishProvisioningBatch
   // if our config has needsTargetSystemGroups=true.
-  private Map<GrouperGroupInfo, TSGroupClass> tsGroupCache_shortTerm = new HashMap<GrouperGroupInfo, TSGroupClass>();
+  protected Map<GrouperGroupInfo, TSGroupClass> tsGroupCache_shortTerm = new HashMap<GrouperGroupInfo, TSGroupClass>();
 
   // This is used during provisioning so everyone can get access to the current
   // work item while we're looping through the work items of a batch
@@ -1266,7 +1266,7 @@ public abstract class Provisioner
   }
 
 
-  private void processIncrementalSyncEvent(ProvisioningWorkItem workItem) throws PspException {
+  protected void processIncrementalSyncEvent(ProvisioningWorkItem workItem) throws PspException {
     ChangeLogEntry entry = workItem.getChangelogEntry();
 
     if ( entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD ))
