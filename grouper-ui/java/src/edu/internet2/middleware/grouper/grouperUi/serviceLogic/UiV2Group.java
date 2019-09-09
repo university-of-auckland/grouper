@@ -16,8 +16,6 @@
 package edu.internet2.middleware.grouper.grouperUi.serviceLogic;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1882,7 +1880,9 @@ public class UiV2Group {
       final boolean optoutChecked = GrouperUtil.booleanValue(request.getParameter("privileges_optouts[]"), false);
       final boolean attrReadChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrReaders[]"), false);
       final boolean attrUpdateChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrUpdaters[]"), false);
-
+      //UOA attributes for group
+      final boolean syncToActiveDirectory = GrouperUtil.booleanValue(request.getParameter("syncToActiveDirectory[]"), false);
+      final boolean publishMsg = GrouperUtil.booleanValue(request.getParameter("publishMsg"), false);
       String groupType = request.getParameter("groupType[]");
       
       final TypeOfGroup typeOfGroup = TypeOfGroup.valueOfIgnoreCase(groupType, true);
@@ -2187,6 +2187,11 @@ public class UiV2Group {
       final boolean attrReadChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrReaders[]"), false);
       final boolean attrUpdateChecked = GrouperUtil.booleanValue(request.getParameter("privileges_groupAttrUpdaters[]"), false);
       final boolean cannotAddSelf = GrouperUtil.booleanValue(request.getParameter("groupCreateCannotAddSelfName"), false);
+      //uoa customization
+      final boolean syncToActiveDirectory = GrouperUtil.booleanValue(request.getParameter("syncToActiveDirectory"), false);
+      final boolean publishMsg = GrouperUtil.booleanValue(request.getParameter("publishMsg"), false);
+
+
       String groupType = request.getParameter("groupType[]");
       
       final TypeOfGroup typeOfGroup = TypeOfGroup.valueOfIgnoreCase(groupType, true);
@@ -2232,8 +2237,8 @@ public class UiV2Group {
         boolean synchToAdChanged = GrouperUiUtils.setGroupSyncToADOnGroupSave(group, syncToActiveDirectory);
         boolean publishMsgChanged = GrouperUiUtils.setGroupPublishMsgOnSave(group, publishMsg);
 
-        boolean madeChange = groupSave.getSaveResultType() != SaveResultType.NO_CHANGE;
-        
+        boolean madeChange = groupSave.getSaveResultType() != SaveResultType.NO_CHANGE || synchToAdChanged || publishMsgChanged;
+
         GroupContainer groupContainer = GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer();
         if (groupContainer.isCannotAddSelfUserCanEdit()) {
           if (cannotAddSelf && !groupContainer.isCannotAddSelfAssignedToGroup()) {

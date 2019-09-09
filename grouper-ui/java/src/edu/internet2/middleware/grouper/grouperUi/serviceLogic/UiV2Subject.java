@@ -774,26 +774,25 @@ public class UiV2Subject {
       } else {
 
         boolean madeChanges = group.deleteMember(subject, false);
-        GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
         if (madeChanges) {
-    
-          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success, 
-              TextContainer.retrieveFromRequest().getText().get("groupDeleteMemberSuccess")));
-              
+
+          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success,
+                  TextContainer.retrieveFromRequest().getText().get("groupDeleteMemberSuccess")));
+
         } else {
-          
+
           //not sure why this would happen (race condition?)
-          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.info, 
-              TextContainer.retrieveFromRequest().getText().get("groupDeleteMemberNoChangesSuccess")));
-    
+          guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.info,
+                  TextContainer.retrieveFromRequest().getText().get("groupDeleteMemberNoChangesSuccess")));
+
         }
       }
-      
+
       filterHelper(request, response, subject);
 
-      GrouperUserDataApi.recentlyUsedMemberAdd(GrouperUiUserData.grouperUiGroupNameForUserData(), 
-          loggedInSubject, subject);
+      GrouperUserDataApi.recentlyUsedMemberAdd(GrouperUiUserData.grouperUiGroupNameForUserData(),
+              loggedInSubject, subject);
 
     } finally {
       GrouperSession.stopQuietly(grouperSession);
@@ -815,78 +814,76 @@ public class UiV2Subject {
 
     try {
       grouperSession = GrouperSession.start(loggedInSubject);
-  
+
       final Subject subject = retrieveSubjectHelper(request);
-  
+
       if (subject == null) {
         return;
       }
-  
+
       Set<String> membershipsIds = new HashSet<String>();
-      
+
       for (int i=0;i<1000;i++) {
         String membershipId = request.getParameter("membershipRow_" + i + "[]");
         if (!StringUtils.isBlank(membershipId)) {
           membershipsIds.add(membershipId);
         }
       }
-  
+
       if (membershipsIds.size() == 0) {
-        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error, 
-            TextContainer.retrieveFromRequest().getText().get("subjectMembershipsRemoveNoGroupSelects")));
+        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error,
+                TextContainer.retrieveFromRequest().getText().get("subjectMembershipsRemoveNoGroupSelects")));
         return;
       }
       int successes = 0;
       int failures = 0;
-      
+
       for (String membershipId : membershipsIds) {
         try {
           final Membership membership = new MembershipFinder().addMembershipId(membershipId).findMembership(true);
-  
+
           final Group group = membership.getOwnerGroup();
 
-          GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
+          boolean allowed = (Boolean)GrouperSession.callbackGrouperSession(GrouperSession.staticGrouperSession().internal_getRootSession(),
+                  new GrouperSessionHandler() {
 
-          boolean allowed = (Boolean)GrouperSession.callbackGrouperSession(GrouperSession.staticGrouperSession().internal_getRootSession(), 
-              new GrouperSessionHandler() {
-            
-            @Override
-            public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
-              if (group.canHavePrivilege(loggedInSubject, AccessPrivilege.UPDATE.getName(), false)) {
-                return true;
-              }
-              return false;
-            }
-          });
-          
+                    @Override
+                    public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
+                      if (group.canHavePrivilege(loggedInSubject, AccessPrivilege.UPDATE.getName(), false)) {
+                        return true;
+                      }
+                      return false;
+                    }
+                  });
+
           if (!allowed) {
             failures++;
           } else {
             group.deleteMember(membership.getMember(), false);
             successes++;
           }
-          
+
         } catch (Exception e) {
           LOG.warn("Error with membership: " + membershipId + ", user: " + loggedInSubject, e);
           failures++;
         }
       }
-  
+
       GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().setSuccessCount(successes);
       GrouperRequestContainer.retrieveFromRequestOrCreate().getGroupContainer().setFailureCount(failures);
-  
+
       if (failures > 0) {
-        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error, 
-            TextContainer.retrieveFromRequest().getText().get("groupDeleteMembersErrors")));
+        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.error,
+                TextContainer.retrieveFromRequest().getText().get("groupDeleteMembersErrors")));
       } else {
-        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success, 
-            TextContainer.retrieveFromRequest().getText().get("groupDeleteMembersSuccesses")));
+        guiResponseJs.addAction(GuiScreenAction.newMessage(GuiMessageType.success,
+                TextContainer.retrieveFromRequest().getText().get("groupDeleteMembersSuccesses")));
       }
-      
+
       filterHelper(request, response, subject);
-  
-      GrouperUserDataApi.recentlyUsedMemberAdd(GrouperUiUserData.grouperUiGroupNameForUserData(), 
-          loggedInSubject, subject);
+
+      GrouperUserDataApi.recentlyUsedMemberAdd(GrouperUiUserData.grouperUiGroupNameForUserData(),
+              loggedInSubject, subject);
 
     } finally {
       GrouperSession.stopQuietly(grouperSession);
@@ -1090,8 +1087,6 @@ public class UiV2Subject {
           updateChecked, readChecked, viewChecked, optinChecked, optoutChecked, attrReadChecked, 
           attrUpdateChecked, null, null, false);
 
-      // uoa set publish_to attribute
-      GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
 
       if (madeChanges) {
   

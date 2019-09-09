@@ -624,8 +624,6 @@ public class UiV2GroupImport {
 
         final Group group = groupIterator.next();
 
-        GrouperUiUtils.setGroupAttributesOnMembershipChange(group);
-
         {
           // remove groups that cannot be viewed
           boolean canView = (Boolean) GrouperSession.callbackGrouperSession(

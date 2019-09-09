@@ -56,7 +56,9 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.jstl.fmt.LocalizationContext;
 
 import edu.internet2.middleware.grouper.attr.assign.AttributeAssign;
+import edu.internet2.middleware.grouper.attr.finder.AttributeDefNameFinder;
 import edu.internet2.middleware.grouper.attr.value.AttributeValueDelegate;
+import edu.internet2.middleware.grouper.internal.dao.QueryOptions;
 import net.sf.json.JSONArray;
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.collections.set.ListOrderedSet;
@@ -1938,6 +1940,7 @@ public class GrouperUiUtils {
   private static final String NOT_EDITABLE_ATTRIBUTE = "etc:uoa:not_editable_def";
   private static final String PSPNG_PROVISION_TO_ATTRIBUTE = "etc:pspng:provision_to";
   private static final String PSPNG_ACTIVEDIRECTORY = "pspng_activedirectory";
+  private static final String PUBLISH_TO_ATTRIBUTE = "etc:esb:publish_to";
 
   public static boolean isGroupEditable(Group group) {
     if (group != null) {
@@ -1982,14 +1985,22 @@ public class GrouperUiUtils {
     return false;
   }
 
+  public static boolean isGroupPublishMsg(Group group) {
+    if (group != null) {
+      AttributeDefName publishTo = AttributeDefNameFinder.findByName(PUBLISH_TO_ATTRIBUTE, true, new QueryOptions().secondLevelCache(true));
+      return group.getAttributeDelegate().hasAttribute(publishTo);
+    }
+    return false;
+  }
+
   /**
    * UOA Set attributes on group save
-   * 
+   *
    * @param group
    * @param syncToActiveDirectory
    * @return true if change happens
    */
-  public static boolean setGroupAttributesOnGroupSave(Group group, boolean syncToActiveDirectory) {
+  public static boolean setGroupSyncToADOnGroupSave(Group group, boolean syncToActiveDirectory) {
     boolean change = false;
     if (!isInternalGroup(group)) {
       boolean isGroupSyncAd = isGroupSyncAd(group);
@@ -2005,9 +2016,6 @@ public class GrouperUiUtils {
           change = true;
         }
       }
-
-      // publish_to always set
-      setGroupAttributesOnMembershipChange(group);
     }
     return change;
   }
@@ -2016,13 +2024,28 @@ public class GrouperUiUtils {
    * UOA Set attributes on membership change
    *
    * @param group
+   * @param publishMsg
+   * @return true if changed
    *
    */
-  public static void setGroupAttributesOnMembershipChange(Group group) {
+  public static boolean setGroupPublishMsgOnSave(Group group, boolean publishMsg) {
+    boolean change = false;
     if (!isInternalGroup(group)) {
-      group.getAttributeDelegate().assignAttributeByName("etc:esb:publish_to");
+      AttributeAssignGroupDelegate delegate = group.getAttributeDelegate();
+      AttributeDefName publishTo = AttributeDefNameFinder.findByName(PUBLISH_TO_ATTRIBUTE, true, new QueryOptions().secondLevelCache(true));
+      boolean hasPublishToFlag = isGroupPublishMsg(group);
+      if (publishMsg && !hasPublishToFlag) {
+        delegate.assignAttribute(publishTo);
+        change = true;
+      }else if (!publishMsg && hasPublishToFlag) {
+        delegate.removeAttribute(publishTo);
+        change = true;
+      }
     }
+    return change;
   }
+
+  /* end of uoa customisation*/
 
   /**
    * Return either the root stem, or the one configured by default.browse.stem.uiv2.menu and default.browse.stem
