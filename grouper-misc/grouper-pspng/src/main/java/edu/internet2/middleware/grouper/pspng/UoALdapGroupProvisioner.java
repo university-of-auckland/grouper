@@ -8,6 +8,9 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.misc.GrouperDAOFactory;
 import edu.internet2.middleware.subject.Subject;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -216,6 +219,49 @@ public class UoALdapGroupProvisioner extends LdapGroupProvisioner {
         }
         LOG.info("Result returned from UoALdapGroupProvisioner " + result.size());
         return result;
+    }
+
+    private String getDnFromLdif(String ldif) throws IOException {
+        Reader reader = new StringReader(ldif);
+        LdifReader ldifReader = new LdifReader(reader);
+        SearchResult ldifResult = ldifReader.read();
+        LdapEntry ldifEntry = ldifResult.getEntry();
+
+        // Update DN to be relative to groupCreationBaseDn
+        String actualDn = String.format("%s,%s", ldifEntry.getDn(),config.getGroupCreationBaseDn());
+//        ldifEntry.setDn(actualDn);
+        return actualDn;
+    }
+
+    @Override
+    protected Map<GrouperGroupInfo, LdapGroup> fetchTargetSystemGroups(
+            Collection<GrouperGroupInfo> grouperGroupsToFetch) throws PspException {
+        LOG.debug("{} fetchTargetSystemGroups {}", getDisplayName(), grouperGroupsToFetch.size());
+        Map<GrouperGroupInfo, LdapGroup> result = new HashMap<GrouperGroupInfo, LdapGroup>();
+        if ( grouperGroupsToFetch.size() > config.getGroupSearch_batchSize() )
+            throw new IllegalArgumentException("LdapGroupProvisioner.fetchTargetSystemGroups: invoked with too many groups to fetch");
+
+        // If this is a full-sync provisioner, then we want to make sure we get the member attribute of the
+        // group so we see all members.
+        LOG.info("calling getLdapAttributesToFetch");
+        String[] returnAttributes = getLdapAttributesToFetch();
+
+        for (GrouperGroupInfo grouperGroup : grouperGroupsToFetch) {
+            LOG.debug("{} fetch group {}", getDisplayName(), grouperGroup.getName());
+
+            String ldifFromTemplate = getGroupLdifFromTemplate(grouperGroup);
+            try {
+                String dn = getDnFromLdif(ldifFromTemplate);
+                LdapObject ldapObject = getLdapSystem().performLdapRead(dn, returnAttributes);
+
+                result.put(grouperGroup, new LdapGroup(ldapObject));
+            } catch (IOException e) {
+                LOG.error("{} Exception caught, skip group {}", getDisplayName(), grouperGroup.getName(), e);
+            }
+        }
+        LOG.debug("{}: Group match fetch result returned {} groups", getDisplayName(), result.size());
+        return result;
+
     }
 
 }

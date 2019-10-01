@@ -425,7 +425,7 @@ public class LdapGroupProvisioner extends LdapProvisioner<LdapGroupProvisionerCo
    * @return
    * @throws PspException
    */
-  private String getGroupLdifFromTemplate(GrouperGroupInfo grouperGroup) throws PspException {
+  protected String getGroupLdifFromTemplate(GrouperGroupInfo grouperGroup) throws PspException {
     String ldif = config.getGroupCreationLdifTemplate();
     ldif = ldif.replaceAll("\\|\\|", "\n");
     ldif = evaluateJexlExpression("GroupTemplate", ldif, null, null, grouperGroup, null);
@@ -442,6 +442,7 @@ public class LdapGroupProvisioner extends LdapProvisioner<LdapGroupProvisionerCo
     
     // If this is a full-sync provisioner, then we want to make sure we get the member attribute of the
     // group so we see all members.
+      LOG.info("calling getLdapAttributesToFetch");
     String[] returnAttributes = getLdapAttributesToFetch();
 
     if ( grouperGroupsToFetch.size() > 1 && config.isBulkGroupSearchingEnabled() ) {
@@ -561,7 +562,7 @@ public class LdapGroupProvisioner extends LdapProvisioner<LdapGroupProvisionerCo
     return result;
 }
 
-  private String[] getLdapAttributesToFetch() {
+  protected String[] getLdapAttributesToFetch() {
     String returnAttributes[] = config.getGroupSearchAttributes();
     if ( fullSyncMode ) {
       LOG.debug("Fetching membership attribute, too");
@@ -575,7 +576,7 @@ public class LdapGroupProvisioner extends LdapProvisioner<LdapGroupProvisionerCo
   }
 
 
-  private SearchFilter getGroupLdapFilter(GrouperGroupInfo grouperGroup) throws PspException {
+  protected SearchFilter getGroupLdapFilter(GrouperGroupInfo grouperGroup) throws PspException {
     String result = evaluateJexlExpression("SingleGroupSearchFilter", config.getSingleGroupSearchFilter(), null, null, grouperGroup, null);
     if ( StringUtils.isEmpty(result) )
       throw new RuntimeException("Group searching requires singleGroupSearchFilter to be configured correctly");
