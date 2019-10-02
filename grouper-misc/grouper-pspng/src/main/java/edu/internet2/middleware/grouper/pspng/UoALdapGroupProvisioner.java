@@ -13,6 +13,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.*;
 
+import org.ldaptive.io.LdifReader;
+import org.ldaptive.*;
+
 /**
  * Created by wwan174 on 6/05/2019.
  */
