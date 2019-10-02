@@ -13,6 +13,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.*;
 
+import org.ldaptive.io.LdifReader;
+import org.ldaptive.*;
+
 /**
  * Created by wwan174 on 6/05/2019.
  */
@@ -108,10 +111,10 @@ public class UoALdapGroupProvisioner extends LdapGroupProvisioner {
     }
 
     // we don't want that happen in any changes
-    @Override
-    public boolean workItemShouldBeHandledByFullSyncOfEverything(ProvisioningWorkItem workItem) {
-        return false;
-    }
+//    @Override
+//    public boolean workItemShouldBeHandledByFullSyncOfEverything(ProvisioningWorkItem workItem) {
+//        return false;
+//    }
 
     @Override
     protected void processIncrementalSyncEvent(ProvisioningWorkItem workItem) throws PspException {

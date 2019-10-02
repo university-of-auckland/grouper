@@ -19,16 +19,28 @@
  */
 package edu.internet2.middleware.grouper.attr.finder;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+
+import org.apache.commons.lang.StringUtils;
 
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.attr.AttributeDef;
+import edu.internet2.middleware.grouper.attr.AttributeDefName;
 import edu.internet2.middleware.grouper.attr.assign.AttributeAssign;
+import edu.internet2.middleware.grouper.attr.assign.AttributeAssignType;
 import edu.internet2.middleware.grouper.cfg.GrouperConfig;
 import edu.internet2.middleware.grouper.exception.AttributeAssignNotFoundException;
+import edu.internet2.middleware.grouper.exception.GrouperSessionException;
+import edu.internet2.middleware.grouper.internal.dao.QueryOptions;
 import edu.internet2.middleware.grouper.misc.GrouperDAOFactory;
+import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
 import edu.internet2.middleware.grouper.privs.PrivilegeHelper;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 
@@ -38,6 +50,96 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
  */
 public class AttributeAssignFinder {
 
+  /**
+   * scope for a subject if filtering by owner of member or membership
+   */
+  private String scopeSubject;
+
+  /**
+   * scope for a subject if filtering by owner of member or membership
+   * @param theScopeSubject
+   * @return this for chaining
+   */
+  public AttributeAssignFinder assignScopeSubject(String theScopeSubject) {
+    this.scopeSubject = theScopeSubject;
+    return this;
+  }
+  
+  /**
+   * if scope of subject should be split by whitespace, by default yes
+   */
+  private Boolean splitScopeSubject;
+  
+  /**
+   * if scope of subject should be split by whitespace, by default yes
+   * @param theSplitScopeSubject1
+   * @return this for chaining
+   */
+  public AttributeAssignFinder assignSplitScopeSubject(boolean theSplitScopeSubject1) {
+    this.splitScopeSubject = theSplitScopeSubject1;
+    return this;
+  }
+
+  /**
+   * if filtering by owner, this is the filter
+   */
+  private String scope;
+  
+  /**
+   * filter by owner
+   * @param theScope
+   * @return this for chaining
+   */
+  public AttributeAssignFinder assignScope(String theScope) {
+    this.scope = theScope;
+    return this;
+  }
+  
+  /**
+   * if scope should be split by whitespace, by default yes
+   */
+  private Boolean splitScope = null;
+  
+  /**
+   * if scope should be split by whitespace, by default yes
+   * @param theSplitScope
+   * @return this for chaining
+   */
+  public AttributeAssignFinder assignSplitScope(boolean theSplitScope) {
+    this.splitScope = theSplitScope;
+    return this;
+  }
+  
+  /**
+   * if should retrieve values
+   */
+  private boolean retrieveValues;
+  
+  /**
+   * if should retrieve values
+   * @param theRetrieveValues
+   * @return this for chaining
+   */
+  public AttributeAssignFinder assignRetrieveValues(boolean theRetrieveValues) {
+    this.retrieveValues = theRetrieveValues;
+    return this;
+  }
+  
+  /**
+   * queryOptions for calls
+   */
+  private QueryOptions queryOptions;
+  
+  /**
+   * query options paging and sorting
+   * @param theQueryOptions
+   * @return this for chaining
+   */
+  public AttributeAssignFinder assignQueryOptions(QueryOptions theQueryOptions) {
+    this.queryOptions = theQueryOptions;
+    return this;
+  }
+  
   /**
    * id of attribute def name that there is an assignment on assignment of with a value or values (optional)
    */
@@ -99,6 +201,21 @@ public class AttributeAssignFinder {
   }
 
   /**
+   * if check attribute read on owner if applicable
+   */
+  private Boolean checkAttributeReadOnOwner;
+  
+  /**
+   * check read on owner
+   * @param theCheckAttributeReadOnOwner
+   * @return this for chaining
+   */
+  public AttributeAssignFinder assignCheckAttributeReadOnOwner(boolean theCheckAttributeReadOnOwner) {
+    this.checkAttributeReadOnOwner = theCheckAttributeReadOnOwner;
+    return this;
+  }
+  
+  /**
    * use security around attribute def?  default is true
    */
   private Boolean attributeCheckReadOnAttributeDef = null;
@@ -114,9 +231,29 @@ public class AttributeAssignFinder {
   }
   
   /**
+   * query these attribute assign types (if querying by attribute)
+   */
+  private AttributeAssignType attributeAssignType;
+  
+  /**
+   * assign the attribute assign type for querying by attribute
+   * @param theAttributeAssignType
+   * @return this for chaining
+   */
+  public AttributeAssignFinder assignAttributeAssignType(AttributeAssignType theAttributeAssignType) {
+    this.attributeAssignType = theAttributeAssignType;
+    return this;
+  }
+  
+  /**
    * attribute def names ids
    */
   private Collection<String> attributeDefNameIds;
+  
+  /**
+   * attribute def ids
+   */
+  private Collection<String> attributeDefIds;
   
   /**
    * attribute def name id to find
@@ -132,12 +269,35 @@ public class AttributeAssignFinder {
   }
   
   /**
+   * attribute def id to find
+   * @param attributeDefId
+   * @return this for chaining
+   */
+  public AttributeAssignFinder addAttributeDefId(String attributeDefId) {
+    if (this.attributeDefIds == null) {
+      this.attributeDefIds = new LinkedHashSet<String>();
+    }
+    this.attributeDefIds.add(attributeDefId);
+    return this;
+  }
+  
+  /**
    * attribute def name ids to find
    * @param theAttributeDefNameIds
    * @return this for chaining
    */
   public AttributeAssignFinder assignAttributeDefNameIds(Collection<String> theAttributeDefNameIds) {
     this.attributeDefNameIds = theAttributeDefNameIds;
+    return this;
+  }
+  
+  /**
+   * attribute def ids to find
+   * @param theAttributeDefIds
+   * @return this for chaining
+   */
+  public AttributeAssignFinder assignAttributeDefIds(Collection<String> theAttributeDefIds) {
+    this.attributeDefIds = theAttributeDefIds;
     return this;
   }
   
@@ -243,6 +403,180 @@ public class AttributeAssignFinder {
     this.includeAssignmentsOnAssignments = theIncludeAssignAssignmentsOnAssignments;
     return this;
   }
+
+  /**
+   * find all the attribute assigns
+   * @return the set of groups or the empty set if none found
+   */
+  public AttributeAssignFinderResults findAttributeAssignFinderResults() {
+
+    if (GrouperUtil.length(this.ownerGroupIds) > 0 || GrouperUtil.length(this.ownerStemIds) > 0
+      || GrouperUtil.length(this.ownerAttributeDefIds) > 0 
+      || GrouperUtil.length(this.ownerAttributeAssignIds) > 0) {
+      throw new RuntimeException("Invalid Query");
+    }
+    
+    Set<Object[]> results = null;
+    AttributeAssignFinderResults attributeAssignFinderResults = new AttributeAssignFinderResults();
+    
+    if (this.attributeAssignType != null) {
+      results = findAttributeAssignFinderResultsHelper(this.attributeDefIds, this.attributeDefNameIds, 
+          this.attributeAssignType);
+    } else {
+
+      // lets get all the attribute defs for each attributeDefId and attributeDefNameId
+      // note, this is not a secure query, that will come later
+      final Map<String, AttributeDef> attributeDefIdToAttributeDefMap = new HashMap<String, AttributeDef>();
+      final Map<String, AttributeDef> attributeDefNameIdToAttributeDefMap = new HashMap<String, AttributeDef>();
+
+      GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
+
+        public Object callback(GrouperSession grouperSession)
+            throws GrouperSessionException {
+          
+          Set<AttributeDefName> attributeDefNamesFound = null;
+          Set<String> attributeDefIdsToQuery = new HashSet<String>();
+          if (AttributeAssignFinder.this.attributeDefIds != null) {
+            attributeDefIdsToQuery.addAll(AttributeAssignFinder.this.attributeDefIds);
+          }
+          if (GrouperUtil.length(AttributeAssignFinder.this.attributeDefNameIds) > 0) {
+            attributeDefNamesFound = new AttributeDefNameFinder().assignIdsOfAttributeDefNames(
+                AttributeAssignFinder.this.attributeDefNameIds).findAttributeNames();
+            for (AttributeDefName attributeDefName : attributeDefNamesFound) {
+              attributeDefIdsToQuery.add(attributeDefName.getAttributeDefId());
+            }
+          }
+          if (GrouperUtil.length(attributeDefIdsToQuery) > 0) {
+            Set<AttributeDef> attributeDefsFound = new AttributeDefFinder().assignAttributeDefIds(attributeDefIdsToQuery).findAttributes();
+            for (AttributeDef attributeDef : attributeDefsFound) {
+              attributeDefIdToAttributeDefMap.put(attributeDef.getId(), attributeDef);
+            }
+          }
+          for (AttributeDefName attributeDefName : attributeDefNamesFound) {
+            AttributeDef attributeDefFound = attributeDefIdToAttributeDefMap.get(attributeDefName.getAttributeDefId());
+            attributeDefNameIdToAttributeDefMap.put(attributeDefName.getId(), attributeDefFound);
+          }
+          
+          return null;
+        }
+        
+      });
+      
+      // we know all the attribute defs, sort them by type
+      Map<AttributeAssignType, Set<String>> attributeAssignTypeToAttributeDefIds = new TreeMap<AttributeAssignType, Set<String>>();
+      Map<AttributeAssignType, Set<String>> attributeAssignTypeToAttributeDefNameIds = new TreeMap<AttributeAssignType, Set<String>>();
+      
+      for (String attributeDefId : GrouperUtil.nonNull(this.attributeDefIds)) {
+        AttributeDef attributeDef = attributeDefIdToAttributeDefMap.get(attributeDefId);
+        for (AttributeAssignType attributeAssignType : attributeDef.getAttributeAssignTypes()) {
+          Set<String> theseAttributeDefIds = attributeAssignTypeToAttributeDefIds.get(attributeAssignType);
+          if (theseAttributeDefIds == null) {
+            theseAttributeDefIds = new HashSet<String>();
+            attributeAssignTypeToAttributeDefIds.put(attributeAssignType, theseAttributeDefIds);
+          }
+          theseAttributeDefIds.add(attributeDefId);
+        }
+      }
+      
+      for (String attributeDefNameId : GrouperUtil.nonNull(this.attributeDefNameIds)) {
+        AttributeDef attributeDef = attributeDefNameIdToAttributeDefMap.get(attributeDefNameId);
+        for (AttributeAssignType attributeAssignType : attributeDef.getAttributeAssignTypes()) {
+          Set<String> theseAttributeDefNameIds = attributeAssignTypeToAttributeDefNameIds.get(attributeAssignType);
+          if (theseAttributeDefNameIds == null) {
+            theseAttributeDefNameIds = new HashSet<String>();
+            attributeAssignTypeToAttributeDefNameIds.put(attributeAssignType, theseAttributeDefNameIds);
+          }
+          theseAttributeDefNameIds.add(attributeDefNameId);
+        }
+      }
+      
+      results = new LinkedHashSet();
+      AttributeAssignType[] attributeAssignTypes = AttributeAssignType.values();
+      Arrays.sort(attributeAssignTypes);
+      
+      // do the specific query for each type
+      for (AttributeAssignType attributeAssignType : attributeAssignTypes) {
+        Set<String> attributeDefIdsToQuery = attributeAssignTypeToAttributeDefIds.get(attributeAssignType);
+        Set<String> attributeDefIdNamesToQuery = attributeAssignTypeToAttributeDefNameIds.get(attributeAssignType);
+        
+        if (GrouperUtil.length(attributeDefIdsToQuery) > 0 || GrouperUtil.length(attributeDefIdNamesToQuery) > 0) {
+          Set<Object[]> tempResults = findAttributeAssignFinderResultsHelper(attributeDefIdsToQuery, attributeDefIdNamesToQuery, 
+              attributeAssignType);
+          results.addAll(tempResults);
+        }
+        
+      }
+    }
+
+    attributeAssignFinderResults.setResultObjects(results);
+    
+    return attributeAssignFinderResults;
+
+  }
+
+  /**
+   * get the attribute assign finder results for a certain type
+   * @param theAttributeDefIds
+   * @param theAttributeDefNameIds
+   * @param theAttributeAssignType
+   * @return the results
+   */
+  private Set<Object[]> findAttributeAssignFinderResultsHelper(Collection<String> theAttributeDefIds, Collection<String> theAttributeDefNameIds, 
+      AttributeAssignType theAttributeAssignType) {
+    if (theAttributeAssignType == AttributeAssignType.stem) {
+      
+      return GrouperDAOFactory.getFactory().getAttributeAssign().findStemAttributeAssignmentsByAttribute(theAttributeDefIds, theAttributeDefNameIds, 
+          null, true, this.checkAttributeReadOnOwner, this.attributeCheckReadOnAttributeDef, 
+          this.queryOptions, this.retrieveValues, this.includeAssignmentsOnAssignments, this.scope, this.splitScope);
+
+    } else if (theAttributeAssignType == AttributeAssignType.attr_def) {
+      
+      return GrouperDAOFactory.getFactory().getAttributeAssign().findAttributeDefAttributeAssignmentsByAttribute(theAttributeDefIds, theAttributeDefNameIds, 
+          null, true, this.checkAttributeReadOnOwner, this.attributeCheckReadOnAttributeDef, 
+          this.queryOptions, this.retrieveValues, this.includeAssignmentsOnAssignments, this.scope, this.splitScope);
+
+    } else if (theAttributeAssignType == AttributeAssignType.group) {
+        
+      return GrouperDAOFactory.getFactory().getAttributeAssign().findGroupAttributeAssignmentsByAttribute(
+          theAttributeDefIds, theAttributeDefNameIds, 
+          null, true, this.checkAttributeReadOnOwner, this.attributeCheckReadOnAttributeDef, 
+          this.queryOptions, this.retrieveValues, this.includeAssignmentsOnAssignments, this.scope, this.splitScope);
+        
+    } else if (theAttributeAssignType == AttributeAssignType.member) {
+      
+      return GrouperDAOFactory.getFactory().getAttributeAssign().findMemberAttributeAssignmentsByAttribute(
+          theAttributeDefIds, theAttributeDefNameIds, 
+          null, true, this.attributeCheckReadOnAttributeDef, 
+          this.queryOptions, this.retrieveValues, this.includeAssignmentsOnAssignments, this.scope, this.splitScope);
+        
+    } else if (theAttributeAssignType == AttributeAssignType.group_asgn) {
+        
+      return GrouperDAOFactory.getFactory().getAttributeAssign().findGroupAttributeAssignmentsOnAssignmentsByAttribute(
+          theAttributeDefIds, theAttributeDefNameIds, 
+            null, true, this.checkAttributeReadOnOwner, this.attributeCheckReadOnAttributeDef, this.queryOptions, this.retrieveValues, this.scope, this.splitScope);
+              
+    } else if (theAttributeAssignType == AttributeAssignType.stem_asgn) {
+      
+      return GrouperDAOFactory.getFactory().getAttributeAssign().findStemAttributeAssignmentsOnAssignmentsByAttribute(
+          theAttributeDefIds, theAttributeDefNameIds, 
+          null, true, this.checkAttributeReadOnOwner, this.attributeCheckReadOnAttributeDef, this.queryOptions, this.retrieveValues, this.scope, this.splitScope);
+            
+    } else if (theAttributeAssignType == AttributeAssignType.attr_def_asgn) {
+      
+      return GrouperDAOFactory.getFactory().getAttributeAssign().findAttributeDefAttributeAssignmentsOnAssignmentsByAttribute(
+          theAttributeDefIds, theAttributeDefNameIds, 
+          null, true, this.checkAttributeReadOnOwner, this.attributeCheckReadOnAttributeDef, this.queryOptions, this.retrieveValues, this.scope, this.splitScope);
+            
+    } else if (theAttributeAssignType == AttributeAssignType.mem_asgn) {
+      
+      return GrouperDAOFactory.getFactory().getAttributeAssign().findMemberAttributeAssignmentsOnAssignmentsByAttribute(
+          theAttributeDefIds, theAttributeDefNameIds, 
+          null, true, this.attributeCheckReadOnAttributeDef, this.queryOptions, this.retrieveValues, this.scope, this.splitScope);
+            
+    }
+    return new HashSet<Object[]>();
+    //throw new RuntimeException("Not support type: " + theAttributeAssignType);
+  }
   
   /**
    * find all the attribute assigns
@@ -250,6 +584,18 @@ public class AttributeAssignFinder {
    */
   public Set<AttributeAssign> findAttributeAssigns() {
   
+    if (!StringUtils.isBlank(this.scope) ) {
+      throw new RuntimeException("scope not supported in this call");
+      
+    }
+    if (this.retrieveValues) {
+      throw new RuntimeException("retrieveValues not supported in this call");
+    }
+
+    if (this.queryOptions != null) {
+      throw new RuntimeException("queryOptions not supported in this call");
+    }
+    
     if (GrouperConfig.retrieveConfig().propertyValueBoolean("grouper.emptySetOfLookupsReturnsNoResults", true)) {
   
       // if passed in empty set of group ids and no names, then no groups found
@@ -273,8 +619,11 @@ public class AttributeAssignFinder {
     if (GrouperUtil.length(this.ownerAttributeAssignIds) > 0) {
       ownerCount++;
     }
+    if (this.attributeAssignType != null) {
+      ownerCount++;
+    }
     if (ownerCount > 1) {
-      throw new RuntimeException("Can only pass one type of owner: groups, stems, attributeDefs, attributeAssigns, but has " + ownerCount + " types");
+      throw new RuntimeException("Can only pass one type of owner: groups, stems, attributeDefs, attributeAssigns, attributeAssignType, but has " + ownerCount + " types");
     }
 
     if (this.ownerGroupIds != null) {
@@ -324,6 +673,13 @@ public class AttributeAssignFinder {
       return GrouperDAOFactory.getFactory().getAttributeAssign()
           .findAssignmentsFromAssignmentsByIds(this.attributeDefNameIds, null, null, true);
 
+    }
+    
+    if (this.attributeAssignType != null) {
+      if (GrouperUtil.length(this.attributeDefNameIds) == 0 ) {
+        throw new RuntimeException("You need to pass in attributeDefNameIds if you are querying by attribute");
+      }
+      throw new RuntimeException("This query is not yet supported");
     }
     
     throw new RuntimeException("Bad query");
