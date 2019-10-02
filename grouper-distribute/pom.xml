@@ -18,7 +18,7 @@
     <description>Internet2 Groups Management distribute package</description>
     <artifactId>grouper-distribute</artifactId>
     <packaging>pom</packaging>
-    <version>2.4.0-a72-u43-w7-p9.1</version>
+    <version>2_4_0-a74-u44-w8-p11.1</version>
 
     <dependencies>
         <dependency>
