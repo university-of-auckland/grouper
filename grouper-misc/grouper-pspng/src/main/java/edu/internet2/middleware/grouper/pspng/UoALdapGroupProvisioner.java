@@ -257,7 +257,9 @@ public class UoALdapGroupProvisioner extends LdapGroupProvisioner {
                 String dn = getDnFromLdif(ldifFromTemplate);
                 LdapObject ldapObject = getLdapSystem().performLdapRead(dn, returnAttributes);
 
-                result.put(grouperGroup, new LdapGroup(ldapObject));
+                if (ldapObject != null) {
+                    result.put(grouperGroup, new LdapGroup(ldapObject));
+                }
             } catch (IOException e) {
                 LOG.error("{} Exception caught, skip group {}", getDisplayName(), grouperGroup.getName(), e);
             }
